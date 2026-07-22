@@ -1,0 +1,26 @@
+name: MLEP
+# Minimal, GPU-ready spec for NVIDIA RTX 4090 (Ada, compute capability sm_89).
+#
+# The 4090 needs CUDA >= 11.8 -- older PyTorch/CUDA 11.7 builds ship no sm_89
+# kernels and fail at runtime with "no kernel image is available for execution
+# on the device". PyTorch 2.x with pytorch-cuda 11.8 (or 12.x) covers it.
+#
+# Create with:  conda env create -f environment.yaml
+# then:         conda activate MLEP
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pip
+  # --- PyTorch stack (CUDA 11.8 build has sm_89 kernels for the 4090) ---
+  - pytorch>=2.1
+  - torchvision>=0.16
+  - pytorch-cuda=11.8
+  # --- scientific / data deps actually imported by the code ---
+  - numpy>=1.23
+  - scipy>=1.10
+  - scikit-learn>=1.2
+  - pillow>=9.4          # bundles libwebp -> webp corruption test works
+  - opencv>=4.6          # cv2 (JPEG corruption via cv2.imencode)
