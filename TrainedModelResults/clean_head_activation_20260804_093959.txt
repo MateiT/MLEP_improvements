@@ -1,0 +1,59 @@
+Trained-model clean evaluation -- blur / JPEG head response
+date: 2026-08-04 09:46:26
+STATUS: complete -- 26/26 generators. This file is rewritten after each one, so it is safe to read now.
+checkpoint: results/degradation_20260803_151210_seed100_deg_baseline_2x2.pt
+  experiment=mlep_degradation  steps=200000  heads=['ai', 'blur', 'jpeg']  params=1.44M  bn_recalibrated=True
+  cfg={'window_sizes': [2], 'scales': [1.0, 0.5, 0.25], 'num_classes': 3}
+dataroot: datasets/TestDatasets
+geometry: resize 256 -> center crop 224   (checkpoint was trained at loadSize=256 cropSize=224)
+device=cuda (NVIDIA GeForce RTX 4090)  amp=True  batch=32  workers=8  seed=100  images_per_label=ALL
+
+Nothing on this pass was blurred or recompressed by the pipeline (blur_prob = jpg_prob = webp_prob = 0, so data_augment returns the image
+untouched). The blur and jpeg heads should therefore sit LOW. 'rate' is the fraction of images the head puts above 0.5; _real / _fake are the
+head's mean probability on the 0_real and 1_fake halves separately.
+
+READ disk_fmt AND THE _real/_fake SPLIT BEFORE CALLING A HIGH NUMBER A BUG. 'Clean' here means clean with respect to OUR pipeline only -- it says
+nothing about how the files were stored. Several sets ship 0_real as JPEG and 1_fake as PNG, and there the jpeg head is reading the container
+format, correctly, which happens to be the label. That is flagged as '<head>~label' in the verdict column: it is a property of the BENCHMARK,
+not a fault of the model, but it means an AI-vs-real score on those sets can be earned from a compression cue rather than from generator
+artefacts, and should be quoted with that caveat.
+
+The cue only survives when the image is not downscaled on the way in: a 256x256 JPEG real keeps its 8x8 blocks and reads ~0.9, while a 500x375 or
+1024x1024 JPEG resized down to 256 reads ~0.02-0.08 because the resize destroys them.
+
+========================================================================================================================================================
+           generator            set      n  disk_fmt  blur_mean  blur_real  blur_fake  blur_rate  jpeg_mean  jpeg_real  jpeg_fake  jpeg_rate     verdict
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+               DALLE  Diffusion-set   4000       png      0.046      0.074      0.018      0.018      0.064      0.125      0.004      0.063       quiet
+               dalle  Diffusion-set   2000   jpg,png      0.221      0.382      0.060      0.164      0.521      0.914      0.129      0.529  jpeg~label
+                ddpm  Diffusion-set  19992       png      0.421      0.388      0.454      0.372      0.222      0.442      0.003      0.218       quiet
+        glide_100_10  Diffusion-set   2000   jpg,png      0.245      0.382      0.108      0.198      0.458      0.914      0.001      0.466  jpeg~label
+        glide_100_27  Diffusion-set   2000   jpg,png      0.249      0.382      0.117      0.202      0.457      0.914      0.000      0.465  jpeg~label
+         glide_50_27  Diffusion-set   2000   jpg,png      0.248      0.382      0.114      0.199      0.458      0.914      0.001      0.466  jpeg~label
+              guided  Diffusion-set   2000  jpeg,png      0.056      0.063      0.050      0.025      0.041      0.081      0.001      0.039       quiet
+    guided-diffusion  Diffusion-set   4000       png      0.060      0.074      0.047      0.026      0.064      0.125      0.003      0.062       quiet
+  improved-diffusion  Diffusion-set   4000       png      0.440      0.074      0.807      0.445      0.063      0.125      0.000      0.061  blur~label
+             ldm_100  Diffusion-set   2000   jpg,png      0.198      0.382      0.014      0.150      0.458      0.914      0.003      0.467  jpeg~label
+             ldm_200  Diffusion-set   2000   jpg,png      0.199      0.382      0.017      0.150      0.458      0.914      0.001      0.466  jpeg~label
+         ldm_200_cfg  Diffusion-set   2000   jpg,png      0.199      0.382      0.017      0.151      0.463      0.914      0.011      0.470  jpeg~label
+          midjourney  Diffusion-set   4000       png      0.077      0.074      0.081      0.041      0.064      0.125      0.003      0.063       quiet
+              biggan      GAN-set-1   4000       png      0.065      0.074      0.057      0.026      0.066      0.125      0.007      0.065       quiet
+                 crn      GAN-set-1  12764       png      0.508      0.350      0.666      0.521      0.000      0.000      0.000      0.000   HOT: blur
+            cyclegan      GAN-set-1   2642       png      0.261      0.427      0.095      0.193      0.470      0.939      0.001      0.472  jpeg~label
+            deepfake      GAN-set-1   5405       png      0.641      0.365      0.918      0.641      0.029      0.046      0.013      0.026  blur~label
+              gaugan      GAN-set-1  10000       png      0.031      0.035      0.028      0.004      0.026      0.051      0.000      0.025       quiet
+                imle      GAN-set-1  12764       png      0.181      0.350      0.013      0.161      0.000      0.000      0.000      0.000       quiet
+              progan      GAN-set-1   8000       png      0.040      0.014      0.065      0.017      0.003      0.004      0.001      0.002       quiet
+                 san      GAN-set-1    438   png,bmp      0.190      0.063      0.316      0.155      0.037      0.067      0.007      0.034       quiet
+          seeingdark      GAN-set-1    360       png      0.009      0.011      0.007      0.000      0.000      0.000      0.000      0.000       quiet
+             stargan      GAN-set-1   3998       png      0.047      0.089      0.006      0.023      0.046      0.091      0.000      0.039       quiet
+            stylegan      GAN-set-1  11982       png      0.094      0.180      0.007      0.081      0.168      0.335      0.000      0.168       quiet
+           stylegan2      GAN-set-1  15976       png      0.055      0.097      0.014      0.020      0.126      0.252      0.000      0.126       quiet
+     whichfaceisreal      GAN-set-1   2000      jpeg      0.021      0.033      0.009      0.002      0.010      0.020      0.000      0.008       quiet
+========================================================================================================================================================
+
+Overall, pooled over every generator scored so far:
+  blur : mean p=0.213  rate(>0.5)=0.186  2/26 generators above 0.5 rate  -> as expected (quiet)
+         2/26 generators have the blur head separating real from fake by >0.5 -- see the 'blur~label' rows above
+  jpeg : mean p=0.128  rate(>0.5)=0.128  1/26 generators above 0.5 rate  -> as expected (quiet)
+         8/26 generators have the jpeg head separating real from fake by >0.5 -- see the 'jpeg~label' rows above

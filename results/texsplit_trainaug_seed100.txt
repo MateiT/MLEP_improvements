@@ -1,0 +1,51 @@
+MLEP window / robustness sweep
+date: 2026-08-01 16:53:12
+STATUS: complete -- 4/4 configs.
+device=cuda (NVIDIA GeForce RTX 4090)  arch=resnet18  amp=True  workers=8  steps=3000  crop=224  batch=16  lr=0.0002  seed=100  classes=car,cat,chair,horse,boat,person,dog,bird  val_batches=50  bn_recal=50
+
+Per-model results
+------------------------------------------------------------
+[texsplit_2x2_train_blur]  {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25], 'texture_split': True, 'texture_patch_size': 16, 'train_aug': {'blur_prob': 0.5, 'blur_sig': [0.0, 3.0]}}
+    in_channels=18  params=0.68M  steps=3000  train_time=103s
+    test/clean       acc=0.9550  ap=0.9931  (n=800)  acc_best=0.9587  logit_mean=-0.57
+    test/blur        acc=0.6825  ap=0.6879  (n=800)  acc_best=0.6937  logit_mean=+0.22
+    test/jpeg        acc=0.5200  ap=0.4188  (n=800)  acc_best=0.5262  logit_mean=-5.43
+    test/webp        acc=0.5175  ap=0.4174  (n=800)  acc_best=0.5288  logit_mean=-6.13
+    test/blur+jpeg   acc=0.5225  ap=0.4225  (n=800)  acc_best=0.5288  logit_mean=-5.47
+
+[baseline_train_blur]  {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25], 'train_aug': {'blur_prob': 0.5, 'blur_sig': [0.0, 3.0]}}
+    in_channels=9  params=0.68M  steps=3000  train_time=52s
+    test/clean       acc=0.9575  ap=0.9926  (n=800)  acc_best=0.9613  logit_mean=-0.38
+    test/blur        acc=0.6825  ap=0.7209  (n=800)  acc_best=0.7013  logit_mean=-0.47
+    test/jpeg        acc=0.5250  ap=0.4177  (n=800)  acc_best=0.5262  logit_mean=-5.71
+    test/webp        acc=0.5250  ap=0.4152  (n=800)  acc_best=0.5275  logit_mean=-6.37
+    test/blur+jpeg   acc=0.5262  ap=0.4175  (n=800)  acc_best=0.5262  logit_mean=-6.57
+
+[baseline_train_jpeg]  {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25], 'train_aug': {'jpg_prob': 0.5, 'jpg_qual': [30, 100], 'jpg_method': ['cv2', 'pil']}}
+    in_channels=9  params=0.68M  steps=3000  train_time=58s
+    test/clean       acc=0.9463  ap=0.9865  (n=800)  acc_best=0.9550  logit_mean=+0.51
+    test/blur        acc=0.6400  ap=0.6119  (n=800)  acc_best=0.6550  logit_mean=+0.36
+    test/jpeg        acc=0.5138  ap=0.4726  (n=800)  acc_best=0.5262  logit_mean=-0.80
+    test/webp        acc=0.5112  ap=0.4940  (n=800)  acc_best=0.5587  logit_mean=-0.54
+    test/blur+jpeg   acc=0.5212  ap=0.4508  (n=800)  acc_best=0.5262  logit_mean=-1.47
+
+[texsplit_2x2_train_jpeg]  {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25], 'texture_split': True, 'texture_patch_size': 16, 'train_aug': {'jpg_prob': 0.5, 'jpg_qual': [30, 100], 'jpg_method': ['cv2', 'pil']}}
+    in_channels=18  params=0.68M  steps=3000  train_time=103s
+    test/clean       acc=0.9187  ap=0.9855  (n=800)  acc_best=0.9400  logit_mean=+0.68
+    test/blur        acc=0.6275  ap=0.6092  (n=800)  acc_best=0.6350  logit_mean=+0.27
+    test/jpeg        acc=0.5038  ap=0.4616  (n=800)  acc_best=0.5288  logit_mean=-0.58
+    test/webp        acc=0.5375  ap=0.4903  (n=800)  acc_best=0.5425  logit_mean=-0.40
+    test/blur+jpeg   acc=0.5088  ap=0.4410  (n=800)  acc_best=0.5275  logit_mean=-1.45
+
+Average Precision (AP) per test scenario  [higher = more robust]
+=========================================================================================
+config                        clean       blur       jpeg       webp  blur+jpeg   time(s)
+-----------------------------------------------------------------------------------------
+texsplit_2x2_train_blur      0.9931     0.6879     0.4188     0.4174     0.4225       103
+baseline_train_blur          0.9926     0.7209     0.4177     0.4152     0.4175        52
+baseline_train_jpeg          0.9865     0.6119     0.4726     0.4940     0.4508        58
+texsplit_2x2_train_jpeg      0.9855     0.6092     0.4616     0.4903     0.4410       103
+=========================================================================================
+Cols: clean vs corrupted test sets. Compare a config's clean AP with its blur / jpeg / webp / blur+jpeg AP to read off robustness.
+acc is at the fixed 0.5 threshold; acc_best is the best any threshold could do. acc << acc_best means the scores separate the classes but the decision boundary is misplaced -- check bn_recal.
+Note: short training -> ranking is indicative. Re-run the top configs with more --max_train_steps to confirm.

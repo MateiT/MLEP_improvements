@@ -1,0 +1,49 @@
+MLEP window / robustness sweep
+date: 2026-07-25 10:11:13
+device=cuda (NVIDIA GeForce RTX 4090)  arch=resnet18  amp=True  workers=8  steps=200  crop=224  batch=64  lr=0.0002  classes=car  val_batches=20
+
+Per-model results
+------------------------------------------------------------
+[baseline_train_jpeg]  {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25], 'train_aug': {'jpg_prob': 0.5, 'jpg_qual': [30, 100], 'jpg_method': ['cv2', 'pil']}}
+    in_channels=9  params=0.68M  steps=200  train_time=13s
+    test/clean       acc=0.5100  ap=0.9510  (n=400)
+    test/blur        acc=0.4975  ap=0.6566  (n=400)
+    test/jpeg        acc=0.5025  ap=0.5255  (n=400)
+    test/webp        acc=0.4975  ap=0.4857  (n=400)
+    test/blur+jpeg   acc=0.4875  ap=0.5237  (n=400)
+
+[baseline_train_blur]  {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25], 'train_aug': {'blur_prob': 0.5, 'blur_sig': [0.0, 3.0]}}
+    in_channels=9  params=0.68M  steps=200  train_time=12s
+    test/clean       acc=0.5275  ap=0.8846  (n=400)
+    test/blur        acc=0.5250  ap=0.6609  (n=400)
+    test/jpeg        acc=0.5000  ap=0.4589  (n=400)
+    test/webp        acc=0.5000  ap=0.4712  (n=400)
+    test/blur+jpeg   acc=0.5000  ap=0.4714  (n=400)
+
+[baseline_2x2]  {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]}
+    in_channels=9  params=0.68M  steps=200  train_time=20s
+    test/clean       acc=0.5000  ap=0.7254  (n=400)
+    test/blur        acc=0.5000  ap=0.5550  (n=400)
+    test/jpeg        acc=0.5000  ap=0.4744  (n=400)
+    test/webp        acc=0.5000  ap=0.4644  (n=400)
+    test/blur+jpeg   acc=0.5000  ap=0.4635  (n=400)
+
+[w3x3_multiscale]  {'window_sizes': [3], 'scales': [1.0, 0.5, 0.25]}
+    in_channels=9  params=0.68M  steps=200  train_time=107s
+    test/clean       acc=0.5000  ap=0.6132  (n=400)
+    test/blur        acc=0.5000  ap=0.5247  (n=400)
+    test/jpeg        acc=0.5000  ap=0.4790  (n=400)
+    test/webp        acc=0.5000  ap=0.4737  (n=400)
+    test/blur+jpeg   acc=0.5000  ap=0.4885  (n=400)
+
+Average Precision (AP) per test scenario  [higher = more robust]
+=====================================================================================
+config                    clean       blur       jpeg       webp  blur+jpeg   time(s)
+-------------------------------------------------------------------------------------
+baseline_train_jpeg      0.9510     0.6566     0.5255     0.4857     0.5237        13
+baseline_train_blur      0.8846     0.6609     0.4589     0.4712     0.4714        12
+baseline_2x2             0.7254     0.5550     0.4744     0.4644     0.4635        20
+w3x3_multiscale          0.6132     0.5247     0.4790     0.4737     0.4885       107
+=====================================================================================
+Cols: clean vs corrupted test sets. Compare a config's clean AP with its blur / jpeg / webp / blur+jpeg AP to read off robustness.
+Note: short training -> ranking is indicative. Re-run the top configs with more --max_train_steps to confirm.

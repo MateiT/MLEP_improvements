@@ -1,0 +1,117 @@
+Trained-model perturbation sweep -- blur / JPEG / WebP
+date: 2026-08-04 09:48:19
+STATUS: complete -- 40/40 generator x condition runs. This file is rewritten after each one, so it is safe to read now.
+checkpoint: results/degradation_20260803_151210_seed100_deg_baseline_2x2.pt
+  experiment=mlep_degradation  steps=200000  heads=['ai', 'blur', 'jpeg']  params=1.44M  bn_recalibrated=True
+  cfg={'window_sizes': [2], 'scales': [1.0, 0.5, 0.25], 'num_classes': 3}
+dataroot: datasets/TestDatasets
+geometry: resize 256 -> center crop 224   (checkpoint was trained at loadSize=256 cropSize=224)
+device=cuda (NVIDIA GeForce RTX 4090)  amp=True  batch=32  workers=8  seed=100  images_per_label=500
+
+Selection: best and worst GAN + best and worst diffusion generator by AP on the clean run
+  source: TrainedModelResults/clean_predictions_20260804_093959.csv
+  worst_gan        GAN-set-1/crn                            clean ap=35.4%
+  best_gan         GAN-set-1/stargan                        clean ap=100.0%
+  worst_diffusion  Diffusion-set/improved-diffusion         clean ap=49.6%
+  best_diffusion   Diffusion-set/ldm_200                    clean ap=99.9%
+
+Each condition is applied with prob=1.0, i.e. to EVERY image, so the rows are deterministic. Blur runs before JPEG, the order data_augment uses.
+Blur sigmas and JPEG qualities are the checkpoint's own training levels, so the blur/jpeg head columns are interpretable against what it was
+taught. WebP was NOT in the training grid -- those three rows are an out-of-distribution probe, and the jpeg head's response to them is the
+interesting part. d_acc / d_ap are percentage-point changes from this generator's clean row at the same image cap.
+
+worst_gan: GAN-set-1/crn
+================================================================
+  condition     n   acc    ap  d_acc  d_ap  blur_mean  jpeg_mean
+----------------------------------------------------------------
+      clean  1000  48.1  35.9      -     -      0.515      0.000
+   blur_0.5  1000  39.8  35.6   -8.3  -0.4      0.822      0.000
+   blur_1.5  1000  50.9  47.3    2.8  11.4      0.981      0.000
+   blur_3.0  1000  58.8  73.4   10.7  37.4      0.980      0.000
+   jpeg_q75  1000  67.1  59.4   19.0  23.4      0.616      0.999
+   jpeg_q45  1000  63.7  62.0   15.6  26.1      0.648      0.999
+   jpeg_q15  1000  52.9  50.7    4.8  14.8      0.732      1.000
+   webp_q80  1000  55.7  52.2    7.6  16.3      0.690      1.000
+   webp_q50  1000  62.0  64.5   13.9  28.6      0.780      1.000
+   webp_q20  1000  58.5  64.5   10.4  28.6      0.857      1.000
+================================================================
+
+best_gan: GAN-set-1/stargan
+===================================================================
+  condition     n    acc     ap  d_acc   d_ap  blur_mean  jpeg_mean
+-------------------------------------------------------------------
+      clean  1000  100.0  100.0      -      -      0.045      0.043
+   blur_0.5  1000   99.4  100.0   -0.6   -0.0      0.677      0.001
+   blur_1.5  1000   95.5   99.1   -4.5   -0.9      0.956      0.000
+   blur_3.0  1000   78.3   93.3  -21.7   -6.7      0.997      0.000
+   jpeg_q75  1000   58.7   58.7  -41.3  -41.3      0.770      1.000
+   jpeg_q45  1000   55.8   53.9  -44.2  -46.1      0.805      1.000
+   jpeg_q15  1000   53.6   51.0  -46.4  -49.0      0.837      1.000
+   webp_q80  1000   57.2   55.4  -42.8  -44.6      0.834      1.000
+   webp_q50  1000   57.7   56.8  -42.3  -43.2      0.839      1.000
+   webp_q20  1000   54.5   53.8  -45.5  -46.2      0.888      1.000
+===================================================================
+
+worst_diffusion: Diffusion-set/improved-diffusion
+================================================================
+  condition     n   acc    ap  d_acc  d_ap  blur_mean  jpeg_mean
+----------------------------------------------------------------
+      clean  1000  53.4  48.1      -     -      0.444      0.073
+   blur_0.5  1000  34.1  40.0  -19.3  -8.1      0.624      0.018
+   blur_1.5  1000  48.4  41.0   -5.0  -7.1      0.907      0.016
+   blur_3.0  1000  60.9  55.0    7.5   6.9      0.977      0.016
+   jpeg_q75  1000  46.8  46.3   -6.6  -1.8      0.565      0.998
+   jpeg_q45  1000  53.6  52.1    0.2   3.9      0.605      0.998
+   jpeg_q15  1000  47.1  44.8   -6.3  -3.4      0.690      0.999
+   webp_q80  1000  54.6  50.5    1.2   2.3      0.611      0.998
+   webp_q50  1000  58.1  54.4    4.7   6.2      0.663      0.997
+   webp_q20  1000  58.8  56.1    5.4   7.9      0.741      0.998
+================================================================
+
+best_diffusion: Diffusion-set/ldm_200
+=================================================================
+  condition     n   acc    ap  d_acc   d_ap  blur_mean  jpeg_mean
+-----------------------------------------------------------------
+      clean  1000  89.9  99.9      -      -      0.196      0.458
+   blur_0.5  1000  93.4  98.9    3.5   -1.0      0.385      0.031
+   blur_1.5  1000  86.7  92.3   -3.2   -7.6      0.840      0.024
+   blur_3.0  1000  82.0  85.6   -7.9  -14.3      0.937      0.034
+   jpeg_q75  1000  66.0  74.7  -23.9  -25.2      0.418      0.967
+   jpeg_q45  1000  54.0  55.0  -35.9  -44.8      0.481      0.979
+   jpeg_q15  1000  56.5  55.3  -33.4  -44.6      0.600      0.992
+   webp_q80  1000  70.0  72.2  -19.9  -27.6      0.495      0.973
+   webp_q50  1000  66.9  73.6  -23.0  -26.3      0.537      0.974
+   webp_q20  1000  67.0  76.3  -22.9  -23.6      0.590      0.952
+=================================================================
+
+Monotonicity of AP within each ladder (expected: non-increasing as severity rises)
+  crn                      blur : 35.6 -> 47.3 -> 73.4   NOT monotone
+  crn                      jpeg : 59.4 -> 62.0 -> 50.7   NOT monotone
+  crn                      webp : 52.2 -> 64.5 -> 64.5   NOT monotone
+  stargan                  blur : 100.0 -> 99.1 -> 93.3   monotone
+  stargan                  jpeg : 58.7 -> 53.9 -> 51.0   monotone
+  stargan                  webp : 55.4 -> 56.8 -> 53.8   NOT monotone
+  improved-diffusion       blur : 40.0 -> 41.0 -> 55.0   NOT monotone
+  improved-diffusion       jpeg : 46.3 -> 52.1 -> 44.8   NOT monotone
+  improved-diffusion       webp : 50.5 -> 54.4 -> 56.1   NOT monotone
+  ldm_200                  blur : 98.9 -> 92.3 -> 85.6   monotone
+  ldm_200                  jpeg : 74.7 -> 55.0 -> 55.3   NOT monotone
+  ldm_200                  webp : 72.2 -> 73.6 -> 76.3   NOT monotone
+
+A non-monotone ladder is a real result, not noise to smooth over: it means a heavier corruption helped, which is worth explaining.
+
+Mean over the selected generators, per condition
+================================================================
+  condition  generators  mean_acc  mean_ap  blur_mean  jpeg_mean
+----------------------------------------------------------------
+      clean           4      72.8     71.0      0.300      0.144
+   blur_0.5           4      66.7     68.6      0.627      0.012
+   blur_1.5           4      70.4     69.9      0.921      0.010
+   blur_3.0           4      70.0     76.8      0.973      0.012
+   jpeg_q75           4      59.7     59.8      0.592      0.991
+   jpeg_q45           4      56.8     55.8      0.635      0.994
+   jpeg_q15           4      52.5     50.4      0.715      0.998
+   webp_q80           4      59.4     57.6      0.658      0.993
+   webp_q50           4      61.2     62.3      0.705      0.993
+   webp_q20           4      59.7     62.7      0.769      0.987
+================================================================

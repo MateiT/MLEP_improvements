@@ -1,0 +1,51 @@
+MLEP window / robustness sweep
+date: 2026-08-01 17:13:22
+STATUS: complete -- 4/4 configs.
+device=cuda (NVIDIA GeForce RTX 4090)  arch=resnet18  amp=True  workers=8  steps=3000  crop=224  batch=16  lr=0.0002  seed=100  classes=car,cat,chair,horse,boat,person,dog,bird  val_batches=50  bn_recal=50
+
+Per-model results
+------------------------------------------------------------
+[baseline_2x2]  {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]}
+    in_channels=9  params=0.68M  steps=3000  train_time=69s
+    test/clean       acc=0.9812  ap=0.9979  (n=800)  acc_best=0.9838  logit_mean=-0.18
+    test/blur        acc=0.5575  ap=0.6813  (n=800)  acc_best=0.6950  logit_mean=+3.46
+    test/jpeg        acc=0.5250  ap=0.4191  (n=800)  acc_best=0.5262  logit_mean=-11.16
+    test/webp        acc=0.5238  ap=0.4191  (n=800)  acc_best=0.5262  logit_mean=-12.04
+    test/blur+jpeg   acc=0.5262  ap=0.4267  (n=800)  acc_best=0.5262  logit_mean=-14.44
+
+[baseline_train_jpeg]  {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25], 'train_aug': {'jpg_prob': 0.5, 'jpg_qual': [30, 100], 'jpg_method': ['cv2', 'pil']}}
+    in_channels=9  params=0.68M  steps=3000  train_time=61s
+    test/clean       acc=0.9463  ap=0.9865  (n=800)  acc_best=0.9550  logit_mean=+0.51
+    test/blur        acc=0.6362  ap=0.6118  (n=800)  acc_best=0.6550  logit_mean=+0.37
+    test/jpeg        acc=0.5125  ap=0.4726  (n=800)  acc_best=0.5275  logit_mean=-0.80
+    test/webp        acc=0.5112  ap=0.4937  (n=800)  acc_best=0.5587  logit_mean=-0.56
+    test/blur+jpeg   acc=0.5225  ap=0.4509  (n=800)  acc_best=0.5262  logit_mean=-1.48
+
+[baseline_train_jpeg_p1]  {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25], 'train_aug': {'jpg_prob': 1.0, 'jpg_qual': [30, 100], 'jpg_method': ['cv2', 'pil']}}
+    in_channels=9  params=0.68M  steps=3000  train_time=46s
+    test/clean       acc=0.8550  ap=0.9339  (n=800)  acc_best=0.8688  logit_mean=+0.25
+    test/blur        acc=0.5288  ap=0.4927  (n=800)  acc_best=0.5375  logit_mean=-0.57
+    test/jpeg        acc=0.5212  ap=0.4747  (n=800)  acc_best=0.5387  logit_mean=-0.40
+    test/webp        acc=0.5212  ap=0.4557  (n=800)  acc_best=0.5288  logit_mean=-0.40
+    test/blur+jpeg   acc=0.5175  ap=0.4295  (n=800)  acc_best=0.5262  logit_mean=-0.72
+
+[baseline_train_webp_p1]  {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25], 'train_aug': {'webp_prob': 1.0, 'webp_qual': [80]}}
+    in_channels=9  params=0.68M  steps=3000  train_time=77s
+    test/clean       acc=0.5300  ap=0.6431  (n=800)  acc_best=0.6400  logit_mean=+0.05
+    test/blur        acc=0.5262  ap=0.5079  (n=800)  acc_best=0.5525  logit_mean=+0.03
+    test/jpeg        acc=0.5537  ap=0.5950  (n=800)  acc_best=0.5950  logit_mean=+0.09
+    test/webp        acc=0.5513  ap=0.5484  (n=800)  acc_best=0.5975  logit_mean=+0.01
+    test/blur+jpeg   acc=0.5188  ap=0.5297  (n=800)  acc_best=0.5663  logit_mean=+0.21
+
+Average Precision (AP) per test scenario  [higher = more robust]
+========================================================================================
+config                       clean       blur       jpeg       webp  blur+jpeg   time(s)
+----------------------------------------------------------------------------------------
+baseline_2x2                0.9979     0.6813     0.4191     0.4191     0.4267        69
+baseline_train_jpeg         0.9865     0.6118     0.4726     0.4937     0.4509        61
+baseline_train_jpeg_p1      0.9339     0.4927     0.4747     0.4557     0.4295        46
+baseline_train_webp_p1      0.6431     0.5079     0.5950     0.5484     0.5297        77
+========================================================================================
+Cols: clean vs corrupted test sets. Compare a config's clean AP with its blur / jpeg / webp / blur+jpeg AP to read off robustness.
+acc is at the fixed 0.5 threshold; acc_best is the best any threshold could do. acc << acc_best means the scores separate the classes but the decision boundary is misplaced -- check bn_recal.
+Note: short training -> ranking is indicative. Re-run the top configs with more --max_train_steps to confirm.

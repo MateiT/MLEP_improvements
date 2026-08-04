@@ -1,0 +1,42 @@
+MLEP window / robustness sweep
+date: 2026-07-25 19:27:24
+STATUS: complete -- 3/3 configs.
+device=cuda (NVIDIA GeForce RTX 4090)  arch=resnet18  amp=True  workers=8  steps=3000  crop=224  batch=16  lr=0.0002  seed=100  classes=car,cat,chair,horse,boat,person,dog,bird  val_batches=50  bn_recal=50
+
+Per-model results
+------------------------------------------------------------
+[multiwindow_multiscale_aligned]  {'window_sizes': [2, 4, 6], 'scales': [1.0, 0.5, 0.25], 'window_align': 'pad'}
+    in_channels=27  params=0.69M  steps=3000  train_time=1024s
+    test/clean       acc=0.9525  ap=0.9944  (n=800)  acc_best=0.9650  logit_mean=-0.30
+    test/blur        acc=0.6050  ap=0.6472  (n=800)  acc_best=0.6737  logit_mean=+3.33
+    test/jpeg        acc=0.5188  ap=0.4146  (n=800)  acc_best=0.5262  logit_mean=-9.41
+    test/webp        acc=0.5250  ap=0.4071  (n=800)  acc_best=0.5275  logit_mean=-10.90
+    test/blur+jpeg   acc=0.5275  ap=0.4194  (n=800)  acc_best=0.5275  logit_mean=-11.42
+
+[baseline_train_blur]  {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25], 'train_aug': {'blur_prob': 0.5, 'blur_sig': [0.0, 3.0]}}
+    in_channels=9  params=0.68M  steps=3000  train_time=47s
+    test/clean       acc=0.9587  ap=0.9936  (n=800)  acc_best=0.9637  logit_mean=-0.43
+    test/blur        acc=0.6887  ap=0.7229  (n=800)  acc_best=0.7013  logit_mean=-0.41
+    test/jpeg        acc=0.5262  ap=0.4148  (n=800)  acc_best=0.5262  logit_mean=-5.74
+    test/webp        acc=0.5262  ap=0.4153  (n=800)  acc_best=0.5275  logit_mean=-6.28
+    test/blur+jpeg   acc=0.5262  ap=0.4170  (n=800)  acc_best=0.5262  logit_mean=-6.52
+
+[baseline_train_jpeg]  {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25], 'train_aug': {'jpg_prob': 0.5, 'jpg_qual': [30, 100], 'jpg_method': ['cv2', 'pil']}}
+    in_channels=9  params=0.68M  steps=3000  train_time=52s
+    test/clean       acc=0.9463  ap=0.9866  (n=800)  acc_best=0.9550  logit_mean=+0.48
+    test/blur        acc=0.6400  ap=0.6092  (n=800)  acc_best=0.6525  logit_mean=+0.28
+    test/jpeg        acc=0.5100  ap=0.4712  (n=800)  acc_best=0.5275  logit_mean=-0.82
+    test/webp        acc=0.5112  ap=0.4923  (n=800)  acc_best=0.5600  logit_mean=-0.57
+    test/blur+jpeg   acc=0.5238  ap=0.4533  (n=800)  acc_best=0.5262  logit_mean=-1.50
+
+Average Precision (AP) per test scenario  [higher = more robust]
+================================================================================================
+config                               clean       blur       jpeg       webp  blur+jpeg   time(s)
+------------------------------------------------------------------------------------------------
+multiwindow_multiscale_aligned      0.9944     0.6472     0.4146     0.4071     0.4194      1024
+baseline_train_blur                 0.9936     0.7229     0.4148     0.4153     0.4170        47
+baseline_train_jpeg                 0.9866     0.6092     0.4712     0.4923     0.4533        52
+================================================================================================
+Cols: clean vs corrupted test sets. Compare a config's clean AP with its blur / jpeg / webp / blur+jpeg AP to read off robustness.
+acc is at the fixed 0.5 threshold; acc_best is the best any threshold could do. acc << acc_best means the scores separate the classes but the decision boundary is misplaced -- check bn_recal.
+Note: short training -> ranking is indicative. Re-run the top configs with more --max_train_steps to confirm.

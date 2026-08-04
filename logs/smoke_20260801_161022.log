@@ -1,0 +1,195 @@
+Device: cuda (NVIDIA GeForce RTX 4090) | arch: resnet18 | steps: 200 | crop: 224 | batch: 16 | workers: 8 | amp: True
+Running 6 config(s): ['baseline_2x2', 'texsplit_2x2', 'texsplit_2x2_diff', 'multiwindow_multiscale_aligned', 'baseline_train_blur', 'baseline_train_jpeg']
+
+=== [1/6] baseline_2x2 : {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]} ===
+  [baseline_2x2] step 20/200  loss=0.3939  (2s)
+  [baseline_2x2] step 40/200  loss=0.6591  (2s)
+  [baseline_2x2] step 60/200  loss=0.5009  (3s)
+  [baseline_2x2] step 80/200  loss=0.3683  (3s)
+  [baseline_2x2] step 100/200  loss=0.3785  (4s)
+  [baseline_2x2] step 120/200  loss=0.2988  (4s)
+  [baseline_2x2] step 140/200  loss=0.2555  (4s)
+  [baseline_2x2] step 160/200  loss=0.2439  (4s)
+  [baseline_2x2] step 180/200  loss=0.0829  (5s)
+  [baseline_2x2] step 200/200  loss=0.0656  (5s)
+  [baseline_2x2] trained 200 steps in 5s (in_ch=9, params=0.68M)
+  [baseline_2x2] BN recalibrated on 50 train batches (1s)
+  [baseline_2x2] test/clean    : acc=0.9594 ap=0.9951 (n=320) [acc_best=0.9688 logit_mean=-0.74]
+  [baseline_2x2] test/blur     : acc=0.6094 ap=0.6717 (n=320) [acc_best=0.6438 logit_mean=+2.02]
+  [baseline_2x2] test/jpeg     : acc=0.4906 ap=0.5179 (n=320) [acc_best=0.5437 logit_mean=-5.98]
+  [baseline_2x2] test/webp     : acc=0.5000 ap=0.4866 (n=320) [acc_best=0.5156 logit_mean=-8.01]
+  [baseline_2x2] test/blur+jpeg: acc=0.5000 ap=0.5047 (n=320) [acc_best=0.5312 logit_mean=-7.88]
+  [baseline_2x2] done -- 1/6 written to results/smoke_20260801_161022.txt
+
+=== [2/6] texsplit_2x2 : {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25], 'texture_split': True, 'texture_patch_size': 16} ===
+  [texsplit_2x2] step 20/200  loss=0.6389  (1s)
+  [texsplit_2x2] step 40/200  loss=0.4456  (2s)
+  [texsplit_2x2] step 60/200  loss=0.5272  (3s)
+  [texsplit_2x2] step 80/200  loss=0.3898  (3s)
+  [texsplit_2x2] step 100/200  loss=0.3196  (4s)
+  [texsplit_2x2] step 120/200  loss=0.2784  (4s)
+  [texsplit_2x2] step 140/200  loss=0.3318  (5s)
+  [texsplit_2x2] step 160/200  loss=0.5635  (6s)
+  [texsplit_2x2] step 180/200  loss=0.0961  (6s)
+  [texsplit_2x2] step 200/200  loss=0.2323  (7s)
+  [texsplit_2x2] trained 200 steps in 7s (in_ch=18, params=0.68M)
+  [texsplit_2x2] BN recalibrated on 50 train batches (1s)
+  [texsplit_2x2] test/clean    : acc=0.8969 ap=0.9646 (n=320) [acc_best=0.9219 logit_mean=-0.37]
+  [texsplit_2x2] test/blur     : acc=0.5594 ap=0.6208 (n=320) [acc_best=0.5875 logit_mean=+3.03]
+  [texsplit_2x2] test/jpeg     : acc=0.4750 ap=0.4888 (n=320) [acc_best=0.5344 logit_mean=-4.93]
+  [texsplit_2x2] test/webp     : acc=0.4969 ap=0.4710 (n=320) [acc_best=0.5094 logit_mean=-6.30]
+  [texsplit_2x2] test/blur+jpeg: acc=0.4813 ap=0.4863 (n=320) [acc_best=0.5250 logit_mean=-3.93]
+  [texsplit_2x2] done -- 2/6 written to results/smoke_20260801_161022.txt
+
+=== [3/6] texsplit_2x2_diff : {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25], 'texture_split': True, 'texture_patch_size': 16, 'texture_split_mode': 'diff'} ===
+  [texsplit_2x2_diff] step 20/200  loss=0.4820  (1s)
+  [texsplit_2x2_diff] step 40/200  loss=0.4579  (2s)
+  [texsplit_2x2_diff] step 60/200  loss=0.4367  (2s)
+  [texsplit_2x2_diff] step 80/200  loss=0.5111  (3s)
+  [texsplit_2x2_diff] step 100/200  loss=0.4138  (4s)
+  [texsplit_2x2_diff] step 120/200  loss=0.2834  (5s)
+  [texsplit_2x2_diff] step 140/200  loss=0.4727  (5s)
+  [texsplit_2x2_diff] step 160/200  loss=0.2623  (6s)
+  [texsplit_2x2_diff] step 180/200  loss=0.2317  (7s)
+  [texsplit_2x2_diff] step 200/200  loss=0.2273  (7s)
+  [texsplit_2x2_diff] trained 200 steps in 7s (in_ch=9, params=0.68M)
+  [texsplit_2x2_diff] BN recalibrated on 50 train batches (1s)
+  [texsplit_2x2_diff] test/clean    : acc=0.8219 ap=0.9550 (n=320) [acc_best=0.8781 logit_mean=+1.26]
+  [texsplit_2x2_diff] test/blur     : acc=0.5656 ap=0.6497 (n=320) [acc_best=0.6562 logit_mean=+3.49]
+  [texsplit_2x2_diff] test/jpeg     : acc=0.4781 ap=0.4978 (n=320) [acc_best=0.5656 logit_mean=-4.30]
+  [texsplit_2x2_diff] test/webp     : acc=0.4875 ap=0.4865 (n=320) [acc_best=0.5094 logit_mean=-7.13]
+  [texsplit_2x2_diff] test/blur+jpeg: acc=0.4938 ap=0.5085 (n=320) [acc_best=0.5344 logit_mean=-5.34]
+  [texsplit_2x2_diff] done -- 3/6 written to results/smoke_20260801_161022.txt
+
+=== [4/6] multiwindow_multiscale_aligned : {'window_sizes': [2, 4, 6], 'scales': [1.0, 0.5, 0.25], 'window_align': 'pad'} ===
+  [multiwindow_multiscale_aligned] step 20/200  loss=0.6140  (7s)
+  [multiwindow_multiscale_aligned] step 40/200  loss=0.5572  (13s)
+  [multiwindow_multiscale_aligned] step 60/200  loss=0.5335  (20s)
+  [multiwindow_multiscale_aligned] step 80/200  loss=0.4579  (26s)
+  [multiwindow_multiscale_aligned] step 100/200  loss=0.4095  (33s)
+  [multiwindow_multiscale_aligned] step 120/200  loss=0.4146  (39s)
+  [multiwindow_multiscale_aligned] step 140/200  loss=0.5415  (46s)
+  [multiwindow_multiscale_aligned] step 160/200  loss=0.5143  (53s)
+  [multiwindow_multiscale_aligned] step 180/200  loss=0.6369  (59s)
+  [multiwindow_multiscale_aligned] step 200/200  loss=0.2965  (66s)
+  [multiwindow_multiscale_aligned] trained 200 steps in 66s (in_ch=27, params=0.69M)
+  [multiwindow_multiscale_aligned] BN recalibrated on 50 train batches (17s)
+  [multiwindow_multiscale_aligned] test/clean    : acc=0.8094 ap=0.8323 (n=320) [acc_best=0.8219 logit_mean=-0.52]
+  [multiwindow_multiscale_aligned] test/blur     : acc=0.6000 ap=0.5613 (n=320) [acc_best=0.6000 logit_mean=+0.64]
+  [multiwindow_multiscale_aligned] test/jpeg     : acc=0.4719 ap=0.4900 (n=320) [acc_best=0.5406 logit_mean=-3.51]
+  [multiwindow_multiscale_aligned] test/webp     : acc=0.4844 ap=0.4644 (n=320) [acc_best=0.5125 logit_mean=-5.75]
+  [multiwindow_multiscale_aligned] test/blur+jpeg: acc=0.4781 ap=0.4828 (n=320) [acc_best=0.5188 logit_mean=-4.75]
+  [multiwindow_multiscale_aligned] done -- 4/6 written to results/smoke_20260801_161022.txt
+
+=== [5/6] baseline_train_blur : {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25], 'train_aug': {'blur_prob': 0.5, 'blur_sig': [0.0, 3.0]}} ===
+  [baseline_train_blur] step 20/200  loss=0.5452  (1s)
+  [baseline_train_blur] step 40/200  loss=0.6052  (1s)
+  [baseline_train_blur] step 60/200  loss=0.6072  (1s)
+  [baseline_train_blur] step 80/200  loss=0.5904  (2s)
+  [baseline_train_blur] step 100/200  loss=0.9026  (2s)
+  [baseline_train_blur] step 120/200  loss=0.5044  (2s)
+  [baseline_train_blur] step 140/200  loss=0.6078  (3s)
+  [baseline_train_blur] step 160/200  loss=0.5891  (3s)
+  [baseline_train_blur] step 180/200  loss=0.5629  (3s)
+  [baseline_train_blur] step 200/200  loss=0.4394  (4s)
+  [baseline_train_blur] trained 200 steps in 4s (in_ch=9, params=0.68M)
+  [baseline_train_blur] BN recalibrated on 50 train batches (1s)
+  [baseline_train_blur] test/clean    : acc=0.7937 ap=0.8949 (n=320) [acc_best=0.8063 logit_mean=-0.87]
+  [baseline_train_blur] test/blur     : acc=0.6250 ap=0.6181 (n=320) [acc_best=0.6344 logit_mean=+0.05]
+  [baseline_train_blur] test/jpeg     : acc=0.4938 ap=0.5287 (n=320) [acc_best=0.5531 logit_mean=-4.09]
+  [baseline_train_blur] test/webp     : acc=0.4906 ap=0.5011 (n=320) [acc_best=0.5281 logit_mean=-7.62]
+  [baseline_train_blur] test/blur+jpeg: acc=0.4844 ap=0.5028 (n=320) [acc_best=0.5469 logit_mean=-6.04]
+  [baseline_train_blur] done -- 5/6 written to results/smoke_20260801_161022.txt
+
+=== [6/6] baseline_train_jpeg : {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25], 'train_aug': {'jpg_prob': 0.5, 'jpg_qual': [30, 100], 'jpg_method': ['cv2', 'pil']}} ===
+  [baseline_train_jpeg] step 20/200  loss=0.6840  (1s)
+  [baseline_train_jpeg] step 40/200  loss=0.7544  (1s)
+  [baseline_train_jpeg] step 60/200  loss=0.6028  (1s)
+  [baseline_train_jpeg] step 80/200  loss=0.5951  (2s)
+  [baseline_train_jpeg] step 100/200  loss=0.7928  (2s)
+  [baseline_train_jpeg] step 120/200  loss=0.6241  (2s)
+  [baseline_train_jpeg] step 140/200  loss=0.6166  (2s)
+  [baseline_train_jpeg] step 160/200  loss=0.6896  (3s)
+  [baseline_train_jpeg] step 180/200  loss=0.6819  (3s)
+  [baseline_train_jpeg] step 200/200  loss=0.4780  (4s)
+  [baseline_train_jpeg] trained 200 steps in 4s (in_ch=9, params=0.68M)
+  [baseline_train_jpeg] BN recalibrated on 50 train batches (1s)
+  [baseline_train_jpeg] test/clean    : acc=0.7688 ap=0.8902 (n=320) [acc_best=0.8031 logit_mean=+0.17]
+  [baseline_train_jpeg] test/blur     : acc=0.5969 ap=0.6005 (n=320) [acc_best=0.6250 logit_mean=+0.17]
+  [baseline_train_jpeg] test/jpeg     : acc=0.5437 ap=0.5581 (n=320) [acc_best=0.5500 logit_mean=+0.08]
+  [baseline_train_jpeg] test/webp     : acc=0.5375 ap=0.5516 (n=320) [acc_best=0.5625 logit_mean=-0.24]
+  [baseline_train_jpeg] test/blur+jpeg: acc=0.5062 ap=0.5265 (n=320) [acc_best=0.5312 logit_mean=-0.62]
+  [baseline_train_jpeg] done -- 6/6 written to results/smoke_20260801_161022.txt
+
+
+MLEP window / robustness sweep
+date: 2026-08-01 16:13:26
+STATUS: complete -- 6/6 configs.
+device=cuda (NVIDIA GeForce RTX 4090)  arch=resnet18  amp=True  workers=8  steps=200  crop=224  batch=16  lr=0.0002  seed=100  classes=car  val_batches=20  bn_recal=50
+
+Per-model results
+------------------------------------------------------------
+[baseline_2x2]  {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]}
+    in_channels=9  params=0.68M  steps=200  train_time=5s
+    test/clean       acc=0.9594  ap=0.9951  (n=320)  acc_best=0.9688  logit_mean=-0.74
+    test/blur        acc=0.6094  ap=0.6717  (n=320)  acc_best=0.6438  logit_mean=+2.02
+    test/jpeg        acc=0.4906  ap=0.5179  (n=320)  acc_best=0.5437  logit_mean=-5.98
+    test/webp        acc=0.5000  ap=0.4866  (n=320)  acc_best=0.5156  logit_mean=-8.01
+    test/blur+jpeg   acc=0.5000  ap=0.5047  (n=320)  acc_best=0.5312  logit_mean=-7.88
+
+[texsplit_2x2]  {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25], 'texture_split': True, 'texture_patch_size': 16}
+    in_channels=18  params=0.68M  steps=200  train_time=7s
+    test/clean       acc=0.8969  ap=0.9646  (n=320)  acc_best=0.9219  logit_mean=-0.37
+    test/blur        acc=0.5594  ap=0.6208  (n=320)  acc_best=0.5875  logit_mean=+3.03
+    test/jpeg        acc=0.4750  ap=0.4888  (n=320)  acc_best=0.5344  logit_mean=-4.93
+    test/webp        acc=0.4969  ap=0.4710  (n=320)  acc_best=0.5094  logit_mean=-6.30
+    test/blur+jpeg   acc=0.4813  ap=0.4863  (n=320)  acc_best=0.5250  logit_mean=-3.93
+
+[texsplit_2x2_diff]  {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25], 'texture_split': True, 'texture_patch_size': 16, 'texture_split_mode': 'diff'}
+    in_channels=9  params=0.68M  steps=200  train_time=7s
+    test/clean       acc=0.8219  ap=0.9550  (n=320)  acc_best=0.8781  logit_mean=+1.26
+    test/blur        acc=0.5656  ap=0.6497  (n=320)  acc_best=0.6562  logit_mean=+3.49
+    test/jpeg        acc=0.4781  ap=0.4978  (n=320)  acc_best=0.5656  logit_mean=-4.30
+    test/webp        acc=0.4875  ap=0.4865  (n=320)  acc_best=0.5094  logit_mean=-7.13
+    test/blur+jpeg   acc=0.4938  ap=0.5085  (n=320)  acc_best=0.5344  logit_mean=-5.34
+
+[baseline_train_blur]  {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25], 'train_aug': {'blur_prob': 0.5, 'blur_sig': [0.0, 3.0]}}
+    in_channels=9  params=0.68M  steps=200  train_time=4s
+    test/clean       acc=0.7937  ap=0.8949  (n=320)  acc_best=0.8063  logit_mean=-0.87
+    test/blur        acc=0.6250  ap=0.6181  (n=320)  acc_best=0.6344  logit_mean=+0.05
+    test/jpeg        acc=0.4938  ap=0.5287  (n=320)  acc_best=0.5531  logit_mean=-4.09
+    test/webp        acc=0.4906  ap=0.5011  (n=320)  acc_best=0.5281  logit_mean=-7.62
+    test/blur+jpeg   acc=0.4844  ap=0.5028  (n=320)  acc_best=0.5469  logit_mean=-6.04
+
+[baseline_train_jpeg]  {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25], 'train_aug': {'jpg_prob': 0.5, 'jpg_qual': [30, 100], 'jpg_method': ['cv2', 'pil']}}
+    in_channels=9  params=0.68M  steps=200  train_time=4s
+    test/clean       acc=0.7688  ap=0.8902  (n=320)  acc_best=0.8031  logit_mean=+0.17
+    test/blur        acc=0.5969  ap=0.6005  (n=320)  acc_best=0.6250  logit_mean=+0.17
+    test/jpeg        acc=0.5437  ap=0.5581  (n=320)  acc_best=0.5500  logit_mean=+0.08
+    test/webp        acc=0.5375  ap=0.5516  (n=320)  acc_best=0.5625  logit_mean=-0.24
+    test/blur+jpeg   acc=0.5062  ap=0.5265  (n=320)  acc_best=0.5312  logit_mean=-0.62
+
+[multiwindow_multiscale_aligned]  {'window_sizes': [2, 4, 6], 'scales': [1.0, 0.5, 0.25], 'window_align': 'pad'}
+    in_channels=27  params=0.69M  steps=200  train_time=66s
+    test/clean       acc=0.8094  ap=0.8323  (n=320)  acc_best=0.8219  logit_mean=-0.52
+    test/blur        acc=0.6000  ap=0.5613  (n=320)  acc_best=0.6000  logit_mean=+0.64
+    test/jpeg        acc=0.4719  ap=0.4900  (n=320)  acc_best=0.5406  logit_mean=-3.51
+    test/webp        acc=0.4844  ap=0.4644  (n=320)  acc_best=0.5125  logit_mean=-5.75
+    test/blur+jpeg   acc=0.4781  ap=0.4828  (n=320)  acc_best=0.5188  logit_mean=-4.75
+
+Average Precision (AP) per test scenario  [higher = more robust]
+================================================================================================
+config                               clean       blur       jpeg       webp  blur+jpeg   time(s)
+------------------------------------------------------------------------------------------------
+baseline_2x2                        0.9951     0.6717     0.5179     0.4866     0.5047         5
+texsplit_2x2                        0.9646     0.6208     0.4888     0.4710     0.4863         7
+texsplit_2x2_diff                   0.9550     0.6497     0.4978     0.4865     0.5085         7
+baseline_train_blur                 0.8949     0.6181     0.5287     0.5011     0.5028         4
+baseline_train_jpeg                 0.8902     0.6005     0.5581     0.5516     0.5265         4
+multiwindow_multiscale_aligned      0.8323     0.5613     0.4900     0.4644     0.4828        66
+================================================================================================
+Cols: clean vs corrupted test sets. Compare a config's clean AP with its blur / jpeg / webp / blur+jpeg AP to read off robustness.
+acc is at the fixed 0.5 threshold; acc_best is the best any threshold could do. acc << acc_best means the scores separate the classes but the decision boundary is misplaced -- check bn_recal.
+Note: short training -> ranking is indicative. Re-run the top configs with more --max_train_steps to confirm.
+
+Results written to results/smoke_20260801_161022.txt

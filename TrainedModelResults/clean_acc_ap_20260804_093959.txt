@@ -1,0 +1,50 @@
+Trained-model clean evaluation -- accuracy / average precision
+date: 2026-08-04 09:46:26
+STATUS: complete -- 26/26 generators. This file is rewritten after each one, so it is safe to read now.
+checkpoint: results/degradation_20260803_151210_seed100_deg_baseline_2x2.pt
+  experiment=mlep_degradation  steps=200000  heads=['ai', 'blur', 'jpeg']  params=1.44M  bn_recalibrated=True
+  cfg={'window_sizes': [2], 'scales': [1.0, 0.5, 0.25], 'num_classes': 3}
+dataroot: datasets/TestDatasets
+geometry: resize 256 -> center crop 224   (checkpoint was trained at loadSize=256 cropSize=224)
+device=cuda (NVIDIA GeForce RTX 4090)  amp=True  batch=32  workers=8  seed=100  images_per_label=ALL
+
+AI-vs-real head only (logit index 0 of ['ai', 'blur', 'jpeg']). acc/ap in %, threshold 0.5 for acc; ap is average_precision_score.
+
+===============================================================================================
+           generator            set       kind      n   acc     ap  roc_auc  real_acc  fake_acc
+-----------------------------------------------------------------------------------------------
+               DALLE  Diffusion-set  diffusion   4000  78.8   97.0     96.8      58.2      99.3
+               dalle  Diffusion-set  diffusion   2000  84.7   94.5     91.3      81.7      87.7
+                ddpm  Diffusion-set  diffusion  19992  80.3   92.1     89.3      83.6      77.1
+        glide_100_10  Diffusion-set  diffusion   2000  90.6   99.7     99.7      81.7      99.5
+        glide_100_27  Diffusion-set  diffusion   2000  90.6   99.8     99.7      81.7      99.6
+         glide_50_27  Diffusion-set  diffusion   2000  90.4   99.6     99.4      81.7      99.1
+              guided  Diffusion-set  diffusion   2000  76.3   84.9     87.2      53.9      98.8
+    guided-diffusion  Diffusion-set  diffusion   4000  78.3   93.0     93.0      58.2      98.3
+  improved-diffusion  Diffusion-set  diffusion   4000  55.6   49.6     58.8      58.2      53.0
+             ldm_100  Diffusion-set  diffusion   2000  90.7   99.9     99.9      81.7      99.7
+             ldm_200  Diffusion-set  diffusion   2000  90.8   99.9     99.9      81.7      99.9
+         ldm_200_cfg  Diffusion-set  diffusion   2000  90.5   99.6     99.4      81.7      99.2
+          midjourney  Diffusion-set  diffusion   4000  78.1   90.9     92.0      58.2      98.0
+              biggan      GAN-set-1        gan   4000  78.1   88.9     90.5      58.2      98.0
+                 crn      GAN-set-1        gan  12764  48.3   35.4     24.3       2.1      94.5
+            cyclegan      GAN-set-1        gan   2642  71.2   97.6     97.1      43.7      98.8
+            deepfake      GAN-set-1        gan   5405  52.4   72.0     71.2     100.0       4.6
+              gaugan      GAN-set-1        gan  10000  70.5   81.8     85.8      41.6      99.4
+                imle      GAN-set-1        gan  12764  51.1   87.3     89.1       2.1     100.0
+              progan      GAN-set-1        gan   8000  99.3  100.0    100.0      99.2      99.3
+                 san      GAN-set-1        gan    438  63.2   55.6     62.6      54.3      72.1
+          seeingdark      GAN-set-1        gan    360  50.0   40.6     36.9       0.0     100.0
+             stargan      GAN-set-1        gan   3998  99.9  100.0    100.0      99.8     100.0
+            stylegan      GAN-set-1        gan  11982  96.6   99.9     99.9      93.5      99.7
+           stylegan2      GAN-set-1        gan  15976  94.4  100.0    100.0      88.9      99.9
+     whichfaceisreal      GAN-set-1        gan   2000  70.6   90.9     92.7      41.2     100.0
+===============================================================================================
+
+Per-set means (unweighted over generators, as test.py reports them)
+======================================================
+            set  generators  images  mean_acc  mean_ap
+------------------------------------------------------
+  Diffusion-set          13   51992      82.8     92.4
+      GAN-set-1          13   90329      72.7     80.8
+======================================================

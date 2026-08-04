@@ -71,6 +71,15 @@ class FileNameDataset(datasets.ImageFolder):
 
 
 def data_augment(img, opt):
+    # Clean configs (every prob 0) are the common case -- all of training plus the
+    # 'clean' eval scenario. Return the PIL image untouched rather than paying a
+    # np.array + Image.fromarray round trip, i.e. two full 256x256x3 buffer copies
+    # per sample, to produce a bit-identical result. ImageFolder always hands us
+    # RGB, so the round trip was lossless and skipping it changes nothing.
+    if not (getattr(opt, 'blur_prob', 0) or getattr(opt, 'jpg_prob', 0)
+            or getattr(opt, 'webp_prob', 0)):
+        return img
+
     img = np.array(img)
 
     if random() < getattr(opt, 'blur_prob', 0):

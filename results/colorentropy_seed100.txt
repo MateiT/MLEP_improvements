@@ -1,0 +1,78 @@
+MLEP window / robustness sweep
+date: 2026-08-01 18:25:34
+STATUS: complete -- 7/7 configs.
+device=cuda (NVIDIA GeForce RTX 4090)  arch=resnet18  amp=True  workers=8  steps=3000  crop=224  batch=16  lr=0.0002  seed=100  classes=car,cat,chair,horse,boat,person,dog,bird  val_batches=50  bn_recal=50
+
+Per-model results
+------------------------------------------------------------
+[color_joint_2x2]  {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25], 'color_entropy': 'joint'}
+    in_channels=12  params=0.68M  steps=3000  train_time=73s
+    test/clean       acc=0.9750  ap=0.9982  (n=800)  acc_best=0.9825  logit_mean=+0.29
+    test/blur        acc=0.5637  ap=0.6943  (n=800)  acc_best=0.6975  logit_mean=+3.34
+    test/jpeg        acc=0.5250  ap=0.4063  (n=800)  acc_best=0.5262  logit_mean=-13.61
+    test/webp        acc=0.5238  ap=0.4140  (n=800)  acc_best=0.5262  logit_mean=-14.00
+    test/blur+jpeg   acc=0.5262  ap=0.4247  (n=800)  acc_best=0.5262  logit_mean=-15.13
+
+[baseline_2x2]  {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]}
+    in_channels=9  params=0.68M  steps=3000  train_time=72s
+    test/clean       acc=0.9812  ap=0.9979  (n=800)  acc_best=0.9838  logit_mean=-0.17
+    test/blur        acc=0.5575  ap=0.6813  (n=800)  acc_best=0.6937  logit_mean=+3.48
+    test/jpeg        acc=0.5250  ap=0.4194  (n=800)  acc_best=0.5262  logit_mean=-11.15
+    test/webp        acc=0.5238  ap=0.4194  (n=800)  acc_best=0.5262  logit_mean=-12.01
+    test/blur+jpeg   acc=0.5262  ap=0.4269  (n=800)  acc_best=0.5262  logit_mean=-14.42
+
+[baseline_train_jpeg]  {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25], 'train_aug': {'jpg_prob': 0.5, 'jpg_qual': [30, 100], 'jpg_method': ['cv2', 'pil']}}
+    in_channels=9  params=0.68M  steps=3000  train_time=59s
+    test/clean       acc=0.9463  ap=0.9866  (n=800)  acc_best=0.9550  logit_mean=+0.50
+    test/blur        acc=0.6388  ap=0.6116  (n=800)  acc_best=0.6550  logit_mean=+0.37
+    test/jpeg        acc=0.5125  ap=0.4726  (n=800)  acc_best=0.5288  logit_mean=-0.79
+    test/webp        acc=0.5112  ap=0.4943  (n=800)  acc_best=0.5587  logit_mean=-0.54
+    test/blur+jpeg   acc=0.5225  ap=0.4510  (n=800)  acc_best=0.5262  logit_mean=-1.46
+
+[color_joint_train_jpeg]  {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25], 'color_entropy': 'joint', 'train_aug': {'jpg_prob': 0.5, 'jpg_qual': [30, 100], 'jpg_method': ['cv2', 'pil']}}
+    in_channels=12  params=0.68M  steps=3000  train_time=71s
+    test/clean       acc=0.9463  ap=0.9834  (n=800)  acc_best=0.9487  logit_mean=-0.05
+    test/blur        acc=0.6300  ap=0.6321  (n=800)  acc_best=0.6375  logit_mean=-0.82
+    test/jpeg        acc=0.5150  ap=0.4759  (n=800)  acc_best=0.5475  logit_mean=-0.13
+    test/webp        acc=0.5325  ap=0.4882  (n=800)  acc_best=0.5537  logit_mean=-0.05
+    test/blur+jpeg   acc=0.5425  ap=0.4911  (n=800)  acc_best=0.5463  logit_mean=-0.03
+
+[color_jointonly_2x2]  {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25], 'color_entropy': 'joint_only'}
+    in_channels=3  params=0.68M  steps=3000  train_time=75s
+    test/clean       acc=0.9187  ap=0.9821  (n=800)  acc_best=0.9325  logit_mean=-0.44
+    test/blur        acc=0.6112  ap=0.5922  (n=800)  acc_best=0.6238  logit_mean=-0.90
+    test/jpeg        acc=0.5300  ap=0.4919  (n=800)  acc_best=0.5425  logit_mean=-1.03
+    test/webp        acc=0.5212  ap=0.4625  (n=800)  acc_best=0.5288  logit_mean=-5.27
+    test/blur+jpeg   acc=0.5188  ap=0.4730  (n=800)  acc_best=0.5275  logit_mean=-2.36
+
+[baseline_train_webp_p1]  {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25], 'train_aug': {'webp_prob': 1.0, 'webp_qual': [80]}}
+    in_channels=9  params=0.68M  steps=3000  train_time=77s
+    test/clean       acc=0.5363  ap=0.6462  (n=800)  acc_best=0.6425  logit_mean=+0.05
+    test/blur        acc=0.5188  ap=0.5079  (n=800)  acc_best=0.5463  logit_mean=+0.04
+    test/jpeg        acc=0.5550  ap=0.5910  (n=800)  acc_best=0.5975  logit_mean=+0.08
+    test/webp        acc=0.5550  ap=0.5474  (n=800)  acc_best=0.5913  logit_mean=+0.01
+    test/blur+jpeg   acc=0.5138  ap=0.5246  (n=800)  acc_best=0.5650  logit_mean=+0.22
+
+[color_joint_train_webp_p1]  {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25], 'color_entropy': 'joint', 'train_aug': {'webp_prob': 1.0, 'webp_qual': [80]}}
+    in_channels=12  params=0.68M  steps=3000  train_time=78s
+    test/clean       acc=0.5175  ap=0.4912  (n=800)  acc_best=0.5525  logit_mean=-0.01
+    test/blur        acc=0.4875  ap=0.4524  (n=800)  acc_best=0.5262  logit_mean=-0.05
+    test/jpeg        acc=0.5700  ap=0.5417  (n=800)  acc_best=0.5887  logit_mean=+0.04
+    test/webp        acc=0.5725  ap=0.5552  (n=800)  acc_best=0.5787  logit_mean=+0.06
+    test/blur+jpeg   acc=0.5350  ap=0.5030  (n=800)  acc_best=0.5475  logit_mean=+0.15
+
+Average Precision (AP) per test scenario  [higher = more robust]
+===========================================================================================
+config                          clean       blur       jpeg       webp  blur+jpeg   time(s)
+-------------------------------------------------------------------------------------------
+color_joint_2x2                0.9982     0.6943     0.4063     0.4140     0.4247        73
+baseline_2x2                   0.9979     0.6813     0.4194     0.4194     0.4269        72
+baseline_train_jpeg            0.9866     0.6116     0.4726     0.4943     0.4510        59
+color_joint_train_jpeg         0.9834     0.6321     0.4759     0.4882     0.4911        71
+color_jointonly_2x2            0.9821     0.5922     0.4919     0.4625     0.4730        75
+baseline_train_webp_p1         0.6462     0.5079     0.5910     0.5474     0.5246        77
+color_joint_train_webp_p1      0.4912     0.4524     0.5417     0.5552     0.5030        78
+===========================================================================================
+Cols: clean vs corrupted test sets. Compare a config's clean AP with its blur / jpeg / webp / blur+jpeg AP to read off robustness.
+acc is at the fixed 0.5 threshold; acc_best is the best any threshold could do. acc << acc_best means the scores separate the classes but the decision boundary is misplaced -- check bn_recal.
+Note: short training -> ranking is indicative. Re-run the top configs with more --max_train_steps to confirm.
