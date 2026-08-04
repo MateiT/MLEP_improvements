@@ -1,0 +1,1208 @@
+Device: cuda (NVIDIA GeForce RTX 4090) | arch: resnet18 | steps: 3000 | crop: 224 | batch: 16 | workers: 8 | amp: True
+Entropy experiment: stage=both  32 feature model(s) + 14 deep config(s)
+  leakage check: 0 identical (name, size) source file(s) shared between train/ and val/ over 32000 sampled files  -- ok
+
+  feature stage: 6 sets, 3200 train + 1600 val images each, 1519 features per image
+  [features] train/clean: 192/3200 images  (1/8 car)  (6s)
+  [features] train/clean: 384/3200 images  (1/8 car)  (9s)
+  [features] train/clean: 592/3200 images  (2/8 cat)  (19s)
+  [features] train/clean: 784/3200 images  (2/8 cat)  (22s)
+  [features] train/clean: 992/3200 images  (3/8 chair)  (33s)
+  [features] train/clean: 1184/3200 images  (3/8 chair)  (35s)
+  [features] train/clean: 1392/3200 images  (4/8 horse)  (47s)
+  [features] train/clean: 1584/3200 images  (4/8 horse)  (50s)
+  [features] train/clean: 1792/3200 images  (5/8 boat)  (61s)
+  [features] train/clean: 1984/3200 images  (5/8 boat)  (65s)
+  [features] train/clean: 2192/3200 images  (6/8 person)  (75s)
+  [features] train/clean: 2384/3200 images  (6/8 person)  (78s)
+  [features] train/clean: 2592/3200 images  (7/8 dog)  (88s)
+  [features] train/clean: 2784/3200 images  (7/8 dog)  (91s)
+  [features] train/clean: 2992/3200 images  (8/8 bird)  (101s)
+  [features] train/clean: 3184/3200 images  (8/8 bird)  (104s)
+  [features] train/clean: 3200 images x 1519 features (109s)
+  [features] val/clean: 96/1536 images  (1/8 car)  (3s)
+  [features] val/clean: 192/1536 images  (1/8 car)  (5s)
+  [features] val/clean: 288/1536 images  (2/8 cat)  (11s)
+  [features] val/clean: 384/1536 images  (2/8 cat)  (14s)
+  [features] val/clean: 480/1536 images  (3/8 chair)  (19s)
+  [features] val/clean: 576/1536 images  (3/8 chair)  (22s)
+  [features] val/clean: 672/1536 images  (4/8 horse)  (28s)
+  [features] val/clean: 768/1536 images  (4/8 horse)  (30s)
+  [features] val/clean: 864/1536 images  (5/8 boat)  (36s)
+  [features] val/clean: 960/1536 images  (5/8 boat)  (39s)
+  [features] val/clean: 1056/1536 images  (6/8 person)  (44s)
+  [features] val/clean: 1152/1536 images  (6/8 person)  (47s)
+  [features] val/clean: 1248/1536 images  (7/8 dog)  (52s)
+  [features] val/clean: 1344/1536 images  (7/8 dog)  (55s)
+  [features] val/clean: 1440/1536 images  (8/8 bird)  (60s)
+  [features] val/clean: 1536/1536 images  (8/8 bird)  (63s)
+  [features] val/clean: 1536 images x 1519 features (65s)
+  [features] val/blur: 96/1536 images  (1/8 car)  (4s)
+  [features] val/blur: 192/1536 images  (1/8 car)  (6s)
+  [features] val/blur: 288/1536 images  (2/8 cat)  (13s)
+  [features] val/blur: 384/1536 images  (2/8 cat)  (15s)
+  [features] val/blur: 480/1536 images  (3/8 chair)  (21s)
+  [features] val/blur: 576/1536 images  (3/8 chair)  (24s)
+  [features] val/blur: 672/1536 images  (4/8 horse)  (29s)
+  [features] val/blur: 768/1536 images  (4/8 horse)  (32s)
+  [features] val/blur: 864/1536 images  (5/8 boat)  (38s)
+  [features] val/blur: 960/1536 images  (5/8 boat)  (40s)
+  [features] val/blur: 1056/1536 images  (6/8 person)  (46s)
+  [features] val/blur: 1152/1536 images  (6/8 person)  (50s)
+  [features] val/blur: 1248/1536 images  (7/8 dog)  (55s)
+  [features] val/blur: 1344/1536 images  (7/8 dog)  (58s)
+  [features] val/blur: 1440/1536 images  (8/8 bird)  (64s)
+  [features] val/blur: 1536/1536 images  (8/8 bird)  (67s)
+  [features] val/blur: 1536 images x 1519 features (69s)
+  [features] val/jpeg: 96/1536 images  (1/8 car)  (3s)
+  [features] val/jpeg: 192/1536 images  (1/8 car)  (6s)
+  [features] val/jpeg: 288/1536 images  (2/8 cat)  (12s)
+  [features] val/jpeg: 384/1536 images  (2/8 cat)  (14s)
+  [features] val/jpeg: 480/1536 images  (3/8 chair)  (20s)
+  [features] val/jpeg: 576/1536 images  (3/8 chair)  (22s)
+  [features] val/jpeg: 672/1536 images  (4/8 horse)  (28s)
+  [features] val/jpeg: 768/1536 images  (4/8 horse)  (31s)
+  [features] val/jpeg: 864/1536 images  (5/8 boat)  (37s)
+  [features] val/jpeg: 960/1536 images  (5/8 boat)  (40s)
+  [features] val/jpeg: 1056/1536 images  (6/8 person)  (45s)
+  [features] val/jpeg: 1152/1536 images  (6/8 person)  (48s)
+  [features] val/jpeg: 1248/1536 images  (7/8 dog)  (54s)
+  [features] val/jpeg: 1344/1536 images  (7/8 dog)  (57s)
+  [features] val/jpeg: 1440/1536 images  (8/8 bird)  (62s)
+  [features] val/jpeg: 1536/1536 images  (8/8 bird)  (66s)
+  [features] val/jpeg: 1536 images x 1519 features (68s)
+  [features] val/webp: 96/1536 images  (1/8 car)  (3s)
+  [features] val/webp: 192/1536 images  (1/8 car)  (6s)
+  [features] val/webp: 288/1536 images  (2/8 cat)  (12s)
+  [features] val/webp: 384/1536 images  (2/8 cat)  (15s)
+  [features] val/webp: 480/1536 images  (3/8 chair)  (21s)
+  [features] val/webp: 576/1536 images  (3/8 chair)  (24s)
+  [features] val/webp: 672/1536 images  (4/8 horse)  (30s)
+  [features] val/webp: 768/1536 images  (4/8 horse)  (34s)
+  [features] val/webp: 864/1536 images  (5/8 boat)  (40s)
+  [features] val/webp: 960/1536 images  (5/8 boat)  (42s)
+  [features] val/webp: 1056/1536 images  (6/8 person)  (48s)
+  [features] val/webp: 1152/1536 images  (6/8 person)  (51s)
+  [features] val/webp: 1248/1536 images  (7/8 dog)  (58s)
+  [features] val/webp: 1344/1536 images  (7/8 dog)  (61s)
+  [features] val/webp: 1440/1536 images  (8/8 bird)  (67s)
+  [features] val/webp: 1536/1536 images  (8/8 bird)  (69s)
+  [features] val/webp: 1536 images x 1519 features (72s)
+  [features] val/blur+jpeg: 96/1536 images  (1/8 car)  (3s)
+  [features] val/blur+jpeg: 192/1536 images  (1/8 car)  (6s)
+  [features] val/blur+jpeg: 288/1536 images  (2/8 cat)  (12s)
+  [features] val/blur+jpeg: 384/1536 images  (2/8 cat)  (15s)
+  [features] val/blur+jpeg: 480/1536 images  (3/8 chair)  (22s)
+  [features] val/blur+jpeg: 576/1536 images  (3/8 chair)  (24s)
+  [features] val/blur+jpeg: 672/1536 images  (4/8 horse)  (30s)
+  [features] val/blur+jpeg: 768/1536 images  (4/8 horse)  (32s)
+  [features] val/blur+jpeg: 864/1536 images  (5/8 boat)  (39s)
+  [features] val/blur+jpeg: 960/1536 images  (5/8 boat)  (41s)
+  [features] val/blur+jpeg: 1056/1536 images  (6/8 person)  (47s)
+  [features] val/blur+jpeg: 1152/1536 images  (6/8 person)  (51s)
+  [features] val/blur+jpeg: 1248/1536 images  (7/8 dog)  (57s)
+  [features] val/blur+jpeg: 1344/1536 images  (7/8 dog)  (59s)
+  [features] val/blur+jpeg: 1440/1536 images  (8/8 bird)  (65s)
+  [features] val/blur+jpeg: 1536/1536 images  (8/8 bird)  (67s)
+  [features] val/blur+jpeg: 1536 images x 1519 features (70s)
+  [features] wrote results/entropy_20260802_160157_seed100_features.csv
+
+=== [1/46] A_shannon+logreg : 205 features ===
+  [A_shannon+logreg] fit 3200 samples (1s)
+  [A_shannon+logreg] test/clean    : acc=0.9674 ap=0.9908 (n=1536) [roc_auc=0.9918 f1=0.9683 eer=0.0306]
+  [A_shannon+logreg] test/blur     : acc=0.5918 ap=0.6268 (n=1536) [roc_auc=0.6687 f1=0.7080 eer=0.3750]
+  [A_shannon+logreg] test/jpeg     : acc=0.4844 ap=0.4868 (n=1536) [roc_auc=0.4551 f1=0.0660 eer=0.5391]
+  [A_shannon+logreg] test/webp     : acc=0.4876 ap=0.4955 (n=1536) [roc_auc=0.4566 f1=0.0367 eer=0.5378]
+  [A_shannon+logreg] test/blur+jpeg: acc=0.4889 ap=0.4927 (n=1536) [roc_auc=0.4406 f1=0.0776 eer=0.5462]
+  [A_shannon+logreg] done -- 1/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [2/46] A_shannon+rf : 205 features ===
+  [A_shannon+rf] fit 3200 samples (2s)
+  [A_shannon+rf] test/clean    : acc=0.8926 ap=0.9671 (n=1536) [roc_auc=0.9631 f1=0.8936 eer=0.1062]
+  [A_shannon+rf] test/blur     : acc=0.6068 ap=0.6243 (n=1536) [roc_auc=0.6424 f1=0.6163 eer=0.3946]
+  [A_shannon+rf] test/jpeg     : acc=0.4824 ap=0.4963 (n=1536) [roc_auc=0.4805 f1=0.0149 eer=0.5137]
+  [A_shannon+rf] test/webp     : acc=0.4870 ap=0.5174 (n=1536) [roc_auc=0.4904 f1=0.0125 eer=0.5082]
+  [A_shannon+rf] test/blur+jpeg: acc=0.4850 ap=0.5187 (n=1536) [roc_auc=0.5015 f1=0.0075 eer=0.4928]
+  [A_shannon+rf] done -- 2/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [3/46] A_shannon+svm : 205 features ===
+  [A_shannon+svm] fit 3200 samples (3s)
+  [A_shannon+svm] test/clean    : acc=0.9284 ap=0.9767 (n=1536) [roc_auc=0.9761 f1=0.9298 eer=0.0736]
+  [A_shannon+svm] test/blur     : acc=0.5905 ap=0.6159 (n=1536) [roc_auc=0.6429 f1=0.6616 eer=0.3965]
+  [A_shannon+svm] test/jpeg     : acc=0.4798 ap=0.4876 (n=1536) [roc_auc=0.4774 f1=0.0315 eer=0.5241]
+  [A_shannon+svm] test/webp     : acc=0.4863 ap=0.5017 (n=1536) [roc_auc=0.4685 f1=0.0174 eer=0.5313]
+  [A_shannon+svm] test/blur+jpeg: acc=0.4844 ap=0.5053 (n=1536) [roc_auc=0.4773 f1=0.0222 eer=0.5124]
+  [A_shannon+svm] done -- 3/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [4/46] A_shannon+gbt : 205 features ===
+  [A_shannon+gbt] fit 3200 samples (2s)
+  [A_shannon+gbt] test/clean    : acc=0.9531 ap=0.9920 (n=1536) [roc_auc=0.9909 f1=0.9540 eer=0.0482]
+  [A_shannon+gbt] test/blur     : acc=0.6367 ap=0.6533 (n=1536) [roc_auc=0.6786 f1=0.6931 eer=0.3763]
+  [A_shannon+gbt] test/jpeg     : acc=0.4857 ap=0.4938 (n=1536) [roc_auc=0.4782 f1=0.0413 eer=0.5098]
+  [A_shannon+gbt] test/webp     : acc=0.4863 ap=0.5130 (n=1536) [roc_auc=0.4832 f1=0.0223 eer=0.5143]
+  [A_shannon+gbt] test/blur+jpeg: acc=0.4870 ap=0.5138 (n=1536) [roc_auc=0.4793 f1=0.0272 eer=0.5280]
+  [A_shannon+gbt] done -- 4/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [5/46] B_renyi+logreg : 615 features ===
+  [B_renyi+logreg] fit 3200 samples (0s)
+  [B_renyi+logreg] test/clean    : acc=0.9759 ap=0.9951 (n=1536) [roc_auc=0.9957 f1=0.9766 eer=0.0254]
+  [B_renyi+logreg] test/blur     : acc=0.5755 ap=0.6352 (n=1536) [roc_auc=0.6674 f1=0.6998 eer=0.3809]
+  [B_renyi+logreg] test/jpeg     : acc=0.4870 ap=0.4946 (n=1536) [roc_auc=0.4650 f1=0.1302 eer=0.5384]
+  [B_renyi+logreg] test/webp     : acc=0.4896 ap=0.5030 (n=1536) [roc_auc=0.4650 f1=0.0485 eer=0.5391]
+  [B_renyi+logreg] test/blur+jpeg: acc=0.4948 ap=0.4944 (n=1536) [roc_auc=0.4390 f1=0.1261 eer=0.5553]
+  [B_renyi+logreg] done -- 5/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [6/46] B_renyi+rf : 615 features ===
+  [B_renyi+rf] fit 3200 samples (2s)
+  [B_renyi+rf] test/clean    : acc=0.9043 ap=0.9732 (n=1536) [roc_auc=0.9705 f1=0.9051 eer=0.0964]
+  [B_renyi+rf] test/blur     : acc=0.6035 ap=0.6352 (n=1536) [roc_auc=0.6514 f1=0.6538 eer=0.3854]
+  [B_renyi+rf] test/jpeg     : acc=0.4818 ap=0.5053 (n=1536) [roc_auc=0.5005 f1=0.0293 eer=0.4998]
+  [B_renyi+rf] test/webp     : acc=0.4870 ap=0.5255 (n=1536) [roc_auc=0.5046 f1=0.0150 eer=0.5008]
+  [B_renyi+rf] test/blur+jpeg: acc=0.4844 ap=0.5275 (n=1536) [roc_auc=0.5206 f1=0.0075 eer=0.4818]
+  [B_renyi+rf] done -- 6/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [7/46] B_renyi+svm : 615 features ===
+  [B_renyi+svm] fit 3200 samples (6s)
+  [B_renyi+svm] test/clean    : acc=0.9388 ap=0.9784 (n=1536) [roc_auc=0.9778 f1=0.9404 eer=0.0599]
+  [B_renyi+svm] test/blur     : acc=0.5977 ap=0.6184 (n=1536) [roc_auc=0.6437 f1=0.6847 eer=0.3854]
+  [B_renyi+svm] test/jpeg     : acc=0.4720 ap=0.4851 (n=1536) [roc_auc=0.4781 f1=0.0448 eer=0.5130]
+  [B_renyi+svm] test/webp     : acc=0.4857 ap=0.5056 (n=1536) [roc_auc=0.4790 f1=0.0150 eer=0.5280]
+  [B_renyi+svm] test/blur+jpeg: acc=0.4824 ap=0.5098 (n=1536) [roc_auc=0.4892 f1=0.0269 eer=0.5104]
+  [B_renyi+svm] done -- 7/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [8/46] B_renyi+gbt : 615 features ===
+  [B_renyi+gbt] fit 3200 samples (5s)
+  [B_renyi+gbt] test/clean    : acc=0.9570 ap=0.9932 (n=1536) [roc_auc=0.9925 f1=0.9580 eer=0.0436]
+  [B_renyi+gbt] test/blur     : acc=0.6328 ap=0.6569 (n=1536) [roc_auc=0.6787 f1=0.6974 eer=0.3705]
+  [B_renyi+gbt] test/jpeg     : acc=0.4792 ap=0.5013 (n=1536) [roc_auc=0.4992 f1=0.0453 eer=0.4974]
+  [B_renyi+gbt] test/webp     : acc=0.4870 ap=0.5261 (n=1536) [roc_auc=0.5063 f1=0.0175 eer=0.4942]
+  [B_renyi+gbt] test/blur+jpeg: acc=0.4844 ap=0.5135 (n=1536) [roc_auc=0.4987 f1=0.0075 eer=0.4922]
+  [B_renyi+gbt] done -- 8/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [9/46] C_tsallis+logreg : 615 features ===
+  [C_tsallis+logreg] fit 3200 samples (0s)
+  [C_tsallis+logreg] test/clean    : acc=0.9746 ap=0.9942 (n=1536) [roc_auc=0.9943 f1=0.9752 eer=0.0260]
+  [C_tsallis+logreg] test/blur     : acc=0.6185 ap=0.6479 (n=1536) [roc_auc=0.6887 f1=0.7233 eer=0.3652]
+  [C_tsallis+logreg] test/jpeg     : acc=0.4753 ap=0.4807 (n=1536) [roc_auc=0.4679 f1=0.0289 eer=0.5137]
+  [C_tsallis+logreg] test/webp     : acc=0.4857 ap=0.5041 (n=1536) [roc_auc=0.4828 f1=0.0247 eer=0.5111]
+  [C_tsallis+logreg] test/blur+jpeg: acc=0.4831 ap=0.4812 (n=1536) [roc_auc=0.4459 f1=0.0075 eer=0.5443]
+  [C_tsallis+logreg] done -- 9/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [10/46] C_tsallis+rf : 615 features ===
+  [C_tsallis+rf] fit 3200 samples (2s)
+  [C_tsallis+rf] test/clean    : acc=0.9219 ap=0.9819 (n=1536) [roc_auc=0.9800 f1=0.9226 eer=0.0774]
+  [C_tsallis+rf] test/blur     : acc=0.6126 ap=0.6448 (n=1536) [roc_auc=0.6611 f1=0.6590 eer=0.3925]
+  [C_tsallis+rf] test/jpeg     : acc=0.4766 ap=0.4955 (n=1536) [roc_auc=0.4942 f1=0.0123 eer=0.5013]
+  [C_tsallis+rf] test/webp     : acc=0.4857 ap=0.5195 (n=1536) [roc_auc=0.4954 f1=0.0050 eer=0.5071]
+  [C_tsallis+rf] test/blur+jpeg: acc=0.4837 ap=0.5173 (n=1536) [roc_auc=0.5066 f1=0.0025 eer=0.4913]
+  [C_tsallis+rf] done -- 10/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [11/46] C_tsallis+svm : 615 features ===
+  [C_tsallis+svm] fit 3200 samples (6s)
+  [C_tsallis+svm] test/clean    : acc=0.9421 ap=0.9829 (n=1536) [roc_auc=0.9819 f1=0.9433 eer=0.0579]
+  [C_tsallis+svm] test/blur     : acc=0.6257 ap=0.6152 (n=1536) [roc_auc=0.6634 f1=0.7019 eer=0.3815]
+  [C_tsallis+svm] test/jpeg     : acc=0.4850 ap=0.5058 (n=1536) [roc_auc=0.4963 f1=0.0318 eer=0.5091]
+  [C_tsallis+svm] test/webp     : acc=0.4863 ap=0.5012 (n=1536) [roc_auc=0.4691 f1=0.0075 eer=0.5351]
+  [C_tsallis+svm] test/blur+jpeg: acc=0.4837 ap=0.5076 (n=1536) [roc_auc=0.4899 f1=0.0075 eer=0.4889]
+  [C_tsallis+svm] done -- 11/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [12/46] C_tsallis+gbt : 615 features ===
+  [C_tsallis+gbt] fit 3200 samples (5s)
+  [C_tsallis+gbt] test/clean    : acc=0.9681 ap=0.9954 (n=1536) [roc_auc=0.9950 f1=0.9688 eer=0.0312]
+  [C_tsallis+gbt] test/blur     : acc=0.6328 ap=0.6526 (n=1536) [roc_auc=0.6753 f1=0.7038 eer=0.3795]
+  [C_tsallis+gbt] test/jpeg     : acc=0.4694 ap=0.4729 (n=1536) [roc_auc=0.4637 f1=0.0423 eer=0.5261]
+  [C_tsallis+gbt] test/webp     : acc=0.4837 ap=0.5076 (n=1536) [roc_auc=0.4920 f1=0.0075 eer=0.5130]
+  [C_tsallis+gbt] test/blur+jpeg: acc=0.4844 ap=0.4864 (n=1536) [roc_auc=0.4741 f1=0.0050 eer=0.5111]
+  [C_tsallis+gbt] done -- 12/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [13/46] D_perm+logreg : 84 features ===
+  [D_perm+logreg] fit 3200 samples (0s)
+  [D_perm+logreg] test/clean    : acc=0.8171 ap=0.8753 (n=1536) [roc_auc=0.8844 f1=0.8254 eer=0.1875]
+  [D_perm+logreg] test/blur     : acc=0.5065 ap=0.5366 (n=1536) [roc_auc=0.5308 f1=0.2968 eer=0.4726]
+  [D_perm+logreg] test/jpeg     : acc=0.4740 ap=0.5035 (n=1536) [roc_auc=0.5011 f1=0.2560 eer=0.4961]
+  [D_perm+logreg] test/webp     : acc=0.4948 ap=0.5041 (n=1536) [roc_auc=0.4890 f1=0.4875 eer=0.5052]
+  [D_perm+logreg] test/blur+jpeg: acc=0.4844 ap=0.5223 (n=1536) [roc_auc=0.5086 f1=0.0222 eer=0.5000]
+  [D_perm+logreg] done -- 13/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [14/46] D_perm+rf : 84 features ===
+  [D_perm+rf] fit 3200 samples (1s)
+  [D_perm+rf] test/clean    : acc=0.7454 ap=0.8144 (n=1536) [roc_auc=0.8222 f1=0.7508 eer=0.2545]
+  [D_perm+rf] test/blur     : acc=0.4915 ap=0.5285 (n=1536) [roc_auc=0.5243 f1=0.2006 eer=0.4725]
+  [D_perm+rf] test/jpeg     : acc=0.4753 ap=0.5210 (n=1536) [roc_auc=0.4870 f1=0.4142 eer=0.5137]
+  [D_perm+rf] test/webp     : acc=0.5124 ap=0.5369 (n=1536) [roc_auc=0.5209 f1=0.5436 eer=0.4927]
+  [D_perm+rf] test/blur+jpeg: acc=0.5000 ap=0.5369 (n=1536) [roc_auc=0.5206 f1=0.2644 eer=0.4883]
+  [D_perm+rf] done -- 14/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [15/46] D_perm+svm : 84 features ===
+  [D_perm+svm] fit 3200 samples (3s)
+  [D_perm+svm] test/clean    : acc=0.7402 ap=0.8097 (n=1536) [roc_auc=0.8128 f1=0.7514 eer=0.2611]
+  [D_perm+svm] test/blur     : acc=0.4844 ap=0.5056 (n=1536) [roc_auc=0.4964 f1=0.0000 eer=0.4980]
+  [D_perm+svm] test/jpeg     : acc=0.4987 ap=0.5224 (n=1536) [roc_auc=0.5043 f1=0.4122 eer=0.5065]
+  [D_perm+svm] test/webp     : acc=0.5267 ap=0.5586 (n=1536) [roc_auc=0.5396 f1=0.5448 eer=0.4798]
+  [D_perm+svm] test/blur+jpeg: acc=0.4844 ap=0.5164 (n=1536) [roc_auc=0.5134 f1=0.0000 eer=0.4883]
+  [D_perm+svm] done -- 15/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [16/46] D_perm+gbt : 84 features ===
+  [D_perm+gbt] fit 3200 samples (0s)
+  [D_perm+gbt] test/clean    : acc=0.7695 ap=0.8449 (n=1536) [roc_auc=0.8489 f1=0.7734 eer=0.2324]
+  [D_perm+gbt] test/blur     : acc=0.4844 ap=0.5083 (n=1536) [roc_auc=0.4951 f1=0.0000 eer=0.5058]
+  [D_perm+gbt] test/jpeg     : acc=0.4772 ap=0.5092 (n=1536) [roc_auc=0.4856 f1=0.3529 eer=0.4993]
+  [D_perm+gbt] test/webp     : acc=0.5020 ap=0.5271 (n=1536) [roc_auc=0.5114 f1=0.5228 eer=0.4863]
+  [D_perm+gbt] test/blur+jpeg: acc=0.4798 ap=0.5253 (n=1536) [roc_auc=0.5206 f1=0.0124 eer=0.4811]
+  [D_perm+gbt] done -- 16/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [17/46] E_shannon_renyi+logreg : 820 features ===
+  [E_shannon_renyi+logreg] fit 3200 samples (0s)
+  [E_shannon_renyi+logreg] test/clean    : acc=0.9772 ap=0.9950 (n=1536) [roc_auc=0.9957 f1=0.9778 eer=0.0215]
+  [E_shannon_renyi+logreg] test/blur     : acc=0.5677 ap=0.6318 (n=1536) [roc_auc=0.6655 f1=0.6965 eer=0.3828]
+  [E_shannon_renyi+logreg] test/jpeg     : acc=0.4902 ap=0.4952 (n=1536) [roc_auc=0.4656 f1=0.1348 eer=0.5260]
+  [E_shannon_renyi+logreg] test/webp     : acc=0.4896 ap=0.5037 (n=1536) [roc_auc=0.4628 f1=0.0462 eer=0.5371]
+  [E_shannon_renyi+logreg] test/blur+jpeg: acc=0.4922 ap=0.4915 (n=1536) [roc_auc=0.4367 f1=0.1136 eer=0.5527]
+  [E_shannon_renyi+logreg] done -- 17/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [18/46] E_shannon_renyi+rf : 820 features ===
+  [E_shannon_renyi+rf] fit 3200 samples (2s)
+  [E_shannon_renyi+rf] test/clean    : acc=0.9128 ap=0.9761 (n=1536) [roc_auc=0.9736 f1=0.9138 eer=0.0904]
+  [E_shannon_renyi+rf] test/blur     : acc=0.6120 ap=0.6368 (n=1536) [roc_auc=0.6575 f1=0.6583 eer=0.3880]
+  [E_shannon_renyi+rf] test/jpeg     : acc=0.4824 ap=0.5051 (n=1536) [roc_auc=0.4995 f1=0.0293 eer=0.5045]
+  [E_shannon_renyi+rf] test/webp     : acc=0.4863 ap=0.5273 (n=1536) [roc_auc=0.5049 f1=0.0075 eer=0.5055]
+  [E_shannon_renyi+rf] test/blur+jpeg: acc=0.4850 ap=0.5282 (n=1536) [roc_auc=0.5201 f1=0.0075 eer=0.4891]
+  [E_shannon_renyi+rf] done -- 18/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [19/46] E_shannon_renyi+svm : 820 features ===
+  [E_shannon_renyi+svm] fit 3200 samples (8s)
+  [E_shannon_renyi+svm] test/clean    : acc=0.9388 ap=0.9789 (n=1536) [roc_auc=0.9784 f1=0.9404 eer=0.0612]
+  [E_shannon_renyi+svm] test/blur     : acc=0.5964 ap=0.6196 (n=1536) [roc_auc=0.6452 f1=0.6830 eer=0.3880]
+  [E_shannon_renyi+svm] test/jpeg     : acc=0.4753 ap=0.4872 (n=1536) [roc_auc=0.4803 f1=0.0450 eer=0.5215]
+  [E_shannon_renyi+svm] test/webp     : acc=0.4870 ap=0.5051 (n=1536) [roc_auc=0.4772 f1=0.0199 eer=0.5215]
+  [E_shannon_renyi+svm] test/blur+jpeg: acc=0.4811 ap=0.5093 (n=1536) [roc_auc=0.4882 f1=0.0245 eer=0.5058]
+  [E_shannon_renyi+svm] done -- 19/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [20/46] E_shannon_renyi+gbt : 820 features ===
+  [E_shannon_renyi+gbt] fit 3200 samples (7s)
+  [E_shannon_renyi+gbt] test/clean    : acc=0.9525 ap=0.9930 (n=1536) [roc_auc=0.9919 f1=0.9534 eer=0.0462]
+  [E_shannon_renyi+gbt] test/blur     : acc=0.6302 ap=0.6596 (n=1536) [roc_auc=0.6770 f1=0.6923 eer=0.3665]
+  [E_shannon_renyi+gbt] test/jpeg     : acc=0.4831 ap=0.5028 (n=1536) [roc_auc=0.5032 f1=0.0525 eer=0.4948]
+  [E_shannon_renyi+gbt] test/webp     : acc=0.4870 ap=0.5305 (n=1536) [roc_auc=0.5124 f1=0.0175 eer=0.4935]
+  [E_shannon_renyi+gbt] test/blur+jpeg: acc=0.4850 ap=0.5198 (n=1536) [roc_auc=0.5069 f1=0.0100 eer=0.4928]
+  [E_shannon_renyi+gbt] done -- 20/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [21/46] F_shannon_tsallis+logreg : 820 features ===
+  [F_shannon_tsallis+logreg] fit 3200 samples (0s)
+  [F_shannon_tsallis+logreg] test/clean    : acc=0.9759 ap=0.9949 (n=1536) [roc_auc=0.9949 f1=0.9765 eer=0.0215]
+  [F_shannon_tsallis+logreg] test/blur     : acc=0.6087 ap=0.6528 (n=1536) [roc_auc=0.6934 f1=0.7198 eer=0.3561]
+  [F_shannon_tsallis+logreg] test/jpeg     : acc=0.4792 ap=0.4773 (n=1536) [roc_auc=0.4644 f1=0.0268 eer=0.5176]
+  [F_shannon_tsallis+logreg] test/webp     : acc=0.4857 ap=0.5024 (n=1536) [roc_auc=0.4788 f1=0.0223 eer=0.5137]
+  [F_shannon_tsallis+logreg] test/blur+jpeg: acc=0.4844 ap=0.4823 (n=1536) [roc_auc=0.4423 f1=0.0075 eer=0.5397]
+  [F_shannon_tsallis+logreg] done -- 21/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [22/46] F_shannon_tsallis+rf : 820 features ===
+  [F_shannon_tsallis+rf] fit 3200 samples (2s)
+  [F_shannon_tsallis+rf] test/clean    : acc=0.9199 ap=0.9820 (n=1536) [roc_auc=0.9800 f1=0.9211 eer=0.0755]
+  [F_shannon_tsallis+rf] test/blur     : acc=0.6204 ap=0.6446 (n=1536) [roc_auc=0.6661 f1=0.6624 eer=0.3866]
+  [F_shannon_tsallis+rf] test/jpeg     : acc=0.4798 ap=0.5019 (n=1536) [roc_auc=0.5028 f1=0.0172 eer=0.4967]
+  [F_shannon_tsallis+rf] test/webp     : acc=0.4857 ap=0.5271 (n=1536) [roc_auc=0.5118 f1=0.0050 eer=0.5011]
+  [F_shannon_tsallis+rf] test/blur+jpeg: acc=0.4850 ap=0.5243 (n=1536) [roc_auc=0.5111 f1=0.0050 eer=0.4914]
+  [F_shannon_tsallis+rf] done -- 22/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [23/46] F_shannon_tsallis+svm : 820 features ===
+  [F_shannon_tsallis+svm] fit 3200 samples (7s)
+  [F_shannon_tsallis+svm] test/clean    : acc=0.9434 ap=0.9830 (n=1536) [roc_auc=0.9820 f1=0.9444 eer=0.0592]
+  [F_shannon_tsallis+svm] test/blur     : acc=0.6191 ap=0.6163 (n=1536) [roc_auc=0.6604 f1=0.6948 eer=0.3854]
+  [F_shannon_tsallis+svm] test/jpeg     : acc=0.4805 ap=0.5004 (n=1536) [roc_auc=0.4910 f1=0.0197 eer=0.5072]
+  [F_shannon_tsallis+svm] test/webp     : acc=0.4863 ap=0.5023 (n=1536) [roc_auc=0.4690 f1=0.0075 eer=0.5338]
+  [F_shannon_tsallis+svm] test/blur+jpeg: acc=0.4844 ap=0.5056 (n=1536) [roc_auc=0.4844 f1=0.0075 eer=0.5032]
+  [F_shannon_tsallis+svm] done -- 23/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [24/46] F_shannon_tsallis+gbt : 820 features ===
+  [F_shannon_tsallis+gbt] fit 3200 samples (7s)
+  [F_shannon_tsallis+gbt] test/clean    : acc=0.9635 ap=0.9958 (n=1536) [roc_auc=0.9954 f1=0.9642 eer=0.0351]
+  [F_shannon_tsallis+gbt] test/blur     : acc=0.6309 ap=0.6496 (n=1536) [roc_auc=0.6763 f1=0.6989 eer=0.3809]
+  [F_shannon_tsallis+gbt] test/jpeg     : acc=0.4766 ap=0.4753 (n=1536) [roc_auc=0.4671 f1=0.0337 eer=0.5188]
+  [F_shannon_tsallis+gbt] test/webp     : acc=0.4831 ap=0.5085 (n=1536) [roc_auc=0.4866 f1=0.0050 eer=0.5176]
+  [F_shannon_tsallis+gbt] test/blur+jpeg: acc=0.4837 ap=0.4925 (n=1536) [roc_auc=0.4801 f1=0.0050 eer=0.5110]
+  [F_shannon_tsallis+gbt] done -- 24/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [25/46] G_shannon_perm+logreg : 289 features ===
+  [G_shannon_perm+logreg] fit 3200 samples (0s)
+  [G_shannon_perm+logreg] test/clean    : acc=0.9701 ap=0.9924 (n=1536) [roc_auc=0.9927 f1=0.9708 eer=0.0280]
+  [G_shannon_perm+logreg] test/blur     : acc=0.5436 ap=0.5973 (n=1536) [roc_auc=0.6230 f1=0.3824 eer=0.3952]
+  [G_shannon_perm+logreg] test/jpeg     : acc=0.4837 ap=0.4879 (n=1536) [roc_auc=0.4662 f1=0.0411 eer=0.5215]
+  [G_shannon_perm+logreg] test/webp     : acc=0.4818 ap=0.4944 (n=1536) [roc_auc=0.4646 f1=0.0050 eer=0.5280]
+  [G_shannon_perm+logreg] test/blur+jpeg: acc=0.4837 ap=0.4942 (n=1536) [roc_auc=0.4535 f1=0.0000 eer=0.5325]
+  [G_shannon_perm+logreg] done -- 25/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [26/46] G_shannon_perm+rf : 289 features ===
+  [G_shannon_perm+rf] fit 3200 samples (2s)
+  [G_shannon_perm+rf] test/clean    : acc=0.8958 ap=0.9658 (n=1536) [roc_auc=0.9623 f1=0.8966 eer=0.1055]
+  [G_shannon_perm+rf] test/blur     : acc=0.5911 ap=0.6035 (n=1536) [roc_auc=0.6266 f1=0.5757 eer=0.4037]
+  [G_shannon_perm+rf] test/jpeg     : acc=0.4818 ap=0.5080 (n=1536) [roc_auc=0.4994 f1=0.0197 eer=0.4897]
+  [G_shannon_perm+rf] test/webp     : acc=0.4863 ap=0.5256 (n=1536) [roc_auc=0.4964 f1=0.0075 eer=0.5067]
+  [G_shannon_perm+rf] test/blur+jpeg: acc=0.4857 ap=0.5286 (n=1536) [roc_auc=0.5202 f1=0.0050 eer=0.4855]
+  [G_shannon_perm+rf] done -- 26/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [27/46] G_shannon_perm+svm : 289 features ===
+  [G_shannon_perm+svm] fit 3200 samples (4s)
+  [G_shannon_perm+svm] test/clean    : acc=0.9160 ap=0.9752 (n=1536) [roc_auc=0.9739 f1=0.9179 eer=0.0833]
+  [G_shannon_perm+svm] test/blur     : acc=0.4844 ap=0.5254 (n=1536) [roc_auc=0.5133 f1=0.0000 eer=0.4915]
+  [G_shannon_perm+svm] test/jpeg     : acc=0.4805 ap=0.4917 (n=1536) [roc_auc=0.4823 f1=0.0292 eer=0.5150]
+  [G_shannon_perm+svm] test/webp     : acc=0.4876 ap=0.4966 (n=1536) [roc_auc=0.4589 f1=0.0175 eer=0.5339]
+  [G_shannon_perm+svm] test/blur+jpeg: acc=0.4844 ap=0.5171 (n=1536) [roc_auc=0.5092 f1=0.0000 eer=0.4863]
+  [G_shannon_perm+svm] done -- 27/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [28/46] G_shannon_perm+gbt : 289 features ===
+  [G_shannon_perm+gbt] fit 3200 samples (2s)
+  [G_shannon_perm+gbt] test/clean    : acc=0.9525 ap=0.9919 (n=1536) [roc_auc=0.9908 f1=0.9534 eer=0.0469]
+  [G_shannon_perm+gbt] test/blur     : acc=0.6224 ap=0.6457 (n=1536) [roc_auc=0.6724 f1=0.6406 eer=0.3789]
+  [G_shannon_perm+gbt] test/jpeg     : acc=0.4824 ap=0.4924 (n=1536) [roc_auc=0.4835 f1=0.0387 eer=0.5078]
+  [G_shannon_perm+gbt] test/webp     : acc=0.4857 ap=0.5146 (n=1536) [roc_auc=0.4909 f1=0.0150 eer=0.5189]
+  [G_shannon_perm+gbt] test/blur+jpeg: acc=0.4850 ap=0.5142 (n=1536) [roc_auc=0.4877 f1=0.0025 eer=0.5032]
+  [G_shannon_perm+gbt] done -- 28/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [29/46] H_all+logreg : 1519 features ===
+  [H_all+logreg] fit 3200 samples (1s)
+  [H_all+logreg] test/clean    : acc=0.9811 ap=0.9927 (n=1536) [roc_auc=0.9941 f1=0.9816 eer=0.0189]
+  [H_all+logreg] test/blur     : acc=0.5130 ap=0.5931 (n=1536) [roc_auc=0.6140 f1=0.2289 eer=0.4115]
+  [H_all+logreg] test/jpeg     : acc=0.4688 ap=0.4795 (n=1536) [roc_auc=0.4681 f1=0.0556 eer=0.5162]
+  [H_all+logreg] test/webp     : acc=0.4863 ap=0.5053 (n=1536) [roc_auc=0.4873 f1=0.0223 eer=0.5163]
+  [H_all+logreg] test/blur+jpeg: acc=0.4837 ap=0.4682 (n=1536) [roc_auc=0.4357 f1=0.0025 eer=0.5449]
+  [H_all+logreg] done -- 29/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [30/46] H_all+rf : 1519 features ===
+  [H_all+rf] fit 3200 samples (3s)
+  [H_all+rf] test/clean    : acc=0.9232 ap=0.9806 (n=1536) [roc_auc=0.9790 f1=0.9240 eer=0.0788]
+  [H_all+rf] test/blur     : acc=0.6152 ap=0.6397 (n=1536) [roc_auc=0.6624 f1=0.6554 eer=0.3835]
+  [H_all+rf] test/jpeg     : acc=0.4785 ap=0.5037 (n=1536) [roc_auc=0.5021 f1=0.0196 eer=0.4961]
+  [H_all+rf] test/webp     : acc=0.4857 ap=0.5243 (n=1536) [roc_auc=0.5026 f1=0.0100 eer=0.5097]
+  [H_all+rf] test/blur+jpeg: acc=0.4850 ap=0.5304 (n=1536) [roc_auc=0.5252 f1=0.0025 eer=0.4832]
+  [H_all+rf] done -- 30/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [31/46] H_all+svm : 1519 features ===
+  [H_all+svm] fit 3200 samples (22s)
+  [H_all+svm] test/clean    : acc=0.9440 ap=0.9838 (n=1536) [roc_auc=0.9827 f1=0.9453 eer=0.0566]
+  [H_all+svm] test/blur     : acc=0.4831 ap=0.5761 (n=1536) [roc_auc=0.5823 f1=0.0075 eer=0.4421]
+  [H_all+svm] test/jpeg     : acc=0.4792 ap=0.4994 (n=1536) [roc_auc=0.4987 f1=0.0291 eer=0.4968]
+  [H_all+svm] test/webp     : acc=0.4863 ap=0.5047 (n=1536) [roc_auc=0.4734 f1=0.0075 eer=0.5371]
+  [H_all+svm] test/blur+jpeg: acc=0.4844 ap=0.5187 (n=1536) [roc_auc=0.5039 f1=0.0000 eer=0.4994]
+  [H_all+svm] done -- 31/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [32/46] H_all+gbt : 1519 features ===
+  [H_all+gbt] fit 3200 samples (11s)
+  [H_all+gbt] test/clean    : acc=0.9642 ap=0.9958 (n=1536) [roc_auc=0.9954 f1=0.9650 eer=0.0371]
+  [H_all+gbt] test/blur     : acc=0.6361 ap=0.6499 (n=1536) [roc_auc=0.6768 f1=0.6920 eer=0.3698]
+  [H_all+gbt] test/jpeg     : acc=0.4733 ap=0.4794 (n=1536) [roc_auc=0.4697 f1=0.0449 eer=0.5208]
+  [H_all+gbt] test/webp     : acc=0.4837 ap=0.5112 (n=1536) [roc_auc=0.4918 f1=0.0075 eer=0.5066]
+  [H_all+gbt] test/blur+jpeg: acc=0.4844 ap=0.4975 (n=1536) [roc_auc=0.4913 f1=0.0050 eer=0.5071]
+  [H_all+gbt] done -- 32/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [33/46] ent_A_shannon : {'entropy_mode': 'shannon', 'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]} ===
+  [ent_A_shannon] step 300/3000  loss=0.1969  (7s)
+  [ent_A_shannon] step 600/3000  loss=0.1743  (13s)
+  [ent_A_shannon] step 900/3000  loss=0.1301  (18s)
+  [ent_A_shannon] step 1200/3000  loss=0.0352  (25s)
+  [ent_A_shannon] step 1500/3000  loss=0.0669  (30s)
+  [ent_A_shannon] step 1800/3000  loss=0.1392  (35s)
+  [ent_A_shannon] step 2100/3000  loss=0.0730  (40s)
+  [ent_A_shannon] step 2400/3000  loss=0.1272  (47s)
+  [ent_A_shannon] step 2700/3000  loss=0.0702  (53s)
+  [ent_A_shannon] step 3000/3000  loss=0.1973  (59s)
+  [ent_A_shannon] trained 3000 steps in 59s (in_ch=9, params=0.68M)
+  [ent_A_shannon] BN recalibrated on 50 train batches (1s)
+  [ent_A_shannon] test/clean    : acc=0.9812 ap=0.9979 (n=800) [acc_best=0.9838 logit_mean=-0.18]
+  [ent_A_shannon] test/blur     : acc=0.5575 ap=0.6813 (n=800) [acc_best=0.6937 logit_mean=+3.47]
+  [ent_A_shannon] test/jpeg     : acc=0.5250 ap=0.4196 (n=800) [acc_best=0.5262 logit_mean=-11.18]
+  [ent_A_shannon] test/webp     : acc=0.5238 ap=0.4192 (n=800) [acc_best=0.5262 logit_mean=-12.06]
+  [ent_A_shannon] test/blur+jpeg: acc=0.5262 ap=0.4267 (n=800) [acc_best=0.5262 logit_mean=-14.45]
+  [ent_A_shannon] done -- 33/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [34/46] ent_B_renyi0.5 : {'entropy_mode': 'renyi_0.5', 'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]} ===
+  [ent_B_renyi0.5] step 300/3000  loss=0.2002  (39s)
+  [ent_B_renyi0.5] step 600/3000  loss=0.1630  (78s)
+  [ent_B_renyi0.5] step 900/3000  loss=0.1229  (117s)
+  [ent_B_renyi0.5] step 1200/3000  loss=0.0402  (200s)
+  [ent_B_renyi0.5] step 1500/3000  loss=0.0694  (291s)
+  [ent_B_renyi0.5] step 1800/3000  loss=0.1308  (405s)
+  [ent_B_renyi0.5] step 2100/3000  loss=0.0757  (587s)
+  [ent_B_renyi0.5] step 2400/3000  loss=0.1229  (771s)
+  [ent_B_renyi0.5] step 2700/3000  loss=0.0667  (952s)
+  [ent_B_renyi0.5] step 3000/3000  loss=0.1796  (1139s)
+  [ent_B_renyi0.5] trained 3000 steps in 1139s (in_ch=9, params=0.68M)
+  [ent_B_renyi0.5] BN recalibrated on 50 train batches (32s)
+  [ent_B_renyi0.5] test/clean    : acc=0.9800 ap=0.9977 (n=800) [acc_best=0.9825 logit_mean=-0.35]
+  [ent_B_renyi0.5] test/blur     : acc=0.5750 ap=0.6753 (n=800) [acc_best=0.6900 logit_mean=+3.26]
+  [ent_B_renyi0.5] test/jpeg     : acc=0.5250 ap=0.4207 (n=800) [acc_best=0.5275 logit_mean=-11.48]
+  [ent_B_renyi0.5] test/webp     : acc=0.5238 ap=0.4190 (n=800) [acc_best=0.5262 logit_mean=-12.57]
+  [ent_B_renyi0.5] test/blur+jpeg: acc=0.5262 ap=0.4267 (n=800) [acc_best=0.5262 logit_mean=-15.15]
+  [ent_B_renyi0.5] done -- 34/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [35/46] ent_B_renyi2 : {'entropy_mode': 'renyi_2', 'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]} ===
+  [ent_B_renyi2] step 300/3000  loss=0.1976  (182s)
+  [ent_B_renyi2] step 600/3000  loss=0.1778  (366s)
+  [ent_B_renyi2] step 900/3000  loss=0.1249  (553s)
+  [ent_B_renyi2] step 1200/3000  loss=0.0353  (737s)
+  [ent_B_renyi2] step 1500/3000  loss=0.0720  (905s)
+  [ent_B_renyi2] step 1800/3000  loss=0.1332  (1067s)
+  [ent_B_renyi2] step 2100/3000  loss=0.0762  (1248s)
+  [ent_B_renyi2] step 2400/3000  loss=0.1502  (1433s)
+  [ent_B_renyi2] step 2700/3000  loss=0.0651  (1618s)
+  [ent_B_renyi2] step 3000/3000  loss=0.1907  (1805s)
+  [ent_B_renyi2] trained 3000 steps in 1805s (in_ch=9, params=0.68M)
+  [ent_B_renyi2] BN recalibrated on 50 train batches (33s)
+  [ent_B_renyi2] test/clean    : acc=0.9775 ap=0.9984 (n=800) [acc_best=0.9888 logit_mean=-0.13]
+  [ent_B_renyi2] test/blur     : acc=0.5587 ap=0.6885 (n=800) [acc_best=0.7037 logit_mean=+3.70]
+  [ent_B_renyi2] test/jpeg     : acc=0.5262 ap=0.4119 (n=800) [acc_best=0.5262 logit_mean=-11.57]
+  [ent_B_renyi2] test/webp     : acc=0.5262 ap=0.4218 (n=800) [acc_best=0.5275 logit_mean=-12.35]
+  [ent_B_renyi2] test/blur+jpeg: acc=0.5262 ap=0.4265 (n=800) [acc_best=0.5262 logit_mean=-14.42]
+  [ent_B_renyi2] done -- 35/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [36/46] ent_B_renyi4 : {'entropy_mode': 'renyi_4', 'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]} ===
+  [ent_B_renyi4] step 300/3000  loss=0.2161  (186s)
+  [ent_B_renyi4] step 600/3000  loss=0.1970  (375s)
+  [ent_B_renyi4] step 900/3000  loss=0.1311  (562s)
+  [ent_B_renyi4] step 1200/3000  loss=0.0416  (750s)
+  [ent_B_renyi4] step 1500/3000  loss=0.0711  (923s)
+  [ent_B_renyi4] step 1800/3000  loss=0.1158  (1093s)
+  [ent_B_renyi4] step 2100/3000  loss=0.0969  (1278s)
+  [ent_B_renyi4] step 2400/3000  loss=0.1808  (1463s)
+  [ent_B_renyi4] step 2700/3000  loss=0.0584  (1645s)
+  [ent_B_renyi4] step 3000/3000  loss=0.1817  (1834s)
+  [ent_B_renyi4] trained 3000 steps in 1834s (in_ch=9, params=0.68M)
+  [ent_B_renyi4] BN recalibrated on 50 train batches (31s)
+  [ent_B_renyi4] test/clean    : acc=0.9862 ap=0.9982 (n=800) [acc_best=0.9862 logit_mean=-0.11]
+  [ent_B_renyi4] test/blur     : acc=0.5613 ap=0.6993 (n=800) [acc_best=0.7150 logit_mean=+3.83]
+  [ent_B_renyi4] test/jpeg     : acc=0.5262 ap=0.4149 (n=800) [acc_best=0.5262 logit_mean=-12.03]
+  [ent_B_renyi4] test/webp     : acc=0.5262 ap=0.4302 (n=800) [acc_best=0.5275 logit_mean=-12.20]
+  [ent_B_renyi4] test/blur+jpeg: acc=0.5262 ap=0.4313 (n=800) [acc_best=0.5262 logit_mean=-14.28]
+  [ent_B_renyi4] done -- 36/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [37/46] ent_C_tsallis0.5 : {'entropy_mode': 'tsallis_0.5', 'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]} ===
+  [ent_C_tsallis0.5] step 300/3000  loss=0.1762  (185s)
+  [ent_C_tsallis0.5] step 600/3000  loss=0.1921  (374s)
+  [ent_C_tsallis0.5] step 900/3000  loss=0.1306  (561s)
+  [ent_C_tsallis0.5] step 1200/3000  loss=0.0350  (744s)
+  [ent_C_tsallis0.5] step 1500/3000  loss=0.0619  (915s)
+  [ent_C_tsallis0.5] step 1800/3000  loss=0.1360  (1079s)
+  [ent_C_tsallis0.5] step 2100/3000  loss=0.0776  (1269s)
+  [ent_C_tsallis0.5] step 2400/3000  loss=0.1218  (1454s)
+  [ent_C_tsallis0.5] step 2700/3000  loss=0.0629  (1642s)
+  [ent_C_tsallis0.5] step 3000/3000  loss=0.2020  (1830s)
+  [ent_C_tsallis0.5] trained 3000 steps in 1830s (in_ch=9, params=0.68M)
+  [ent_C_tsallis0.5] BN recalibrated on 50 train batches (32s)
+  [ent_C_tsallis0.5] test/clean    : acc=0.9825 ap=0.9982 (n=800) [acc_best=0.9850 logit_mean=-0.20]
+  [ent_C_tsallis0.5] test/blur     : acc=0.5737 ap=0.6760 (n=800) [acc_best=0.6913 logit_mean=+3.20]
+  [ent_C_tsallis0.5] test/jpeg     : acc=0.5262 ap=0.4162 (n=800) [acc_best=0.5262 logit_mean=-12.26]
+  [ent_C_tsallis0.5] test/webp     : acc=0.5238 ap=0.4195 (n=800) [acc_best=0.5262 logit_mean=-13.30]
+  [ent_C_tsallis0.5] test/blur+jpeg: acc=0.5262 ap=0.4225 (n=800) [acc_best=0.5262 logit_mean=-16.51]
+  [ent_C_tsallis0.5] done -- 37/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [38/46] ent_C_tsallis2 : {'entropy_mode': 'tsallis_2', 'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]} ===
+  [ent_C_tsallis2] step 300/3000  loss=0.2196  (190s)
+  [ent_C_tsallis2] step 600/3000  loss=0.1198  (382s)
+  [ent_C_tsallis2] step 900/3000  loss=0.1332  (571s)
+  [ent_C_tsallis2] step 1200/3000  loss=0.0495  (762s)
+  [ent_C_tsallis2] step 1500/3000  loss=0.0735  (938s)
+  [ent_C_tsallis2] step 1800/3000  loss=0.1633  (1106s)
+  [ent_C_tsallis2] step 2100/3000  loss=0.0729  (1299s)
+  [ent_C_tsallis2] step 2400/3000  loss=0.1251  (1485s)
+  [ent_C_tsallis2] step 2700/3000  loss=0.0519  (1676s)
+  [ent_C_tsallis2] step 3000/3000  loss=0.1766  (1865s)
+  [ent_C_tsallis2] trained 3000 steps in 1865s (in_ch=9, params=0.68M)
+  [ent_C_tsallis2] BN recalibrated on 50 train batches (32s)
+  [ent_C_tsallis2] test/clean    : acc=0.9825 ap=0.9983 (n=800) [acc_best=0.9875 logit_mean=-0.64]
+  [ent_C_tsallis2] test/blur     : acc=0.5775 ap=0.6898 (n=800) [acc_best=0.6950 logit_mean=+3.92]
+  [ent_C_tsallis2] test/jpeg     : acc=0.5238 ap=0.4310 (n=800) [acc_best=0.5262 logit_mean=-11.18]
+  [ent_C_tsallis2] test/webp     : acc=0.5262 ap=0.4286 (n=800) [acc_best=0.5288 logit_mean=-13.34]
+  [ent_C_tsallis2] test/blur+jpeg: acc=0.5262 ap=0.4433 (n=800) [acc_best=0.5300 logit_mean=-14.20]
+  [ent_C_tsallis2] done -- 38/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [39/46] ent_C_tsallis4 : {'entropy_mode': 'tsallis_4', 'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]} ===
+  [ent_C_tsallis4] step 300/3000  loss=0.1570  (191s)
+  [ent_C_tsallis4] step 600/3000  loss=0.1672  (378s)
+  [ent_C_tsallis4] step 900/3000  loss=0.1061  (569s)
+  [ent_C_tsallis4] step 1200/3000  loss=0.0813  (760s)
+  [ent_C_tsallis4] step 1500/3000  loss=0.0565  (934s)
+  [ent_C_tsallis4] step 1800/3000  loss=0.1697  (1106s)
+  [ent_C_tsallis4] step 2100/3000  loss=0.0714  (1296s)
+  [ent_C_tsallis4] step 2400/3000  loss=0.1196  (1487s)
+  [ent_C_tsallis4] step 2700/3000  loss=0.0628  (1675s)
+  [ent_C_tsallis4] step 3000/3000  loss=0.2078  (1865s)
+  [ent_C_tsallis4] trained 3000 steps in 1865s (in_ch=9, params=0.68M)
+  [ent_C_tsallis4] BN recalibrated on 50 train batches (32s)
+  [ent_C_tsallis4] test/clean    : acc=0.9738 ap=0.9986 (n=800) [acc_best=0.9838 logit_mean=-1.56]
+  [ent_C_tsallis4] test/blur     : acc=0.5813 ap=0.6862 (n=800) [acc_best=0.6987 logit_mean=+3.32]
+  [ent_C_tsallis4] test/jpeg     : acc=0.5188 ap=0.4220 (n=800) [acc_best=0.5262 logit_mean=-12.12]
+  [ent_C_tsallis4] test/webp     : acc=0.5262 ap=0.4316 (n=800) [acc_best=0.5275 logit_mean=-13.62]
+  [ent_C_tsallis4] test/blur+jpeg: acc=0.5262 ap=0.4354 (n=800) [acc_best=0.5262 logit_mean=-14.92]
+  [ent_C_tsallis4] done -- 39/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [40/46] ent_D_perm3 : {'entropy_mode': 'perm', 'window_sizes': [3], 'scales': [1.0, 0.5, 0.25]} ===
+  [ent_D_perm3] step 300/3000  loss=0.6109  (15s)
+  [ent_D_perm3] step 600/3000  loss=0.5394  (30s)
+  [ent_D_perm3] step 900/3000  loss=0.7083  (45s)
+  [ent_D_perm3] step 1200/3000  loss=0.4218  (60s)
+  [ent_D_perm3] step 1500/3000  loss=0.5604  (75s)
+  [ent_D_perm3] step 1800/3000  loss=0.3622  (89s)
+  [ent_D_perm3] step 2100/3000  loss=0.4238  (104s)
+  [ent_D_perm3] step 2400/3000  loss=0.3247  (119s)
+  [ent_D_perm3] step 2700/3000  loss=0.3634  (133s)
+  [ent_D_perm3] step 3000/3000  loss=0.5502  (148s)
+  [ent_D_perm3] trained 3000 steps in 148s (in_ch=9, params=0.68M)
+  [ent_D_perm3] BN recalibrated on 50 train batches (4s)
+  [ent_D_perm3] test/clean    : acc=0.7300 ap=0.8027 (n=800) [acc_best=0.7388 logit_mean=-0.22]
+  [ent_D_perm3] test/blur     : acc=0.5750 ap=0.5956 (n=800) [acc_best=0.5837 logit_mean=-0.80]
+  [ent_D_perm3] test/jpeg     : acc=0.5088 ap=0.4367 (n=800) [acc_best=0.5275 logit_mean=-2.41]
+  [ent_D_perm3] test/webp     : acc=0.5200 ap=0.4263 (n=800) [acc_best=0.5275 logit_mean=-3.72]
+  [ent_D_perm3] test/blur+jpeg: acc=0.5138 ap=0.4569 (n=800) [acc_best=0.5275 logit_mean=-2.80]
+  [ent_D_perm3] done -- 40/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [41/46] ent_D_perm4 : {'entropy_mode': 'perm', 'window_sizes': [4], 'scales': [1.0, 0.5, 0.25]} ===
+  [ent_D_perm4] step 300/3000  loss=0.7202  (28s)
+  [ent_D_perm4] step 600/3000  loss=0.6355  (56s)
+  [ent_D_perm4] step 900/3000  loss=0.6972  (84s)
+  [ent_D_perm4] step 1200/3000  loss=0.5259  (112s)
+  [ent_D_perm4] step 1500/3000  loss=0.5756  (139s)
+  [ent_D_perm4] step 1800/3000  loss=0.4633  (166s)
+  [ent_D_perm4] step 2100/3000  loss=0.5121  (193s)
+  [ent_D_perm4] step 2400/3000  loss=0.4500  (221s)
+  [ent_D_perm4] step 2700/3000  loss=0.5177  (249s)
+  [ent_D_perm4] step 3000/3000  loss=0.5584  (277s)
+  [ent_D_perm4] trained 3000 steps in 277s (in_ch=9, params=0.68M)
+  [ent_D_perm4] BN recalibrated on 50 train batches (6s)
+  [ent_D_perm4] test/clean    : acc=0.6687 ap=0.7348 (n=800) [acc_best=0.6850 logit_mean=-0.08]
+  [ent_D_perm4] test/blur     : acc=0.5500 ap=0.5670 (n=800) [acc_best=0.5713 logit_mean=-0.53]
+  [ent_D_perm4] test/jpeg     : acc=0.4963 ap=0.4309 (n=800) [acc_best=0.5275 logit_mean=-1.40]
+  [ent_D_perm4] test/webp     : acc=0.5025 ap=0.4335 (n=800) [acc_best=0.5275 logit_mean=-2.04]
+  [ent_D_perm4] test/blur+jpeg: acc=0.5100 ap=0.4288 (n=800) [acc_best=0.5275 logit_mean=-2.06]
+  [ent_D_perm4] done -- 41/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [42/46] ent_E_shannon_renyi : {'entropy_mode': ['shannon', 'renyi_0.5', 'renyi_2', 'renyi_4'], 'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]} ===
+  [ent_E_shannon_renyi] step 300/3000  loss=0.0550  (466s)
+  [ent_E_shannon_renyi] step 600/3000  loss=0.4448  (922s)
+  [ent_E_shannon_renyi] step 900/3000  loss=0.3858  (1504s)
+  [ent_E_shannon_renyi] step 1200/3000  loss=0.0980  (2087s)
+  [ent_E_shannon_renyi] step 1500/3000  loss=0.1254  (2670s)
+  [ent_E_shannon_renyi] step 1800/3000  loss=0.0975  (3253s)
+  [ent_E_shannon_renyi] step 2100/3000  loss=0.0788  (3841s)
+  [ent_E_shannon_renyi] step 2400/3000  loss=0.0765  (4426s)
+  [ent_E_shannon_renyi] step 2700/3000  loss=0.1930  (5007s)
+  [ent_E_shannon_renyi] step 3000/3000  loss=0.2630  (5590s)
+  [ent_E_shannon_renyi] trained 3000 steps in 5590s (in_ch=36, params=0.69M)
+  [ent_E_shannon_renyi] BN recalibrated on 50 train batches (101s)
+  [ent_E_shannon_renyi] test/clean    : acc=0.9725 ap=0.9974 (n=800) [acc_best=0.9825 logit_mean=-0.72]
+  [ent_E_shannon_renyi] test/blur     : acc=0.5725 ap=0.6784 (n=800) [acc_best=0.6887 logit_mean=+2.61]
+  [ent_E_shannon_renyi] test/jpeg     : acc=0.5238 ap=0.4028 (n=800) [acc_best=0.5262 logit_mean=-14.28]
+  [ent_E_shannon_renyi] test/webp     : acc=0.5250 ap=0.4162 (n=800) [acc_best=0.5262 logit_mean=-13.74]
+  [ent_E_shannon_renyi] test/blur+jpeg: acc=0.5262 ap=0.4217 (n=800) [acc_best=0.5262 logit_mean=-16.85]
+  [ent_E_shannon_renyi] done -- 42/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [43/46] ent_F_shannon_tsallis : {'entropy_mode': ['shannon', 'tsallis_0.5', 'tsallis_2', 'tsallis_4'], 'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]} ===
+  [ent_F_shannon_tsallis] step 300/3000  loss=0.0582  (572s)
+  [ent_F_shannon_tsallis] step 600/3000  loss=0.5019  (1126s)
+  [ent_F_shannon_tsallis] step 900/3000  loss=0.2214  (1712s)
+  [ent_F_shannon_tsallis] step 1200/3000  loss=0.1139  (2298s)
+  [ent_F_shannon_tsallis] step 1500/3000  loss=0.1248  (2885s)
+  [ent_F_shannon_tsallis] step 1800/3000  loss=0.0903  (3462s)
+  [ent_F_shannon_tsallis] step 2100/3000  loss=0.0766  (4043s)
+  [ent_F_shannon_tsallis] step 2400/3000  loss=0.0873  (4621s)
+  [ent_F_shannon_tsallis] step 2700/3000  loss=0.2507  (5192s)
+  [ent_F_shannon_tsallis] step 3000/3000  loss=0.1358  (5756s)
+  [ent_F_shannon_tsallis] trained 3000 steps in 5756s (in_ch=36, params=0.69M)
+  [ent_F_shannon_tsallis] BN recalibrated on 50 train batches (94s)
+  [ent_F_shannon_tsallis] test/clean    : acc=0.9663 ap=0.9956 (n=800) [acc_best=0.9712 logit_mean=+0.22]
+  [ent_F_shannon_tsallis] test/blur     : acc=0.5687 ap=0.6650 (n=800) [acc_best=0.6725 logit_mean=+2.57]
+  [ent_F_shannon_tsallis] test/jpeg     : acc=0.5088 ap=0.4081 (n=800) [acc_best=0.5275 logit_mean=-11.21]
+  [ent_F_shannon_tsallis] test/webp     : acc=0.5162 ap=0.4090 (n=800) [acc_best=0.5262 logit_mean=-11.61]
+  [ent_F_shannon_tsallis] test/blur+jpeg: acc=0.5212 ap=0.4184 (n=800) [acc_best=0.5262 logit_mean=-14.17]
+  [ent_F_shannon_tsallis] done -- 43/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [44/46] ent_G_shannon_perm : {'entropy_mode': ['shannon', 'perm'], 'window_sizes': [3], 'scales': [1.0, 0.5, 0.25]} ===
+  [ent_G_shannon_perm] step 300/3000  loss=0.7126  (201s)
+  [ent_G_shannon_perm] step 600/3000  loss=0.5924  (399s)
+  [ent_G_shannon_perm] step 900/3000  loss=0.5173  (593s)
+  [ent_G_shannon_perm] step 1200/3000  loss=0.3182  (780s)
+  [ent_G_shannon_perm] step 1500/3000  loss=0.3185  (961s)
+  [ent_G_shannon_perm] step 1800/3000  loss=0.2334  (1164s)
+  [ent_G_shannon_perm] step 2100/3000  loss=0.4483  (1370s)
+  [ent_G_shannon_perm] step 2400/3000  loss=0.3688  (1574s)
+  [ent_G_shannon_perm] step 2700/3000  loss=0.2497  (1784s)
+  [ent_G_shannon_perm] step 3000/3000  loss=0.1412  (1990s)
+  [ent_G_shannon_perm] trained 3000 steps in 1990s (in_ch=18, params=0.68M)
+  [ent_G_shannon_perm] BN recalibrated on 50 train batches (37s)
+  [ent_G_shannon_perm] test/clean    : acc=0.8313 ap=0.9353 (n=800) [acc_best=0.8688 logit_mean=-1.23]
+  [ent_G_shannon_perm] test/blur     : acc=0.5900 ap=0.6236 (n=800) [acc_best=0.6138 logit_mean=+1.67]
+  [ent_G_shannon_perm] test/jpeg     : acc=0.4875 ap=0.4092 (n=800) [acc_best=0.5275 logit_mean=-6.87]
+  [ent_G_shannon_perm] test/webp     : acc=0.5225 ap=0.4121 (n=800) [acc_best=0.5275 logit_mean=-8.78]
+  [ent_G_shannon_perm] test/blur+jpeg: acc=0.5075 ap=0.4242 (n=800) [acc_best=0.5275 logit_mean=-9.58]
+  [ent_G_shannon_perm] done -- 44/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [45/46] ent_H_all : {'entropy_mode': ['shannon', 'renyi_0.5', 'renyi_2', 'renyi_4', 'tsallis_0.5', 'tsallis_2', 'tsallis_4', 'perm'], 'window_sizes': [3], 'scales': [1.0, 0.5, 0.25]} ===
+  [ent_H_all] step 300/3000  loss=0.3641  (1374s)
+  [ent_H_all] step 600/3000  loss=0.3380  (2806s)
+  [ent_H_all] step 900/3000  loss=0.3964  (4244s)
+  [ent_H_all] step 1200/3000  loss=0.3146  (5678s)
+  [ent_H_all] step 1500/3000  loss=0.2693  (7110s)
+  [ent_H_all] step 1800/3000  loss=0.5104  (8553s)
+  [ent_H_all] step 2100/3000  loss=0.0756  (9981s)
+  [ent_H_all] step 2400/3000  loss=0.2387  (11381s)
+  [ent_H_all] step 2700/3000  loss=0.1321  (12814s)
+  [ent_H_all] step 3000/3000  loss=0.0370  (14248s)
+  [ent_H_all] trained 3000 steps in 14248s (in_ch=72, params=0.72M)
+  [ent_H_all] BN recalibrated on 50 train batches (239s)
+  [ent_H_all] test/clean    : acc=0.9038 ap=0.9847 (n=800) [acc_best=0.9350 logit_mean=-1.37]
+  [ent_H_all] test/blur     : acc=0.5600 ap=0.6654 (n=800) [acc_best=0.6663 logit_mean=+2.71]
+  [ent_H_all] test/jpeg     : acc=0.5112 ap=0.4109 (n=800) [acc_best=0.5262 logit_mean=-8.46]
+  [ent_H_all] test/webp     : acc=0.5175 ap=0.4107 (n=800) [acc_best=0.5262 logit_mean=-11.70]
+  [ent_H_all] test/blur+jpeg: acc=0.5175 ap=0.4359 (n=800) [acc_best=0.5275 logit_mean=-8.65]
+  [ent_H_all] done -- 45/46 written to results/entropy_20260802_160157_seed100.txt
+
+=== [46/46] ent_H_all_normalized : {'entropy_mode': ['shannon', 'renyi_0.5', 'renyi_2', 'renyi_4', 'tsallis_0.5', 'tsallis_2', 'tsallis_4', 'perm'], 'window_sizes': [3], 'scales': [1.0, 0.5, 0.25], 'normalize_entropy': True} ===
+  [ent_H_all_normalized] step 300/3000  loss=0.3439  (1402s)
+  [ent_H_all_normalized] step 600/3000  loss=0.3823  (2840s)
+  [ent_H_all_normalized] step 900/3000  loss=0.3787  (4282s)
+  [ent_H_all_normalized] step 1200/3000  loss=0.3387  (5721s)
+  [ent_H_all_normalized] step 1500/3000  loss=0.2541  (7157s)
+  [ent_H_all_normalized] step 1800/3000  loss=0.4475  (8595s)
+  [ent_H_all_normalized] step 2100/3000  loss=0.0741  (10026s)
+  [ent_H_all_normalized] step 2400/3000  loss=0.2354  (11462s)
+  [ent_H_all_normalized] step 2700/3000  loss=0.1464  (12900s)
+  [ent_H_all_normalized] step 3000/3000  loss=0.0371  (14340s)
+  [ent_H_all_normalized] trained 3000 steps in 14340s (in_ch=72, params=0.72M)
+  [ent_H_all_normalized] BN recalibrated on 50 train batches (241s)
+  [ent_H_all_normalized] test/clean    : acc=0.9187 ap=0.9883 (n=800) [acc_best=0.9387 logit_mean=-1.19]
+  [ent_H_all_normalized] test/blur     : acc=0.5537 ap=0.6706 (n=800) [acc_best=0.6737 logit_mean=+3.36]
+  [ent_H_all_normalized] test/jpeg     : acc=0.5138 ap=0.4085 (n=800) [acc_best=0.5262 logit_mean=-7.77]
+  [ent_H_all_normalized] test/webp     : acc=0.5238 ap=0.4108 (n=800) [acc_best=0.5262 logit_mean=-10.65]
+  [ent_H_all_normalized] test/blur+jpeg: acc=0.5200 ap=0.4319 (n=800) [acc_best=0.5262 logit_mean=-8.04]
+  [ent_H_all_normalized] done -- 46/46 written to results/entropy_20260802_160157_seed100.txt
+
+
+MLEP entropy comparison
+date: 2026-08-03 08:24:30
+STATUS: complete -- 46/46 configs.
+device=cuda (NVIDIA GeForce RTX 4090)  arch=resnet18  amp=True  workers=8  steps=3000  crop=224  batch=16  lr=0.0002  seed=100  classes=car,cat,chair,horse,boat,person,dog,bird  val_batches=50  bn_recal=50  stage=both  feat_batches=200/100
+
+leakage check: 0 identical (name, size) source file(s) shared between train/ and val/ over 32000 sampled files  -- ok
+
+Per-model results
+------------------------------------------------------------
+[ent_C_tsallis4]  {'entropy_mode': 'tsallis_4', 'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]}
+    in_channels=9  params=0.68M  steps=3000  train_time=1865s
+    test/clean       acc=0.9738  ap=0.9986  (n=800)  roc_auc=0.9987  f1=0.9717  prec=0.9945  rec=0.9499  eer=0.0164  brier=0.0249  ece=0.0402
+    test/blur        acc=0.5813  ap=0.6862  (n=800)  roc_auc=0.7452  f1=0.6860  prec=0.5320  rec=0.9657  eer=0.3087  brier=0.3579  ece=0.3659
+    test/jpeg        acc=0.5188  ap=0.4220  (n=800)  roc_auc=0.4365  f1=0.0052  prec=0.1250  rec=0.0026  eer=0.5613  brier=0.4680  ece=0.4628
+    test/webp        acc=0.5262  ap=0.4316  (n=800)  roc_auc=0.4644  f1=0.0000  prec=0.0000  rec=0.0000  eer=0.5188  brier=0.4716  ece=0.4705
+    test/blur+jpeg   acc=0.5262  ap=0.4354  (n=800)  roc_auc=0.4644  f1=0.0000  prec=0.0000  rec=0.0000  eer=0.5362  brier=0.4727  ece=0.4726
+    clean roc_auc 95% CI (bootstrap): [0.9978, 0.9995]
+
+[ent_B_renyi2]  {'entropy_mode': 'renyi_2', 'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]}
+    in_channels=9  params=0.68M  steps=3000  train_time=1805s
+    test/clean       acc=0.9775  ap=0.9984  (n=800)  roc_auc=0.9984  f1=0.9759  prec=0.9918  rec=0.9604  eer=0.0162  brier=0.0183  ece=0.0359
+    test/blur        acc=0.5587  ap=0.6885  (n=800)  roc_auc=0.7408  f1=0.6698  prec=0.5188  rec=0.9446  eer=0.3149  brier=0.3693  ece=0.3702
+    test/jpeg        acc=0.5262  ap=0.4119  (n=800)  roc_auc=0.4256  f1=0.0000  prec=0.0000  rec=0.0000  eer=0.5700  brier=0.4711  ece=0.4674
+    test/webp        acc=0.5262  ap=0.4218  (n=800)  roc_auc=0.4316  f1=0.0000  prec=0.0000  rec=0.0000  eer=0.5700  brier=0.4718  ece=0.4726
+    test/blur+jpeg   acc=0.5262  ap=0.4265  (n=800)  roc_auc=0.4576  f1=0.0000  prec=0.0000  rec=0.0000  eer=0.5437  brier=0.4735  ece=0.4736
+    clean roc_auc 95% CI (bootstrap): [0.9966, 0.9997]
+
+[ent_C_tsallis2]  {'entropy_mode': 'tsallis_2', 'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]}
+    in_channels=9  params=0.68M  steps=3000  train_time=1865s
+    test/clean       acc=0.9825  ap=0.9983  (n=800)  roc_auc=0.9983  f1=0.9815  prec=0.9841  rec=0.9789  eer=0.0272  brier=0.0195  ece=0.0303
+    test/blur        acc=0.5775  ap=0.6898  (n=800)  roc_auc=0.7435  f1=0.6835  prec=0.5298  rec=0.9631  eer=0.3163  brier=0.3652  ece=0.3702
+    test/jpeg        acc=0.5238  ap=0.4310  (n=800)  roc_auc=0.4444  f1=0.0052  prec=0.2500  rec=0.0026  eer=0.5600  brier=0.4641  ece=0.4573
+    test/webp        acc=0.5262  ap=0.4286  (n=800)  roc_auc=0.4432  f1=0.0000  prec=0.0000  rec=0.0000  eer=0.5474  brier=0.4715  ece=0.4710
+    test/blur+jpeg   acc=0.5262  ap=0.4433  (n=800)  roc_auc=0.4702  f1=0.0000  prec=0.0000  rec=0.0000  eer=0.5225  brier=0.4729  ece=0.4729
+    clean roc_auc 95% CI (bootstrap): [0.9970, 0.9994]
+
+[ent_B_renyi4]  {'entropy_mode': 'renyi_4', 'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]}
+    in_channels=9  params=0.68M  steps=3000  train_time=1834s
+    test/clean       acc=0.9862  ap=0.9982  (n=800)  roc_auc=0.9982  f1=0.9854  prec=0.9920  rec=0.9789  eer=0.0212  brier=0.0182  ece=0.0319
+    test/blur        acc=0.5613  ap=0.6993  (n=800)  roc_auc=0.7520  f1=0.6759  prec=0.5199  rec=0.9657  eer=0.3037  brier=0.3674  ece=0.3721
+    test/jpeg        acc=0.5262  ap=0.4149  (n=800)  roc_auc=0.4253  f1=0.0000  prec=0.0000  rec=0.0000  eer=0.5675  brier=0.4714  ece=0.4687
+    test/webp        acc=0.5262  ap=0.4302  (n=800)  roc_auc=0.4374  f1=0.0052  prec=0.5000  rec=0.0026  eer=0.5725  brier=0.4700  ece=0.4691
+    test/blur+jpeg   acc=0.5262  ap=0.4313  (n=800)  roc_auc=0.4595  f1=0.0000  prec=0.0000  rec=0.0000  eer=0.5387  brier=0.4734  ece=0.4737
+    clean roc_auc 95% CI (bootstrap): [0.9967, 0.9995]
+
+[ent_C_tsallis0.5]  {'entropy_mode': 'tsallis_0.5', 'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]}
+    in_channels=9  params=0.68M  steps=3000  train_time=1830s
+    test/clean       acc=0.9825  ap=0.9982  (n=800)  roc_auc=0.9981  f1=0.9814  prec=0.9867  rec=0.9763  eer=0.0150  brier=0.0191  ece=0.0358
+    test/blur        acc=0.5737  ap=0.6760  (n=800)  roc_auc=0.7312  f1=0.6755  prec=0.5283  rec=0.9367  eer=0.3099  brier=0.3606  ece=0.3606
+    test/jpeg        acc=0.5262  ap=0.4162  (n=800)  roc_auc=0.4282  f1=0.0000  prec=0.0000  rec=0.0000  eer=0.5576  brier=0.4697  ece=0.4661
+    test/webp        acc=0.5238  ap=0.4195  (n=800)  roc_auc=0.4301  f1=0.0000  prec=0.0000  rec=0.0000  eer=0.5575  brier=0.4721  ece=0.4726
+    test/blur+jpeg   acc=0.5262  ap=0.4225  (n=800)  roc_auc=0.4523  f1=0.0000  prec=0.0000  rec=0.0000  eer=0.5437  brier=0.4736  ece=0.4741
+    clean roc_auc 95% CI (bootstrap): [0.9962, 0.9996]
+
+[ent_A_shannon]  {'entropy_mode': 'shannon', 'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]}
+    in_channels=9  params=0.68M  steps=3000  train_time=59s
+    test/clean       acc=0.9812  ap=0.9979  (n=800)  roc_auc=0.9978  f1=0.9802  prec=0.9815  rec=0.9789  eer=0.0175  brier=0.0197  ece=0.0342
+    test/blur        acc=0.5575  ap=0.6813  (n=800)  roc_auc=0.7335  f1=0.6692  prec=0.5181  rec=0.9446  eer=0.3163  brier=0.3740  ece=0.3801
+    test/jpeg        acc=0.5250  ap=0.4196  (n=800)  roc_auc=0.4282  f1=0.0000  prec=0.0000  rec=0.0000  eer=0.5664  brier=0.4678  ece=0.4657
+    test/webp        acc=0.5238  ap=0.4192  (n=800)  roc_auc=0.4320  f1=0.0000  prec=0.0000  rec=0.0000  eer=0.5588  brier=0.4717  ece=0.4726
+    test/blur+jpeg   acc=0.5262  ap=0.4267  (n=800)  roc_auc=0.4574  f1=0.0000  prec=0.0000  rec=0.0000  eer=0.5338  brier=0.4732  ece=0.4729
+    clean roc_auc 95% CI (bootstrap): [0.9956, 0.9994]
+
+[ent_B_renyi0.5]  {'entropy_mode': 'renyi_0.5', 'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]}
+    in_channels=9  params=0.68M  steps=3000  train_time=1139s
+    test/clean       acc=0.9800  ap=0.9977  (n=800)  roc_auc=0.9976  f1=0.9789  prec=0.9764  rec=0.9815  eer=0.0187  brier=0.0191  ece=0.0286
+    test/blur        acc=0.5750  ap=0.6753  (n=800)  roc_auc=0.7295  f1=0.6762  prec=0.5291  rec=0.9367  eer=0.3250  brier=0.3578  ece=0.3624
+    test/jpeg        acc=0.5250  ap=0.4207  (n=800)  roc_auc=0.4292  f1=0.0000  prec=0.0000  rec=0.0000  eer=0.5700  brier=0.4671  ece=0.4625
+    test/webp        acc=0.5238  ap=0.4190  (n=800)  roc_auc=0.4305  f1=0.0000  prec=0.0000  rec=0.0000  eer=0.5538  brier=0.4711  ece=0.4708
+    test/blur+jpeg   acc=0.5262  ap=0.4267  (n=800)  roc_auc=0.4563  f1=0.0000  prec=0.0000  rec=0.0000  eer=0.5300  brier=0.4735  ece=0.4731
+    clean roc_auc 95% CI (bootstrap): [0.9955, 0.9994]
+
+[ent_E_shannon_renyi]  {'entropy_mode': ['shannon', 'renyi_0.5', 'renyi_2', 'renyi_4'], 'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]}
+    in_channels=36  params=0.69M  steps=3000  train_time=5590s
+    test/clean       acc=0.9725  ap=0.9974  (n=800)  roc_auc=0.9973  f1=0.9704  prec=0.9917  rec=0.9499  eer=0.0187  brier=0.0196  ece=0.0225
+    test/blur        acc=0.5725  ap=0.6784  (n=800)  roc_auc=0.7255  f1=0.6712  prec=0.5280  rec=0.9208  eer=0.3262  brier=0.3416  ece=0.3382
+    test/jpeg        acc=0.5238  ap=0.4028  (n=800)  roc_auc=0.4100  f1=0.0000  prec=0.0000  rec=0.0000  eer=0.5862  brier=0.4733  ece=0.4712
+    test/webp        acc=0.5250  ap=0.4162  (n=800)  roc_auc=0.4248  f1=0.0000  prec=0.0000  rec=0.0000  eer=0.5812  brier=0.4724  ece=0.4709
+    test/blur+jpeg   acc=0.5262  ap=0.4217  (n=800)  roc_auc=0.4424  f1=0.0000  prec=0.0000  rec=0.0000  eer=0.5488  brier=0.4732  ece=0.4722
+    clean roc_auc 95% CI (bootstrap): [0.9950, 0.9992]
+
+[E_shannon_renyi+logreg]  stage=features  group=E_shannon_renyi  families=('shannon', 'renyi')
+    features=820  train_n=3200  fit_time=2s
+    test/clean       acc=0.9772  ap=0.9950  (n=1536)  roc_auc=0.9957  f1=0.9778  prec=0.9809  rec=0.9747  eer=0.0215  brier=0.0192  ece=0.0125
+    test/blur        acc=0.5677  ap=0.6318  (n=1536)  roc_auc=0.6655  f1=0.6965  prec=0.5458  rec=0.9621  eer=0.3828  brier=0.3619  ece=0.3569
+    test/jpeg        acc=0.4902  ap=0.4952  (n=1536)  roc_auc=0.4656  f1=0.1348  prec=0.5398  rec=0.0770  eer=0.5260  brier=0.4801  ece=0.4659
+    test/webp        acc=0.4896  ap=0.5037  (n=1536)  roc_auc=0.4628  f1=0.0462  prec=0.6333  rec=0.0240  eer=0.5371  brier=0.5057  ece=0.5048
+    test/blur+jpeg   acc=0.4922  ap=0.4915  (n=1536)  roc_auc=0.4367  f1=0.1136  prec=0.5682  rec=0.0631  eer=0.5527  brier=0.4859  ece=0.4770
+    clean roc_auc 95% CI (bootstrap): [0.9923, 0.9980]
+    per-class clean roc_auc: bird=0.9894  boat=1.0000  car=1.0000  cat=0.9993  chair=0.9848  dog=0.9978  horse=0.9920  person=0.9996
+
+[B_renyi+logreg]  stage=features  group=B_renyi  families=('renyi',)
+    features=615  train_n=3200  fit_time=1s
+    test/clean       acc=0.9759  ap=0.9951  (n=1536)  roc_auc=0.9957  f1=0.9766  prec=0.9797  rec=0.9735  eer=0.0254  brier=0.0194  ece=0.0108
+    test/blur        acc=0.5755  ap=0.6352  (n=1536)  roc_auc=0.6674  f1=0.6998  prec=0.5507  rec=0.9596  eer=0.3809  brier=0.3563  ece=0.3469
+    test/jpeg        acc=0.4870  ap=0.4946  (n=1536)  roc_auc=0.4650  f1=0.1302  prec=0.5175  rec=0.0745  eer=0.5384  brier=0.4785  ece=0.4626
+    test/webp        acc=0.4896  ap=0.5030  (n=1536)  roc_auc=0.4650  f1=0.0485  prec=0.6250  rec=0.0253  eer=0.5391  brier=0.5050  ece=0.5037
+    test/blur+jpeg   acc=0.4948  ap=0.4944  (n=1536)  roc_auc=0.4390  f1=0.1261  prec=0.5833  rec=0.0707  eer=0.5553  brier=0.4840  ece=0.4736
+    clean roc_auc 95% CI (bootstrap): [0.9922, 0.9980]
+    per-class clean roc_auc: bird=0.9909  boat=1.0000  car=1.0000  cat=0.9993  chair=0.9852  dog=0.9980  horse=0.9896  person=0.9995
+
+[ent_F_shannon_tsallis]  {'entropy_mode': ['shannon', 'tsallis_0.5', 'tsallis_2', 'tsallis_4'], 'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]}
+    in_channels=36  params=0.69M  steps=3000  train_time=5756s
+    test/clean       acc=0.9663  ap=0.9956  (n=800)  roc_auc=0.9955  f1=0.9648  prec=0.9536  rec=0.9763  eer=0.0338  brier=0.0290  ece=0.0341
+    test/blur        acc=0.5687  ap=0.6650  (n=800)  roc_auc=0.7041  f1=0.6628  prec=0.5264  rec=0.8945  eer=0.3350  brier=0.3478  ece=0.3327
+    test/jpeg        acc=0.5088  ap=0.4081  (n=800)  roc_auc=0.4117  f1=0.0101  prec=0.1111  rec=0.0053  eer=0.5675  brier=0.4726  ece=0.4744
+    test/webp        acc=0.5162  ap=0.4090  (n=800)  roc_auc=0.4126  f1=0.0102  prec=0.1667  rec=0.0053  eer=0.5725  brier=0.4701  ece=0.4637
+    test/blur+jpeg   acc=0.5212  ap=0.4184  (n=800)  roc_auc=0.4372  f1=0.0000  prec=0.0000  rec=0.0000  eer=0.5513  brier=0.4740  ece=0.4738
+    clean roc_auc 95% CI (bootstrap): [0.9926, 0.9979]
+
+[F_shannon_tsallis+gbt]  stage=features  group=F_shannon_tsallis  families=('shannon', 'tsallis')
+    features=820  train_n=3200  fit_time=8s
+    test/clean       acc=0.9635  ap=0.9958  (n=1536)  roc_auc=0.9954  f1=0.9642  prec=0.9755  rec=0.9533  eer=0.0351  brier=0.0283  ece=0.0152
+    test/blur        acc=0.6309  ap=0.6496  (n=1536)  roc_auc=0.6763  f1=0.6989  prec=0.6031  rec=0.8308  eer=0.3809  brier=0.3037  ece=0.2653
+    test/jpeg        acc=0.4766  ap=0.4753  (n=1536)  roc_auc=0.4671  f1=0.0337  prec=0.3500  rec=0.0177  eer=0.5188  brier=0.5049  ece=0.4990
+    test/webp        acc=0.4831  ap=0.5085  (n=1536)  roc_auc=0.4866  f1=0.0050  prec=0.3333  rec=0.0025  eer=0.5176  brier=0.5125  ece=0.5132
+    test/blur+jpeg   acc=0.4837  ap=0.4925  (n=1536)  roc_auc=0.4801  f1=0.0050  prec=0.4000  rec=0.0025  eer=0.5110  brier=0.5129  ece=0.5121
+    clean roc_auc 95% CI (bootstrap): [0.9932, 0.9971]
+    per-class clean roc_auc: bird=0.9949  boat=0.9984  car=0.9978  cat=0.9934  chair=0.9933  dog=0.9969  horse=0.9960  person=0.9954
+
+[H_all+gbt]  stage=features  group=H_all  families=('shannon', 'renyi', 'tsallis', 'perm')
+    features=1519  train_n=3200  fit_time=12s
+    test/clean       acc=0.9642  ap=0.9958  (n=1536)  roc_auc=0.9954  f1=0.9650  prec=0.9718  rec=0.9583  eer=0.0371  brier=0.0273  ece=0.0144
+    test/blur        acc=0.6361  ap=0.6499  (n=1536)  roc_auc=0.6768  f1=0.6920  prec=0.6139  rec=0.7929  eer=0.3698  brier=0.2941  ece=0.2483
+    test/jpeg        acc=0.4733  ap=0.4794  (n=1536)  roc_auc=0.4697  f1=0.0449  prec=0.3455  rec=0.0240  eer=0.5208  brier=0.5009  ece=0.4927
+    test/webp        acc=0.4837  ap=0.5112  (n=1536)  roc_auc=0.4918  f1=0.0075  prec=0.4286  rec=0.0038  eer=0.5066  brier=0.5113  ece=0.5124
+    test/blur+jpeg   acc=0.4844  ap=0.4975  (n=1536)  roc_auc=0.4913  f1=0.0050  prec=0.5000  rec=0.0025  eer=0.5071  brier=0.5131  ece=0.5123
+    clean roc_auc 95% CI (bootstrap): [0.9932, 0.9971]
+    per-class clean roc_auc: bird=0.9954  boat=0.9980  car=0.9973  cat=0.9964  chair=0.9928  dog=0.9958  horse=0.9967  person=0.9951
+
+[C_tsallis+gbt]  stage=features  group=C_tsallis  families=('tsallis',)
+    features=615  train_n=3200  fit_time=7s
+    test/clean       acc=0.9681  ap=0.9954  (n=1536)  roc_auc=0.9950  f1=0.9688  prec=0.9757  rec=0.9621  eer=0.0312  brier=0.0262  ece=0.0116
+    test/blur        acc=0.6328  ap=0.6526  (n=1536)  roc_auc=0.6753  f1=0.7038  prec=0.6025  rec=0.8460  eer=0.3795  brier=0.3028  ece=0.2612
+    test/jpeg        acc=0.4694  ap=0.4729  (n=1536)  roc_auc=0.4637  f1=0.0423  prec=0.3051  rec=0.0227  eer=0.5261  brier=0.5044  ece=0.4991
+    test/webp        acc=0.4837  ap=0.5076  (n=1536)  roc_auc=0.4920  f1=0.0075  prec=0.4286  rec=0.0038  eer=0.5130  brier=0.5116  ece=0.5123
+    test/blur+jpeg   acc=0.4844  ap=0.4864  (n=1536)  roc_auc=0.4741  f1=0.0050  prec=0.5000  rec=0.0025  eer=0.5111  brier=0.5125  ece=0.5123
+    clean roc_auc 95% CI (bootstrap): [0.9926, 0.9966]
+    per-class clean roc_auc: bird=0.9953  boat=0.9976  car=0.9978  cat=0.9922  chair=0.9922  dog=0.9975  horse=0.9953  person=0.9954
+
+[F_shannon_tsallis+logreg]  stage=features  group=F_shannon_tsallis  families=('shannon', 'tsallis')
+    features=820  train_n=3200  fit_time=1s
+    test/clean       acc=0.9759  ap=0.9949  (n=1536)  roc_auc=0.9949  f1=0.9765  prec=0.9834  rec=0.9697  eer=0.0215  brier=0.0183  ece=0.0125
+    test/blur        acc=0.6087  ap=0.6528  (n=1536)  roc_auc=0.6934  f1=0.7198  prec=0.5706  rec=0.9747  eer=0.3561  brier=0.3276  ece=0.3234
+    test/jpeg        acc=0.4792  ap=0.4773  (n=1536)  roc_auc=0.4644  f1=0.0268  prec=0.3667  rec=0.0139  eer=0.5176  brier=0.5064  ece=0.5041
+    test/webp        acc=0.4857  ap=0.5024  (n=1536)  roc_auc=0.4788  f1=0.0223  prec=0.5625  rec=0.0114  eer=0.5137  brier=0.5114  ece=0.5121
+    test/blur+jpeg   acc=0.4844  ap=0.4823  (n=1536)  roc_auc=0.4423  f1=0.0075  prec=0.5000  rec=0.0038  eer=0.5397  brier=0.5114  ece=0.5111
+    clean roc_auc 95% CI (bootstrap): [0.9911, 0.9980]
+    per-class clean roc_auc: bird=0.9936  boat=0.9996  car=0.9998  cat=0.9962  chair=0.9913  dog=0.9997  horse=0.9850  person=0.9946
+
+[C_tsallis+logreg]  stage=features  group=C_tsallis  families=('tsallis',)
+    features=615  train_n=3200  fit_time=1s
+    test/clean       acc=0.9746  ap=0.9942  (n=1536)  roc_auc=0.9943  f1=0.9752  prec=0.9808  rec=0.9697  eer=0.0260  brier=0.0205  ece=0.0126
+    test/blur        acc=0.6185  ap=0.6479  (n=1536)  roc_auc=0.6887  f1=0.7233  prec=0.5777  rec=0.9672  eer=0.3652  brier=0.3168  ece=0.3058
+    test/jpeg        acc=0.4753  ap=0.4807  (n=1536)  roc_auc=0.4679  f1=0.0289  prec=0.3158  rec=0.0152  eer=0.5137  brier=0.5025  ece=0.5000
+    test/webp        acc=0.4857  ap=0.5041  (n=1536)  roc_auc=0.4828  f1=0.0247  prec=0.5556  rec=0.0126  eer=0.5111  brier=0.5107  ece=0.5101
+    test/blur+jpeg   acc=0.4831  ap=0.4812  (n=1536)  roc_auc=0.4459  f1=0.0075  prec=0.3750  rec=0.0038  eer=0.5443  brier=0.5116  ece=0.5120
+    clean roc_auc 95% CI (bootstrap): [0.9902, 0.9975]
+    per-class clean roc_auc: bird=0.9923  boat=0.9992  car=0.9996  cat=0.9966  chair=0.9907  dog=0.9996  horse=0.9844  person=0.9939
+
+[H_all+logreg]  stage=features  group=H_all  families=('shannon', 'renyi', 'tsallis', 'perm')
+    features=1519  train_n=3200  fit_time=2s
+    test/clean       acc=0.9811  ap=0.9927  (n=1536)  roc_auc=0.9941  f1=0.9816  prec=0.9860  rec=0.9773  eer=0.0189  brier=0.0152  ece=0.0096
+    test/blur        acc=0.5130  ap=0.5931  (n=1536)  roc_auc=0.6140  f1=0.2289  prec=0.6236  rec=0.1402  eer=0.4115  brier=0.4427  ece=0.4332
+    test/jpeg        acc=0.4688  ap=0.4795  (n=1536)  roc_auc=0.4681  f1=0.0556  prec=0.3333  rec=0.0303  eer=0.5162  brier=0.5004  ece=0.4913
+    test/webp        acc=0.4863  ap=0.5053  (n=1536)  roc_auc=0.4873  f1=0.0223  prec=0.6000  rec=0.0114  eer=0.5163  brier=0.5106  ece=0.5114
+    test/blur+jpeg   acc=0.4837  ap=0.4682  (n=1536)  roc_auc=0.4357  f1=0.0025  prec=0.3333  rec=0.0013  eer=0.5449  brier=0.5157  ece=0.5161
+    clean roc_auc 95% CI (bootstrap): [0.9891, 0.9981]
+    per-class clean roc_auc: bird=0.9851  boat=0.9998  car=1.0000  cat=0.9997  chair=0.9924  dog=0.9995  horse=0.9800  person=0.9985
+
+[G_shannon_perm+logreg]  stage=features  group=G_shannon_perm  families=('shannon', 'perm')
+    features=289  train_n=3200  fit_time=1s
+    test/clean       acc=0.9701  ap=0.9924  (n=1536)  roc_auc=0.9927  f1=0.9708  prec=0.9758  rec=0.9659  eer=0.0280  brier=0.0261  ece=0.0285
+    test/blur        acc=0.5436  ap=0.5973  (n=1536)  roc_auc=0.6230  f1=0.3824  prec=0.6327  rec=0.2740  eer=0.3952  brier=0.3717  ece=0.3483
+    test/jpeg        acc=0.4837  ap=0.4879  (n=1536)  roc_auc=0.4662  f1=0.0411  prec=0.4857  rec=0.0215  eer=0.5215  brier=0.4932  ece=0.4838
+    test/webp        acc=0.4818  ap=0.4944  (n=1536)  roc_auc=0.4646  f1=0.0050  prec=0.2500  rec=0.0025  eer=0.5280  brier=0.5117  ece=0.5115
+    test/blur+jpeg   acc=0.4837  ap=0.4942  (n=1536)  roc_auc=0.4535  f1=0.0000  prec=0.0000  rec=0.0000  eer=0.5325  brier=0.5154  ece=0.5157
+    clean roc_auc 95% CI (bootstrap): [0.9880, 0.9963]
+    per-class clean roc_auc: bird=0.9878  boat=0.9991  car=1.0000  cat=0.9987  chair=0.9834  dog=0.9987  horse=0.9773  person=0.9948
+
+[B_renyi+gbt]  stage=features  group=B_renyi  families=('renyi',)
+    features=615  train_n=3200  fit_time=6s
+    test/clean       acc=0.9570  ap=0.9932  (n=1536)  roc_auc=0.9925  f1=0.9580  prec=0.9654  rec=0.9508  eer=0.0436  brier=0.0323  ece=0.0188
+    test/blur        acc=0.6328  ap=0.6569  (n=1536)  roc_auc=0.6787  f1=0.6974  prec=0.6063  rec=0.8207  eer=0.3705  brier=0.2893  ece=0.2362
+    test/jpeg        acc=0.4792  ap=0.5013  (n=1536)  roc_auc=0.4992  f1=0.0453  prec=0.4130  rec=0.0240  eer=0.4974  brier=0.4891  ece=0.4789
+    test/webp        acc=0.4870  ap=0.5261  (n=1536)  roc_auc=0.5063  f1=0.0175  prec=0.7000  rec=0.0088  eer=0.4942  brier=0.5042  ece=0.5045
+    test/blur+jpeg   acc=0.4844  ap=0.5135  (n=1536)  roc_auc=0.4987  f1=0.0075  prec=0.5000  rec=0.0038  eer=0.4922  brier=0.5028  ece=0.5006
+    clean roc_auc 95% CI (bootstrap): [0.9892, 0.9949]
+    per-class clean roc_auc: bird=0.9871  boat=0.9976  car=0.9978  cat=0.9941  chair=0.9922  dog=0.9942  horse=0.9948  person=0.9869
+
+[E_shannon_renyi+gbt]  stage=features  group=E_shannon_renyi  families=('shannon', 'renyi')
+    features=820  train_n=3200  fit_time=8s
+    test/clean       acc=0.9525  ap=0.9930  (n=1536)  roc_auc=0.9919  f1=0.9534  prec=0.9639  rec=0.9432  eer=0.0462  brier=0.0335  ece=0.0171
+    test/blur        acc=0.6302  ap=0.6596  (n=1536)  roc_auc=0.6770  f1=0.6923  prec=0.6063  rec=0.8068  eer=0.3665  brier=0.2895  ece=0.2355
+    test/jpeg        acc=0.4831  ap=0.5028  (n=1536)  roc_auc=0.5032  f1=0.0525  prec=0.4783  rec=0.0278  eer=0.4948  brier=0.4897  ece=0.4812
+    test/webp        acc=0.4870  ap=0.5305  (n=1536)  roc_auc=0.5124  f1=0.0175  prec=0.7000  rec=0.0088  eer=0.4935  brier=0.5046  ece=0.5040
+    test/blur+jpeg   acc=0.4850  ap=0.5198  (n=1536)  roc_auc=0.5069  f1=0.0100  prec=0.5714  rec=0.0051  eer=0.4928  brier=0.5022  ece=0.5005
+    clean roc_auc 95% CI (bootstrap): [0.9888, 0.9946]
+    per-class clean roc_auc: bird=0.9884  boat=0.9976  car=0.9973  cat=0.9935  chair=0.9897  dog=0.9947  horse=0.9944  person=0.9854
+
+[A_shannon+logreg]  stage=features  group=A_shannon  families=('shannon',)
+    features=205  train_n=3200  fit_time=2s
+    test/clean       acc=0.9674  ap=0.9908  (n=1536)  roc_auc=0.9918  f1=0.9683  prec=0.9720  rec=0.9646  eer=0.0306  brier=0.0285  ece=0.0255
+    test/blur        acc=0.5918  ap=0.6268  (n=1536)  roc_auc=0.6687  f1=0.7080  prec=0.5609  rec=0.9596  eer=0.3750  brier=0.3257  ece=0.3109
+    test/jpeg        acc=0.4844  ap=0.4868  (n=1536)  roc_auc=0.4551  f1=0.0660  prec=0.5000  rec=0.0354  eer=0.5391  brier=0.4828  ece=0.4703
+    test/webp        acc=0.4876  ap=0.4955  (n=1536)  roc_auc=0.4566  f1=0.0367  prec=0.6000  rec=0.0189  eer=0.5378  brier=0.5063  ece=0.5044
+    test/blur+jpeg   acc=0.4889  ap=0.4927  (n=1536)  roc_auc=0.4406  f1=0.0776  prec=0.5593  rec=0.0417  eer=0.5462  brier=0.4884  ece=0.4809
+    clean roc_auc 95% CI (bootstrap): [0.9868, 0.9954]
+    per-class clean roc_auc: bird=0.9820  boat=0.9997  car=1.0000  cat=0.9972  chair=0.9796  dog=0.9969  horse=0.9799  person=0.9949
+
+[A_shannon+gbt]  stage=features  group=A_shannon  families=('shannon',)
+    features=205  train_n=3200  fit_time=3s
+    test/clean       acc=0.9531  ap=0.9920  (n=1536)  roc_auc=0.9909  f1=0.9540  prec=0.9651  rec=0.9432  eer=0.0482  brier=0.0364  ece=0.0198
+    test/blur        acc=0.6367  ap=0.6533  (n=1536)  roc_auc=0.6786  f1=0.6931  prec=0.6140  rec=0.7955  eer=0.3763  brier=0.2814  ece=0.2246
+    test/jpeg        acc=0.4857  ap=0.4938  (n=1536)  roc_auc=0.4782  f1=0.0413  prec=0.5312  rec=0.0215  eer=0.5098  brier=0.4945  ece=0.4865
+    test/webp        acc=0.4863  ap=0.5130  (n=1536)  roc_auc=0.4832  f1=0.0223  prec=0.6000  rec=0.0114  eer=0.5143  brier=0.5044  ece=0.5023
+    test/blur+jpeg   acc=0.4870  ap=0.5138  (n=1536)  roc_auc=0.4793  f1=0.0272  prec=0.6111  rec=0.0139  eer=0.5280  brier=0.5013  ece=0.4996
+    clean roc_auc 95% CI (bootstrap): [0.9878, 0.9938]
+    per-class clean roc_auc: bird=0.9886  boat=0.9982  car=0.9944  cat=0.9899  chair=0.9871  dog=0.9947  horse=0.9899  person=0.9849
+
+[G_shannon_perm+gbt]  stage=features  group=G_shannon_perm  families=('shannon', 'perm')
+    features=289  train_n=3200  fit_time=3s
+    test/clean       acc=0.9525  ap=0.9919  (n=1536)  roc_auc=0.9908  f1=0.9534  prec=0.9651  rec=0.9419  eer=0.0469  brier=0.0350  ece=0.0163
+    test/blur        acc=0.6224  ap=0.6457  (n=1536)  roc_auc=0.6724  f1=0.6406  prec=0.6290  rec=0.6528  eer=0.3789  brier=0.2746  ece=0.2069
+    test/jpeg        acc=0.4824  ap=0.4924  (n=1536)  roc_auc=0.4835  f1=0.0387  prec=0.4571  rec=0.0202  eer=0.5078  brier=0.4956  ece=0.4847
+    test/webp        acc=0.4857  ap=0.5146  (n=1536)  roc_auc=0.4909  f1=0.0150  prec=0.6000  rec=0.0076  eer=0.5189  brier=0.5051  ece=0.5043
+    test/blur+jpeg   acc=0.4850  ap=0.5142  (n=1536)  roc_auc=0.4877  f1=0.0025  prec=1.0000  rec=0.0013  eer=0.5032  brier=0.5069  ece=0.5062
+    clean roc_auc 95% CI (bootstrap): [0.9871, 0.9939]
+    per-class clean roc_auc: bird=0.9875  boat=0.9972  car=0.9933  cat=0.9940  chair=0.9912  dog=0.9932  horse=0.9903  person=0.9862
+
+[ent_H_all_normalized]  {'entropy_mode': ['shannon', 'renyi_0.5', 'renyi_2', 'renyi_4', 'tsallis_0.5', 'tsallis_2', 'tsallis_4', 'perm'], 'window_sizes': [3], 'scales': [1.0, 0.5, 0.25], 'normalize_entropy': True}
+    in_channels=72  params=0.72M  steps=3000  train_time=14340s
+    test/clean       acc=0.9187  ap=0.9883  (n=800)  roc_auc=0.9886  f1=0.9073  prec=0.9876  rec=0.8391  eer=0.0649  brier=0.0588  ece=0.0665
+    test/blur        acc=0.5537  ap=0.6706  (n=800)  roc_auc=0.7104  f1=0.6660  prec=0.5159  rec=0.9393  eer=0.3349  brier=0.3648  ece=0.3591
+    test/jpeg        acc=0.5138  ap=0.4085  (n=800)  roc_auc=0.4293  f1=0.0051  prec=0.0833  rec=0.0026  eer=0.5575  brier=0.4740  ece=0.4724
+    test/webp        acc=0.5238  ap=0.4108  (n=800)  roc_auc=0.4223  f1=0.0000  prec=0.0000  rec=0.0000  eer=0.5750  brier=0.4725  ece=0.4707
+    test/blur+jpeg   acc=0.5200  ap=0.4319  (n=800)  roc_auc=0.4657  f1=0.0052  prec=0.1429  rec=0.0026  eer=0.5312  brier=0.4718  ece=0.4715
+    clean roc_auc 95% CI (bootstrap): [0.9831, 0.9931]
+
+[ent_H_all]  {'entropy_mode': ['shannon', 'renyi_0.5', 'renyi_2', 'renyi_4', 'tsallis_0.5', 'tsallis_2', 'tsallis_4', 'perm'], 'window_sizes': [3], 'scales': [1.0, 0.5, 0.25]}
+    in_channels=72  params=0.72M  steps=3000  train_time=14248s
+    test/clean       acc=0.9038  ap=0.9847  (n=800)  roc_auc=0.9854  f1=0.8895  prec=0.9748  rec=0.8179  eer=0.0712  brier=0.0648  ece=0.0666
+    test/blur        acc=0.5600  ap=0.6654  (n=800)  roc_auc=0.7024  f1=0.6602  prec=0.5205  rec=0.9024  eer=0.3387  brier=0.3484  ece=0.3391
+    test/jpeg        acc=0.5112  ap=0.4109  (n=800)  roc_auc=0.4317  f1=0.0101  prec=0.1250  rec=0.0053  eer=0.5499  brier=0.4761  ece=0.4783
+    test/webp        acc=0.5175  ap=0.4107  (n=800)  roc_auc=0.4175  f1=0.0103  prec=0.1818  rec=0.0053  eer=0.5650  brier=0.4724  ece=0.4705
+    test/blur+jpeg   acc=0.5175  ap=0.4359  (n=800)  roc_auc=0.4688  f1=0.0052  prec=0.1111  rec=0.0026  eer=0.5300  brier=0.4737  ece=0.4737
+    clean roc_auc 95% CI (bootstrap): [0.9796, 0.9911]
+
+[H_all+svm]  stage=features  group=H_all  families=('shannon', 'renyi', 'tsallis', 'perm')
+    features=1519  train_n=3200  fit_time=31s
+    test/clean       acc=0.9440  ap=0.9838  (n=1536)  roc_auc=0.9827  f1=0.9453  prec=0.9526  rec=0.9381  eer=0.0566  brier=0.0451  ece=0.0133
+    test/blur        acc=0.4831  ap=0.5761  (n=1536)  roc_auc=0.5823  f1=0.0075  prec=0.3750  rec=0.0038  eer=0.4421  brier=0.4085  ece=0.4035
+    test/jpeg        acc=0.4792  ap=0.4994  (n=1536)  roc_auc=0.4987  f1=0.0291  prec=0.3750  rec=0.0152  eer=0.4968  brier=0.4831  ece=0.4743
+    test/webp        acc=0.4863  ap=0.5047  (n=1536)  roc_auc=0.4734  f1=0.0075  prec=1.0000  rec=0.0038  eer=0.5371  brier=0.5065  ece=0.5062
+    test/blur+jpeg   acc=0.4844  ap=0.5187  (n=1536)  roc_auc=0.5039  f1=0.0000  prec=0.0000  rec=0.0000  eer=0.4994  brier=0.4999  ece=0.4990
+    clean roc_auc 95% CI (bootstrap): [0.9753, 0.9870]
+    per-class clean roc_auc: bird=0.9786  boat=0.9934  car=0.9928  cat=0.9806  chair=0.9795  dog=0.9910  horse=0.9776  person=0.9692
+
+[F_shannon_tsallis+svm]  stage=features  group=F_shannon_tsallis  families=('shannon', 'tsallis')
+    features=820  train_n=3200  fit_time=13s
+    test/clean       acc=0.9434  ap=0.9830  (n=1536)  roc_auc=0.9820  f1=0.9444  prec=0.9560  rec=0.9331  eer=0.0592  brier=0.0460  ece=0.0154
+    test/blur        acc=0.6191  ap=0.6163  (n=1536)  roc_auc=0.6604  f1=0.6948  prec=0.5920  rec=0.8409  eer=0.3854  brier=0.2811  ece=0.2126
+    test/jpeg        acc=0.4805  ap=0.5004  (n=1536)  roc_auc=0.4910  f1=0.0197  prec=0.3636  rec=0.0101  eer=0.5072  brier=0.4885  ece=0.4827
+    test/webp        acc=0.4863  ap=0.5023  (n=1536)  roc_auc=0.4690  f1=0.0075  prec=1.0000  rec=0.0038  eer=0.5338  brier=0.5074  ece=0.5064
+    test/blur+jpeg   acc=0.4844  ap=0.5056  (n=1536)  roc_auc=0.4844  f1=0.0075  prec=0.5000  rec=0.0038  eer=0.5032  brier=0.5029  ece=0.5018
+    clean roc_auc 95% CI (bootstrap): [0.9741, 0.9863]
+    per-class clean roc_auc: bird=0.9812  boat=0.9945  car=0.9930  cat=0.9783  chair=0.9759  dog=0.9923  horse=0.9735  person=0.9675
+
+[C_tsallis+svm]  stage=features  group=C_tsallis  families=('tsallis',)
+    features=615  train_n=3200  fit_time=11s
+    test/clean       acc=0.9421  ap=0.9829  (n=1536)  roc_auc=0.9819  f1=0.9433  prec=0.9524  rec=0.9343  eer=0.0579  brier=0.0458  ece=0.0137
+    test/blur        acc=0.6257  ap=0.6152  (n=1536)  roc_auc=0.6634  f1=0.7019  prec=0.5954  rec=0.8548  eer=0.3815  brier=0.2790  ece=0.2063
+    test/jpeg        acc=0.4850  ap=0.5058  (n=1536)  roc_auc=0.4963  f1=0.0318  prec=0.5200  rec=0.0164  eer=0.5091  brier=0.4830  ece=0.4756
+    test/webp        acc=0.4863  ap=0.5012  (n=1536)  roc_auc=0.4691  f1=0.0075  prec=1.0000  rec=0.0038  eer=0.5351  brier=0.5072  ece=0.5065
+    test/blur+jpeg   acc=0.4837  ap=0.5076  (n=1536)  roc_auc=0.4899  f1=0.0075  prec=0.4286  rec=0.0038  eer=0.4889  brier=0.5022  ece=0.5009
+    clean roc_auc 95% CI (bootstrap): [0.9743, 0.9861]
+    per-class clean roc_auc: bird=0.9819  boat=0.9927  car=0.9927  cat=0.9790  chair=0.9772  dog=0.9923  horse=0.9724  person=0.9660
+
+[C_tsallis+rf]  stage=features  group=C_tsallis  families=('tsallis',)
+    features=615  train_n=3200  fit_time=4s
+    test/clean       acc=0.9219  ap=0.9819  (n=1536)  roc_auc=0.9800  f1=0.9226  prec=0.9433  rec=0.9028  eer=0.0774  brier=0.0751  ece=0.1250
+    test/blur        acc=0.6126  ap=0.6448  (n=1536)  roc_auc=0.6611  f1=0.6590  prec=0.6034  rec=0.7260  eer=0.3925  brier=0.2379  ece=0.0877
+    test/jpeg        acc=0.4766  ap=0.4955  (n=1536)  roc_auc=0.4942  f1=0.0123  prec=0.2273  rec=0.0063  eer=0.5013  brier=0.3895  ece=0.3597
+    test/webp        acc=0.4857  ap=0.5195  (n=1536)  roc_auc=0.4954  f1=0.0050  prec=1.0000  rec=0.0025  eer=0.5071  brier=0.4274  ece=0.4132
+    test/blur+jpeg   acc=0.4837  ap=0.5173  (n=1536)  roc_auc=0.5066  f1=0.0025  prec=0.3333  rec=0.0013  eer=0.4913  brier=0.4203  ece=0.4060
+    clean roc_auc 95% CI (bootstrap): [0.9744, 0.9852]
+    per-class clean roc_auc: bird=0.9833  boat=0.9954  car=0.9816  cat=0.9804  chair=0.9780  dog=0.9901  horse=0.9834  person=0.9670
+
+[F_shannon_tsallis+rf]  stage=features  group=F_shannon_tsallis  families=('shannon', 'tsallis')
+    features=820  train_n=3200  fit_time=4s
+    test/clean       acc=0.9199  ap=0.9820  (n=1536)  roc_auc=0.9800  f1=0.9211  prec=0.9361  rec=0.9066  eer=0.0755  brier=0.0750  ece=0.1260
+    test/blur        acc=0.6204  ap=0.6446  (n=1536)  roc_auc=0.6661  f1=0.6624  prec=0.6118  rec=0.7222  eer=0.3866  brier=0.2351  ece=0.0766
+    test/jpeg        acc=0.4798  ap=0.5019  (n=1536)  roc_auc=0.5028  f1=0.0172  prec=0.3333  rec=0.0088  eer=0.4967  brier=0.3876  ece=0.3569
+    test/webp        acc=0.4857  ap=0.5271  (n=1536)  roc_auc=0.5118  f1=0.0050  prec=1.0000  rec=0.0025  eer=0.5011  brier=0.4250  ece=0.4122
+    test/blur+jpeg   acc=0.4850  ap=0.5243  (n=1536)  roc_auc=0.5111  f1=0.0050  prec=0.6667  rec=0.0025  eer=0.4914  brier=0.4175  ece=0.4029
+    clean roc_auc 95% CI (bootstrap): [0.9737, 0.9851]
+    per-class clean roc_auc: bird=0.9847  boat=0.9945  car=0.9824  cat=0.9783  chair=0.9798  dog=0.9896  horse=0.9791  person=0.9708
+
+[H_all+rf]  stage=features  group=H_all  families=('shannon', 'renyi', 'tsallis', 'perm')
+    features=1519  train_n=3200  fit_time=5s
+    test/clean       acc=0.9232  ap=0.9806  (n=1536)  roc_auc=0.9790  f1=0.9240  prec=0.9434  rec=0.9053  eer=0.0788  brier=0.0761  ece=0.1237
+    test/blur        acc=0.6152  ap=0.6397  (n=1536)  roc_auc=0.6624  f1=0.6554  prec=0.6089  rec=0.7096  eer=0.3835  brier=0.2324  ece=0.0601
+    test/jpeg        acc=0.4785  ap=0.5037  (n=1536)  roc_auc=0.5021  f1=0.0196  prec=0.3200  rec=0.0101  eer=0.4961  brier=0.3888  ece=0.3583
+    test/webp        acc=0.4857  ap=0.5243  (n=1536)  roc_auc=0.5026  f1=0.0100  prec=0.6667  rec=0.0051  eer=0.5097  brier=0.4233  ece=0.4093
+    test/blur+jpeg   acc=0.4850  ap=0.5304  (n=1536)  roc_auc=0.5252  f1=0.0025  prec=1.0000  rec=0.0013  eer=0.4832  brier=0.4070  ece=0.3915
+    clean roc_auc 95% CI (bootstrap): [0.9730, 0.9840]
+    per-class clean roc_auc: bird=0.9843  boat=0.9951  car=0.9832  cat=0.9796  chair=0.9771  dog=0.9871  horse=0.9793  person=0.9679
+
+[E_shannon_renyi+svm]  stage=features  group=E_shannon_renyi  families=('shannon', 'renyi')
+    features=820  train_n=3200  fit_time=14s
+    test/clean       acc=0.9388  ap=0.9789  (n=1536)  roc_auc=0.9784  f1=0.9404  prec=0.9440  rec=0.9369  eer=0.0612  brier=0.0523  ece=0.0240
+    test/blur        acc=0.5964  ap=0.6196  (n=1536)  roc_auc=0.6452  f1=0.6830  prec=0.5739  rec=0.8434  eer=0.3880  brier=0.3053  ece=0.2467
+    test/jpeg        acc=0.4753  ap=0.4872  (n=1536)  roc_auc=0.4803  f1=0.0450  prec=0.3654  rec=0.0240  eer=0.5215  brier=0.4845  ece=0.4784
+    test/webp        acc=0.4870  ap=0.5051  (n=1536)  roc_auc=0.4772  f1=0.0199  prec=0.6667  rec=0.0101  eer=0.5215  brier=0.5052  ece=0.5030
+    test/blur+jpeg   acc=0.4811  ap=0.5093  (n=1536)  roc_auc=0.4882  f1=0.0245  prec=0.4000  rec=0.0126  eer=0.5058  brier=0.4954  ece=0.4931
+    clean roc_auc 95% CI (bootstrap): [0.9697, 0.9842]
+    per-class clean roc_auc: bird=0.9708  boat=0.9957  car=0.9924  cat=0.9753  chair=0.9546  dog=0.9879  horse=0.9784  person=0.9717
+
+[B_renyi+svm]  stage=features  group=B_renyi  families=('renyi',)
+    features=615  train_n=3200  fit_time=11s
+    test/clean       acc=0.9388  ap=0.9784  (n=1536)  roc_auc=0.9778  f1=0.9404  prec=0.9440  rec=0.9369  eer=0.0599  brier=0.0531  ece=0.0239
+    test/blur        acc=0.5977  ap=0.6184  (n=1536)  roc_auc=0.6437  f1=0.6847  prec=0.5745  rec=0.8472  eer=0.3854  brier=0.3076  ece=0.2471
+    test/jpeg        acc=0.4720  ap=0.4851  (n=1536)  roc_auc=0.4781  f1=0.0448  prec=0.3333  rec=0.0240  eer=0.5130  brier=0.4835  ece=0.4783
+    test/webp        acc=0.4857  ap=0.5056  (n=1536)  roc_auc=0.4790  f1=0.0150  prec=0.6000  rec=0.0076  eer=0.5280  brier=0.5047  ece=0.5024
+    test/blur+jpeg   acc=0.4824  ap=0.5098  (n=1536)  roc_auc=0.4892  f1=0.0269  prec=0.4400  rec=0.0139  eer=0.5104  brier=0.4936  ece=0.4912
+    clean roc_auc 95% CI (bootstrap): [0.9691, 0.9835]
+    per-class clean roc_auc: bird=0.9702  boat=0.9949  car=0.9913  cat=0.9746  chair=0.9556  dog=0.9871  horse=0.9788  person=0.9698
+
+[A_shannon+svm]  stage=features  group=A_shannon  families=('shannon',)
+    features=205  train_n=3200  fit_time=6s
+    test/clean       acc=0.9284  ap=0.9767  (n=1536)  roc_auc=0.9761  f1=0.9298  prec=0.9394  rec=0.9205  eer=0.0736  brier=0.0574  ece=0.0237
+    test/blur        acc=0.5905  ap=0.6159  (n=1536)  roc_auc=0.6429  f1=0.6616  prec=0.5764  rec=0.7765  eer=0.3965  brier=0.2905  ece=0.2327
+    test/jpeg        acc=0.4798  ap=0.4876  (n=1536)  roc_auc=0.4774  f1=0.0315  prec=0.3939  rec=0.0164  eer=0.5241  brier=0.4958  ece=0.4885
+    test/webp        acc=0.4863  ap=0.5017  (n=1536)  roc_auc=0.4685  f1=0.0174  prec=0.6364  rec=0.0088  eer=0.5313  brier=0.5066  ece=0.5048
+    test/blur+jpeg   acc=0.4844  ap=0.5053  (n=1536)  roc_auc=0.4773  f1=0.0222  prec=0.5000  rec=0.0114  eer=0.5124  brier=0.5022  ece=0.4992
+    clean roc_auc 95% CI (bootstrap): [0.9674, 0.9821]
+    per-class clean roc_auc: bird=0.9685  boat=0.9950  car=0.9904  cat=0.9721  chair=0.9452  dog=0.9863  horse=0.9759  person=0.9743
+
+[G_shannon_perm+svm]  stage=features  group=G_shannon_perm  families=('shannon', 'perm')
+    features=289  train_n=3200  fit_time=7s
+    test/clean       acc=0.9160  ap=0.9752  (n=1536)  roc_auc=0.9739  f1=0.9179  prec=0.9255  rec=0.9104  eer=0.0833  brier=0.0614  ece=0.0180
+    test/blur        acc=0.4844  ap=0.5254  (n=1536)  roc_auc=0.5133  f1=0.0000  prec=0.0000  rec=0.0000  eer=0.4915  brier=0.3735  ece=0.3516
+    test/jpeg        acc=0.4805  ap=0.4917  (n=1536)  roc_auc=0.4823  f1=0.0292  prec=0.4000  rec=0.0152  eer=0.5150  brier=0.4860  ece=0.4763
+    test/webp        acc=0.4876  ap=0.4966  (n=1536)  roc_auc=0.4589  f1=0.0175  prec=0.7778  rec=0.0088  eer=0.5339  brier=0.5038  ece=0.5019
+    test/blur+jpeg   acc=0.4844  ap=0.5171  (n=1536)  roc_auc=0.5092  f1=0.0000  prec=0.0000  rec=0.0000  eer=0.4863  brier=0.4203  ece=0.4107
+    clean roc_auc 95% CI (bootstrap): [0.9653, 0.9793]
+    per-class clean roc_auc: bird=0.9662  boat=0.9901  car=0.9856  cat=0.9791  chair=0.9508  dog=0.9810  horse=0.9750  person=0.9686
+
+[E_shannon_renyi+rf]  stage=features  group=E_shannon_renyi  families=('shannon', 'renyi')
+    features=820  train_n=3200  fit_time=4s
+    test/clean       acc=0.9128  ap=0.9761  (n=1536)  roc_auc=0.9736  f1=0.9138  prec=0.9318  rec=0.8965  eer=0.0904  brier=0.0846  ece=0.1296
+    test/blur        acc=0.6120  ap=0.6368  (n=1536)  roc_auc=0.6575  f1=0.6583  prec=0.6029  rec=0.7247  eer=0.3880  brier=0.2368  ece=0.0746
+    test/jpeg        acc=0.4824  ap=0.5051  (n=1536)  roc_auc=0.4995  f1=0.0293  prec=0.4444  rec=0.0152  eer=0.5045  brier=0.3825  ece=0.3446
+    test/webp        acc=0.4863  ap=0.5273  (n=1536)  roc_auc=0.5049  f1=0.0075  prec=1.0000  rec=0.0038  eer=0.5055  brier=0.4154  ece=0.3992
+    test/blur+jpeg   acc=0.4850  ap=0.5282  (n=1536)  roc_auc=0.5201  f1=0.0075  prec=0.6000  rec=0.0038  eer=0.4891  brier=0.4032  ece=0.3832
+    clean roc_auc 95% CI (bootstrap): [0.9659, 0.9794]
+    per-class clean roc_auc: bird=0.9781  boat=0.9950  car=0.9814  cat=0.9723  chair=0.9705  dog=0.9857  horse=0.9762  person=0.9598
+
+[B_renyi+rf]  stage=features  group=B_renyi  families=('renyi',)
+    features=615  train_n=3200  fit_time=4s
+    test/clean       acc=0.9043  ap=0.9732  (n=1536)  roc_auc=0.9705  f1=0.9051  prec=0.9260  rec=0.8851  eer=0.0964  brier=0.0882  ece=0.1266
+    test/blur        acc=0.6035  ap=0.6352  (n=1536)  roc_auc=0.6514  f1=0.6538  prec=0.5946  rec=0.7260  eer=0.3854  brier=0.2393  ece=0.0839
+    test/jpeg        acc=0.4818  ap=0.5053  (n=1536)  roc_auc=0.5005  f1=0.0293  prec=0.4286  rec=0.0152  eer=0.4998  brier=0.3774  ece=0.3383
+    test/webp        acc=0.4870  ap=0.5255  (n=1536)  roc_auc=0.5046  f1=0.0150  prec=0.7500  rec=0.0076  eer=0.5008  brier=0.4110  ece=0.3924
+    test/blur+jpeg   acc=0.4844  ap=0.5275  (n=1536)  roc_auc=0.5206  f1=0.0075  prec=0.5000  rec=0.0038  eer=0.4818  brier=0.3967  ece=0.3751
+    clean roc_auc 95% CI (bootstrap): [0.9630, 0.9771]
+    per-class clean roc_auc: bird=0.9730  boat=0.9942  car=0.9734  cat=0.9675  chair=0.9741  dog=0.9821  horse=0.9740  person=0.9574
+
+[A_shannon+rf]  stage=features  group=A_shannon  families=('shannon',)
+    features=205  train_n=3200  fit_time=4s
+    test/clean       acc=0.8926  ap=0.9671  (n=1536)  roc_auc=0.9631  f1=0.8936  prec=0.9130  rec=0.8750  eer=0.1062  brier=0.0986  ece=0.1359
+    test/blur        acc=0.6068  ap=0.6243  (n=1536)  roc_auc=0.6424  f1=0.6163  prec=0.6202  rec=0.6124  eer=0.3946  brier=0.2394  ece=0.0632
+    test/jpeg        acc=0.4824  ap=0.4963  (n=1536)  roc_auc=0.4805  f1=0.0149  prec=0.4000  rec=0.0076  eer=0.5137  brier=0.3874  ece=0.3509
+    test/webp        acc=0.4870  ap=0.5174  (n=1536)  roc_auc=0.4904  f1=0.0125  prec=0.8333  rec=0.0063  eer=0.5082  brier=0.4249  ece=0.4088
+    test/blur+jpeg   acc=0.4850  ap=0.5187  (n=1536)  roc_auc=0.5015  f1=0.0075  prec=0.6000  rec=0.0038  eer=0.4928  brier=0.4207  ece=0.4051
+    clean roc_auc 95% CI (bootstrap): [0.9545, 0.9708]
+    per-class clean roc_auc: bird=0.9710  boat=0.9922  car=0.9620  cat=0.9612  chair=0.9605  dog=0.9807  horse=0.9688  person=0.9524
+
+[G_shannon_perm+rf]  stage=features  group=G_shannon_perm  families=('shannon', 'perm')
+    features=289  train_n=3200  fit_time=4s
+    test/clean       acc=0.8958  ap=0.9658  (n=1536)  roc_auc=0.9623  f1=0.8966  prec=0.9180  rec=0.8763  eer=0.1055  brier=0.1012  ece=0.1444
+    test/blur        acc=0.5911  ap=0.6035  (n=1536)  roc_auc=0.6266  f1=0.5757  prec=0.6192  rec=0.5379  eer=0.4037  brier=0.2424  ece=0.0721
+    test/jpeg        acc=0.4818  ap=0.5080  (n=1536)  roc_auc=0.4994  f1=0.0197  prec=0.4000  rec=0.0101  eer=0.4897  brier=0.3697  ece=0.3297
+    test/webp        acc=0.4863  ap=0.5256  (n=1536)  roc_auc=0.4964  f1=0.0075  prec=1.0000  rec=0.0038  eer=0.5067  brier=0.4095  ece=0.3918
+    test/blur+jpeg   acc=0.4857  ap=0.5286  (n=1536)  roc_auc=0.5202  f1=0.0050  prec=1.0000  rec=0.0025  eer=0.4855  brier=0.3760  ece=0.3484
+    clean roc_auc 95% CI (bootstrap): [0.9537, 0.9702]
+    per-class clean roc_auc: bird=0.9691  boat=0.9944  car=0.9632  cat=0.9659  chair=0.9587  dog=0.9754  horse=0.9625  person=0.9514
+
+[ent_G_shannon_perm]  {'entropy_mode': ['shannon', 'perm'], 'window_sizes': [3], 'scales': [1.0, 0.5, 0.25]}
+    in_channels=18  params=0.68M  steps=3000  train_time=1990s
+    test/clean       acc=0.8313  ap=0.9353  (n=800)  roc_auc=0.9453  f1=0.7994  prec=0.9150  rec=0.7098  eer=0.1426  brier=0.1104  ece=0.0851
+    test/blur        acc=0.5900  ap=0.6236  (n=800)  roc_auc=0.6481  f1=0.6547  prec=0.5447  rec=0.8206  eer=0.3875  brier=0.3198  ece=0.2652
+    test/jpeg        acc=0.4875  ap=0.4092  (n=800)  roc_auc=0.4214  f1=0.0330  prec=0.1556  rec=0.0185  eer=0.5675  brier=0.4761  ece=0.4659
+    test/webp        acc=0.5225  ap=0.4121  (n=800)  roc_auc=0.4002  f1=0.0728  prec=0.4545  rec=0.0396  eer=0.5663  brier=0.4682  ece=0.4646
+    test/blur+jpeg   acc=0.5075  ap=0.4242  (n=800)  roc_auc=0.4454  f1=0.0343  prec=0.2414  rec=0.0185  eer=0.5325  brier=0.4770  ece=0.4741
+    clean roc_auc 95% CI (bootstrap): [0.9322, 0.9576]
+
+[D_perm+logreg]  stage=features  group=D_perm  families=('perm',)
+    features=84  train_n=3200  fit_time=1s
+    test/clean       acc=0.8171  ap=0.8753  (n=1536)  roc_auc=0.8844  f1=0.8254  prec=0.8127  rec=0.8384  eer=0.1875  brier=0.1400  ece=0.0659
+    test/blur        acc=0.5065  ap=0.5366  (n=1536)  roc_auc=0.5308  f1=0.2968  prec=0.5594  rec=0.2020  eer=0.4726  brier=0.4005  ece=0.3626
+    test/jpeg        acc=0.4740  ap=0.5035  (n=1536)  roc_auc=0.5011  f1=0.2560  prec=0.4728  rec=0.1755  eer=0.4961  brier=0.4018  ece=0.3618
+    test/webp        acc=0.4948  ap=0.5041  (n=1536)  roc_auc=0.4890  f1=0.4875  prec=0.5111  rec=0.4659  eer=0.5052  brier=0.3583  ece=0.2862
+    test/blur+jpeg   acc=0.4844  ap=0.5223  (n=1536)  roc_auc=0.5086  f1=0.0222  prec=0.5000  rec=0.0114  eer=0.5000  brier=0.5041  ece=0.5017
+    clean roc_auc 95% CI (bootstrap): [0.8663, 0.9013]
+    per-class clean roc_auc: bird=0.9287  boat=0.8789  car=0.9108  cat=0.9189  chair=0.8513  dog=0.8680  horse=0.8267  person=0.9030
+
+[D_perm+gbt]  stage=features  group=D_perm  families=('perm',)
+    features=84  train_n=3200  fit_time=2s
+    test/clean       acc=0.7695  ap=0.8449  (n=1536)  roc_auc=0.8489  f1=0.7734  prec=0.7844  rec=0.7626  eer=0.2324  brier=0.1586  ece=0.0307
+    test/blur        acc=0.4844  ap=0.5083  (n=1536)  roc_auc=0.4951  f1=0.0000  prec=0.0000  rec=0.0000  eer=0.5058  brier=0.3704  ece=0.3405
+    test/jpeg        acc=0.4772  ap=0.5092  (n=1536)  roc_auc=0.4856  f1=0.3529  prec=0.4878  rec=0.2765  eer=0.4993  brier=0.3535  ece=0.2916
+    test/webp        acc=0.5020  ap=0.5271  (n=1536)  roc_auc=0.5114  f1=0.5228  prec=0.5166  rec=0.5290  eer=0.4863  brier=0.3190  ece=0.2384
+    test/blur+jpeg   acc=0.4798  ap=0.5253  (n=1536)  roc_auc=0.5206  f1=0.0124  prec=0.2941  rec=0.0063  eer=0.4811  brier=0.3588  ece=0.3238
+    clean roc_auc 95% CI (bootstrap): [0.8312, 0.8631]
+    per-class clean roc_auc: bird=0.8470  boat=0.8562  car=0.8718  cat=0.8810  chair=0.8321  dog=0.8418  horse=0.7983  person=0.8784
+
+[D_perm+rf]  stage=features  group=D_perm  families=('perm',)
+    features=84  train_n=3200  fit_time=3s
+    test/clean       acc=0.7454  ap=0.8144  (n=1536)  roc_auc=0.8222  f1=0.7508  prec=0.7580  rec=0.7437  eer=0.2545  brier=0.1782  ece=0.0743
+    test/blur        acc=0.4915  ap=0.5285  (n=1536)  roc_auc=0.5243  f1=0.2006  prec=0.5297  rec=0.1237  eer=0.4725  brier=0.2716  ece=0.1229
+    test/jpeg        acc=0.4753  ap=0.5210  (n=1536)  roc_auc=0.4870  f1=0.4142  prec=0.4880  rec=0.3598  eer=0.5137  brier=0.2779  ece=0.1503
+    test/webp        acc=0.5124  ap=0.5369  (n=1536)  roc_auc=0.5209  f1=0.5436  prec=0.5253  rec=0.5631  eer=0.4927  brier=0.2640  ece=0.1014
+    test/blur+jpeg   acc=0.5000  ap=0.5369  (n=1536)  roc_auc=0.5206  f1=0.2644  prec=0.5476  rec=0.1742  eer=0.4883  brier=0.2643  ece=0.0967
+    clean roc_auc 95% CI (bootstrap): [0.8024, 0.8387]
+    per-class clean roc_auc: bird=0.8288  boat=0.8318  car=0.8409  cat=0.8449  chair=0.8076  dog=0.8022  horse=0.7868  person=0.8460
+
+[D_perm+svm]  stage=features  group=D_perm  families=('perm',)
+    features=84  train_n=3200  fit_time=5s
+    test/clean       acc=0.7402  ap=0.8097  (n=1536)  roc_auc=0.8128  f1=0.7514  prec=0.7417  rec=0.7614  eer=0.2611  brier=0.1783  ece=0.0487
+    test/blur        acc=0.4844  ap=0.5056  (n=1536)  roc_auc=0.4964  f1=0.0000  prec=0.0000  rec=0.0000  eer=0.4980  brier=0.3334  ece=0.2896
+    test/jpeg        acc=0.4987  ap=0.5224  (n=1536)  roc_auc=0.5043  f1=0.4122  prec=0.5212  rec=0.3409  eer=0.5065  brier=0.3258  ece=0.2430
+    test/webp        acc=0.5267  ap=0.5586  (n=1536)  roc_auc=0.5396  f1=0.5448  prec=0.5404  rec=0.5492  eer=0.4798  brier=0.3090  ece=0.2235
+    test/blur+jpeg   acc=0.4844  ap=0.5164  (n=1536)  roc_auc=0.5134  f1=0.0000  prec=0.0000  rec=0.0000  eer=0.4883  brier=0.3386  ece=0.3016
+    clean roc_auc 95% CI (bootstrap): [0.7907, 0.8340]
+    per-class clean roc_auc: bird=0.8159  boat=0.8314  car=0.8549  cat=0.8840  chair=0.7638  dog=0.7919  horse=0.7469  person=0.8320
+
+[ent_D_perm3]  {'entropy_mode': 'perm', 'window_sizes': [3], 'scales': [1.0, 0.5, 0.25]}
+    in_channels=9  params=0.68M  steps=3000  train_time=148s
+    test/clean       acc=0.7300  ap=0.8027  (n=800)  roc_auc=0.8087  f1=0.7033  prec=0.7335  rec=0.6755  eer=0.2849  brier=0.1772  ece=0.0305
+    test/blur        acc=0.5750  ap=0.5956  (n=800)  roc_auc=0.6038  f1=0.4444  prec=0.5837  rec=0.3588  eer=0.4325  brier=0.2884  ece=0.2046
+    test/jpeg        acc=0.5088  ap=0.4367  (n=800)  roc_auc=0.4654  f1=0.0391  prec=0.2667  rec=0.0211  eer=0.5225  brier=0.3938  ece=0.3632
+    test/webp        acc=0.5200  ap=0.4263  (n=800)  roc_auc=0.4390  f1=0.0204  prec=0.3077  rec=0.0106  eer=0.5387  brier=0.4365  ece=0.4197
+    test/blur+jpeg   acc=0.5138  ap=0.4569  (n=800)  roc_auc=0.4777  f1=0.0535  prec=0.3438  rec=0.0290  eer=0.5113  brier=0.4026  ece=0.3756
+    clean roc_auc 95% CI (bootstrap): [0.7770, 0.8367]
+
+[ent_D_perm4]  {'entropy_mode': 'perm', 'window_sizes': [4], 'scales': [1.0, 0.5, 0.25]}
+    in_channels=9  params=0.68M  steps=3000  train_time=277s
+    test/clean       acc=0.6687  ap=0.7348  (n=800)  roc_auc=0.7555  f1=0.6624  prec=0.6404  rec=0.6860  eer=0.3300  brier=0.1998  ece=0.0313
+    test/blur        acc=0.5500  ap=0.5670  (n=800)  roc_auc=0.5913  f1=0.4020  prec=0.5426  rec=0.3193  eer=0.4362  brier=0.2608  ece=0.1385
+    test/jpeg        acc=0.4963  ap=0.4309  (n=800)  roc_auc=0.4615  f1=0.0606  prec=0.2600  rec=0.0343  eer=0.5275  brier=0.3402  ece=0.2734
+    test/webp        acc=0.5025  ap=0.4335  (n=800)  roc_auc=0.4576  f1=0.0245  prec=0.1724  rec=0.0132  eer=0.5262  brier=0.3764  ece=0.3305
+    test/blur+jpeg   acc=0.5100  ap=0.4288  (n=800)  roc_auc=0.4505  f1=0.0297  prec=0.2400  rec=0.0158  eer=0.5325  brier=0.3798  ece=0.3371
+    clean roc_auc 95% CI (bootstrap): [0.7233, 0.7870]
+
+ROC-AUC per test scenario  [higher = more robust]
+=====================================================================
+                    config   clean    blur    jpeg    webp  blur+jpeg
+---------------------------------------------------------------------
+            ent_C_tsallis4  0.9987  0.7452  0.4365  0.4644     0.4644
+              ent_B_renyi2  0.9984  0.7408  0.4256  0.4316     0.4576
+            ent_C_tsallis2  0.9983  0.7435  0.4444  0.4432     0.4702
+              ent_B_renyi4  0.9982  0.7520  0.4253  0.4374     0.4595
+          ent_C_tsallis0.5  0.9981  0.7312  0.4282  0.4301     0.4523
+             ent_A_shannon  0.9978  0.7335  0.4282  0.4320     0.4574
+            ent_B_renyi0.5  0.9976  0.7295  0.4292  0.4305     0.4563
+       ent_E_shannon_renyi  0.9973  0.7255  0.4100  0.4248     0.4424
+    E_shannon_renyi+logreg  0.9957  0.6655  0.4656  0.4628     0.4367
+            B_renyi+logreg  0.9957  0.6674  0.4650  0.4650     0.4390
+     ent_F_shannon_tsallis  0.9955  0.7041  0.4117  0.4126     0.4372
+     F_shannon_tsallis+gbt  0.9954  0.6763  0.4671  0.4866     0.4801
+                 H_all+gbt  0.9954  0.6768  0.4697  0.4918     0.4913
+             C_tsallis+gbt  0.9950  0.6753  0.4637  0.4920     0.4741
+  F_shannon_tsallis+logreg  0.9949  0.6934  0.4644  0.4788     0.4423
+          C_tsallis+logreg  0.9943  0.6887  0.4679  0.4828     0.4459
+              H_all+logreg  0.9941  0.6140  0.4681  0.4873     0.4357
+     G_shannon_perm+logreg  0.9927  0.6230  0.4662  0.4646     0.4535
+               B_renyi+gbt  0.9925  0.6787  0.4992  0.5063     0.4987
+       E_shannon_renyi+gbt  0.9919  0.6770  0.5032  0.5124     0.5069
+          A_shannon+logreg  0.9918  0.6687  0.4551  0.4566     0.4406
+             A_shannon+gbt  0.9909  0.6786  0.4782  0.4832     0.4793
+        G_shannon_perm+gbt  0.9908  0.6724  0.4835  0.4909     0.4877
+      ent_H_all_normalized  0.9886  0.7104  0.4293  0.4223     0.4657
+                 ent_H_all  0.9854  0.7024  0.4317  0.4175     0.4688
+                 H_all+svm  0.9827  0.5823  0.4987  0.4734     0.5039
+     F_shannon_tsallis+svm  0.9820  0.6604  0.4910  0.4690     0.4844
+             C_tsallis+svm  0.9819  0.6634  0.4963  0.4691     0.4899
+              C_tsallis+rf  0.9800  0.6611  0.4942  0.4954     0.5066
+      F_shannon_tsallis+rf  0.9800  0.6661  0.5028  0.5118     0.5111
+                  H_all+rf  0.9790  0.6624  0.5021  0.5026     0.5252
+       E_shannon_renyi+svm  0.9784  0.6452  0.4803  0.4772     0.4882
+               B_renyi+svm  0.9778  0.6437  0.4781  0.4790     0.4892
+             A_shannon+svm  0.9761  0.6429  0.4774  0.4685     0.4773
+        G_shannon_perm+svm  0.9739  0.5133  0.4823  0.4589     0.5092
+        E_shannon_renyi+rf  0.9736  0.6575  0.4995  0.5049     0.5201
+                B_renyi+rf  0.9705  0.6514  0.5005  0.5046     0.5206
+              A_shannon+rf  0.9631  0.6424  0.4805  0.4904     0.5015
+         G_shannon_perm+rf  0.9623  0.6266  0.4994  0.4964     0.5202
+        ent_G_shannon_perm  0.9453  0.6481  0.4214  0.4002     0.4454
+             D_perm+logreg  0.8844  0.5308  0.5011  0.4890     0.5086
+                D_perm+gbt  0.8489  0.4951  0.4856  0.5114     0.5206
+                 D_perm+rf  0.8222  0.5243  0.4870  0.5209     0.5206
+                D_perm+svm  0.8128  0.4964  0.5043  0.5396     0.5134
+               ent_D_perm3  0.8087  0.6038  0.4654  0.4390     0.4777
+               ent_D_perm4  0.7555  0.5913  0.4615  0.4576     0.4505
+=====================================================================
+Cols: clean vs corrupted test sets. Read a row's clean cell against its blur / jpeg / webp cells for robustness, and every row against the A_shannon row of the same stage/classifier.
+
+Ablation (feature stage): best classifier per group
+=============================================================
+              group     clf   clean  delta_vs_A  mean_corrupt
+-------------------------------------------------------------
+          A_shannon  logreg  0.9918      0.0000        0.5052
+            B_renyi  logreg  0.9957      0.0039        0.5091
+          C_tsallis     gbt  0.9950      0.0032        0.5263
+             D_perm  logreg  0.8844     -0.1074        0.5074
+    E_shannon_renyi  logreg  0.9957      0.0040        0.5076
+  F_shannon_tsallis     gbt  0.9954      0.0037        0.5275
+     G_shannon_perm  logreg  0.9927      0.0010        0.5018
+              H_all     gbt  0.9954      0.0037        0.5324
+=============================================================
+delta_vs_A is clean ROC-AUC minus the A_shannon row. 'Better' = positive delta AND a mean_corrupt at least as high, not a larger entropy value.
+
+Notes
+- Feature stage: entropy summary statistics + sklearn; deep stage: the MLEP network trained by run_config(), identical to the sweep.
+- Splits are the on-disk train/ and val/ folders; crops, resizes and corruptions are applied after that split, never before.
+- Short training -> the deep ranking is indicative. Re-run the top configs with more --max_train_steps to confirm.
+
+Results written to results/entropy_20260802_160157_seed100.txt
+CSVs: results/entropy_20260802_160157_seed100_metrics.csv, results/entropy_20260802_160157_seed100_ablation.csv, results/entropy_20260802_160157_seed100_features.csv

@@ -1,0 +1,6 @@
+group,stage,config,classifier,clean_roc_auc,delta_vs_A,mean_corrupt_roc_auc
+A_shannon,deep,ent_A_shannon,mlep,0.99786,0,0.512884
+B_renyi,deep,ent_B_renyi2,mlep,0.998339,0.000479446,0.513884
+B_renyi,deep,ent_B_renyi4,mlep,0.998239,0.00037917,0.518595
+C_tsallis,deep,ent_C_tsallis2,mlep,0.998245,0.000385437,0.52573
+C_tsallis,deep,ent_C_tsallis4,mlep,0.998671,0.000811612,0.526659

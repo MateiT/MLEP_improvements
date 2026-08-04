@@ -1,0 +1,70 @@
+MLEP entropy comparison
+date: 2026-08-03 11:46:59
+STATUS: complete -- 5/5 configs.
+device=cuda (NVIDIA GeForce RTX 4090)  arch=resnet18  amp=True  workers=8  steps=3000  crop=224  batch=16  lr=0.0002  seed=300  classes=car,cat,chair,horse,boat,person,dog,bird  val_batches=50  bn_recal=50  stage=deep  feat_batches=60/30
+
+leakage check: 0 identical (name, size) source file(s) shared between train/ and val/ over 32000 sampled files  -- ok
+
+Per-model results
+------------------------------------------------------------
+[ent_B_renyi4]  {'entropy_mode': 'renyi_4', 'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]}
+    in_channels=9  params=0.68M  steps=3000  train_time=53s
+    test/clean       acc=0.9725  ap=0.9970  (n=800)  roc_auc=0.9967  f1=0.9727  prec=0.9874  rec=0.9584  eer=0.0312  brier=0.0250  ece=0.0321
+    test/blur        acc=0.6012  ap=0.6701  (n=800)  roc_auc=0.6890  f1=0.7054  prec=0.5668  rec=0.9340  eer=0.3625  brier=0.3361  ece=0.3206
+    test/jpeg        acc=0.4913  ap=0.4560  (n=800)  roc_auc=0.4269  f1=0.0097  prec=1.0000  rec=0.0049  eer=0.5588  brier=0.5061  ece=0.5022
+    test/webp        acc=0.4938  ap=0.4756  (n=800)  roc_auc=0.4351  f1=0.0241  prec=0.8333  rec=0.0122  eer=0.5550  brier=0.5030  ece=0.5008
+    test/blur+jpeg   acc=0.4888  ap=0.4606  (n=800)  roc_auc=0.4307  f1=0.0097  prec=0.5000  rec=0.0049  eer=0.5599  brier=0.5085  ece=0.5088
+    clean roc_auc 95% CI (bootstrap): [0.9946, 0.9984]
+
+[ent_C_tsallis4]  {'entropy_mode': 'tsallis_4', 'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]}
+    in_channels=9  params=0.68M  steps=3000  train_time=52s
+    test/clean       acc=0.9762  ap=0.9971  (n=800)  roc_auc=0.9963  f1=0.9770  prec=0.9688  rec=0.9853  eer=0.0200  brier=0.0200  ece=0.0287
+    test/blur        acc=0.5887  ap=0.6929  (n=800)  roc_auc=0.7199  f1=0.7086  prec=0.5556  rec=0.9780  eer=0.3363  brier=0.3540  ece=0.3596
+    test/jpeg        acc=0.4850  ap=0.4665  (n=800)  roc_auc=0.4465  f1=0.0329  prec=0.4118  rec=0.0171  eer=0.5363  brier=0.5013  ece=0.4940
+    test/webp        acc=0.4913  ap=0.4621  (n=800)  roc_auc=0.4376  f1=0.0145  prec=0.7500  rec=0.0073  eer=0.5438  brier=0.5073  ece=0.5079
+    test/blur+jpeg   acc=0.4875  ap=0.4480  (n=800)  roc_auc=0.4222  f1=0.0049  prec=0.3333  rec=0.0024  eer=0.5475  brier=0.5106  ece=0.5110
+    clean roc_auc 95% CI (bootstrap): [0.9922, 0.9992]
+
+[ent_B_renyi2]  {'entropy_mode': 'renyi_2', 'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]}
+    in_channels=9  params=0.68M  steps=3000  train_time=52s
+    test/clean       acc=0.9712  ap=0.9964  (n=800)  roc_auc=0.9961  f1=0.9714  prec=0.9874  rec=0.9560  eer=0.0312  brier=0.0264  ece=0.0314
+    test/blur        acc=0.5988  ap=0.6627  (n=800)  roc_auc=0.6850  f1=0.7058  prec=0.5645  rec=0.9413  eer=0.3687  brier=0.3429  ece=0.3337
+    test/jpeg        acc=0.4900  ap=0.4524  (n=800)  roc_auc=0.4227  f1=0.0049  prec=1.0000  rec=0.0024  eer=0.5562  brier=0.5077  ece=0.5066
+    test/webp        acc=0.4938  ap=0.4673  (n=800)  roc_auc=0.4353  f1=0.0241  prec=0.8333  rec=0.0122  eer=0.5400  brier=0.5051  ece=0.5061
+    test/blur+jpeg   acc=0.4888  ap=0.4574  (n=800)  roc_auc=0.4301  f1=0.0049  prec=0.5000  rec=0.0024  eer=0.5538  brier=0.5099  ece=0.5111
+    clean roc_auc 95% CI (bootstrap): [0.9937, 0.9982]
+
+[ent_A_shannon]  {'entropy_mode': 'shannon', 'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]}
+    in_channels=9  params=0.68M  steps=3000  train_time=72s
+    test/clean       acc=0.9688  ap=0.9959  (n=800)  roc_auc=0.9956  f1=0.9689  prec=0.9848  rec=0.9535  eer=0.0325  brier=0.0281  ece=0.0291
+    test/blur        acc=0.5887  ap=0.6546  (n=800)  roc_auc=0.6754  f1=0.7006  prec=0.5580  rec=0.9413  eer=0.3887  brier=0.3497  ece=0.3400
+    test/jpeg        acc=0.4863  ap=0.4512  (n=800)  roc_auc=0.4195  f1=0.0048  prec=0.2500  rec=0.0024  eer=0.5662  brier=0.5078  ece=0.5058
+    test/webp        acc=0.4925  ap=0.4609  (n=800)  roc_auc=0.4244  f1=0.0146  prec=1.0000  rec=0.0073  eer=0.5575  brier=0.5063  ece=0.5062
+    test/blur+jpeg   acc=0.4875  ap=0.4565  (n=800)  roc_auc=0.4288  f1=0.0049  prec=0.3333  rec=0.0024  eer=0.5587  brier=0.5103  ece=0.5117
+    clean roc_auc 95% CI (bootstrap): [0.9929, 0.9979]
+
+[ent_C_tsallis2]  {'entropy_mode': 'tsallis_2', 'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]}
+    in_channels=9  params=0.68M  steps=3000  train_time=56s
+    test/clean       acc=0.9650  ap=0.9957  (n=800)  roc_auc=0.9954  f1=0.9652  prec=0.9823  rec=0.9487  eer=0.0250  brier=0.0277  ece=0.0324
+    test/blur        acc=0.5687  ap=0.6642  (n=800)  roc_auc=0.6807  f1=0.6950  prec=0.5443  rec=0.9609  eer=0.3612  brier=0.3751  ece=0.3722
+    test/jpeg        acc=0.4850  ap=0.4579  (n=800)  roc_auc=0.4333  f1=0.0048  prec=0.2000  rec=0.0024  eer=0.5463  brier=0.5083  ece=0.5093
+    test/webp        acc=0.4925  ap=0.4667  (n=800)  roc_auc=0.4273  f1=0.0193  prec=0.8000  rec=0.0098  eer=0.5575  brier=0.5043  ece=0.5021
+    test/blur+jpeg   acc=0.4838  ap=0.4577  (n=800)  roc_auc=0.4315  f1=0.0048  prec=0.1667  rec=0.0024  eer=0.5550  brier=0.5101  ece=0.5107
+    clean roc_auc 95% CI (bootstrap): [0.9918, 0.9982]
+
+ROC-AUC per test scenario  [higher = more robust]
+===========================================================
+          config   clean    blur    jpeg    webp  blur+jpeg
+-----------------------------------------------------------
+    ent_B_renyi4  0.9967  0.6890  0.4269  0.4351     0.4307
+  ent_C_tsallis4  0.9963  0.7199  0.4465  0.4376     0.4222
+    ent_B_renyi2  0.9961  0.6850  0.4227  0.4353     0.4301
+   ent_A_shannon  0.9956  0.6754  0.4195  0.4244     0.4288
+  ent_C_tsallis2  0.9954  0.6807  0.4333  0.4273     0.4315
+===========================================================
+Cols: clean vs corrupted test sets. Read a row's clean cell against its blur / jpeg / webp cells for robustness, and every row against the A_shannon row of the same stage/classifier.
+
+Notes
+- Feature stage: entropy summary statistics + sklearn; deep stage: the MLEP network trained by run_config(), identical to the sweep.
+- Splits are the on-disk train/ and val/ folders; crops, resizes and corruptions are applied after that split, never before.
+- Short training -> the deep ranking is indicative. Re-run the top configs with more --max_train_steps to confirm.

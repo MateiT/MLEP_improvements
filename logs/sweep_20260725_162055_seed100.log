@@ -1,0 +1,212 @@
+Device: cuda (NVIDIA GeForce RTX 4090) | arch: resnet18 | steps: 3000 | crop: 224 | batch: 16 | workers: 8 | amp: True
+Running 13 config(s): ['baseline_2x2', 'w2x2_unique', 'w3x3_multiscale', 'w4x4_multiscale', 'w5x5_multiscale', 'w6x6_multiscale', 'w7x7_multiscale', 'w8x8_multiscale', 'multiwindow_multiscale', 'multiwindow_multiscale_normalized', 'multiwindow_multiscale_aligned', 'baseline_train_blur', 'baseline_train_jpeg']
+
+=== [1/13] baseline_2x2 : {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]} ===
+  [baseline_2x2] step 300/3000  loss=0.1967  (6s)
+  [baseline_2x2] step 600/3000  loss=0.1748  (12s)
+  [baseline_2x2] step 900/3000  loss=0.1299  (18s)
+  [baseline_2x2] step 1200/3000  loss=0.0352  (23s)
+  [baseline_2x2] step 1500/3000  loss=0.0679  (28s)
+  [baseline_2x2] step 1800/3000  loss=0.1383  (34s)
+  [baseline_2x2] step 2100/3000  loss=0.0736  (41s)
+  [baseline_2x2] step 2400/3000  loss=0.1294  (47s)
+  [baseline_2x2] step 2700/3000  loss=0.0697  (52s)
+  [baseline_2x2] step 3000/3000  loss=0.1934  (59s)
+  [baseline_2x2] trained 3000 steps in 59s (in_ch=9, params=0.68M)
+  [baseline_2x2] BN recalibrated on 50 train batches (1s)
+  [baseline_2x2] test/clean    : acc=0.9825 ap=0.9979 (n=800) [acc_best=0.9838 logit_mean=-0.17]
+  [baseline_2x2] test/blur     : acc=0.5575 ap=0.6817 (n=800) [acc_best=0.6950 logit_mean=+3.51]
+  [baseline_2x2] test/jpeg     : acc=0.5250 ap=0.4199 (n=800) [acc_best=0.5262 logit_mean=-11.19]
+  [baseline_2x2] test/webp     : acc=0.5238 ap=0.4193 (n=800) [acc_best=0.5262 logit_mean=-12.09]
+  [baseline_2x2] test/blur+jpeg: acc=0.5262 ap=0.4265 (n=800) [acc_best=0.5262 logit_mean=-14.49]
+  [baseline_2x2] done -- 1/13 written to results/sweep_20260725_162055_seed100.txt
+
+=== [2/13] w2x2_unique : {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25], 'entropy_mode': 'unique'} ===
+  [w2x2_unique] step 300/3000  loss=0.1990  (4s)
+  [w2x2_unique] step 600/3000  loss=0.2019  (8s)
+  [w2x2_unique] step 900/3000  loss=0.1322  (12s)
+  [w2x2_unique] step 1200/3000  loss=0.0417  (17s)
+  [w2x2_unique] step 1500/3000  loss=0.0704  (21s)
+  [w2x2_unique] step 1800/3000  loss=0.1317  (25s)
+  [w2x2_unique] step 2100/3000  loss=0.0860  (29s)
+  [w2x2_unique] step 2400/3000  loss=0.1278  (34s)
+  [w2x2_unique] step 2700/3000  loss=0.0620  (39s)
+  [w2x2_unique] step 3000/3000  loss=0.2008  (42s)
+  [w2x2_unique] trained 3000 steps in 42s (in_ch=9, params=0.68M)
+  [w2x2_unique] BN recalibrated on 50 train batches (1s)
+  [w2x2_unique] test/clean    : acc=0.9762 ap=0.9980 (n=800) [acc_best=0.9850 logit_mean=-0.28]
+  [w2x2_unique] test/blur     : acc=0.5950 ap=0.6710 (n=800) [acc_best=0.6900 logit_mean=+2.65]
+  [w2x2_unique] test/jpeg     : acc=0.5250 ap=0.4144 (n=800) [acc_best=0.5262 logit_mean=-12.77]
+  [w2x2_unique] test/webp     : acc=0.5250 ap=0.4155 (n=800) [acc_best=0.5262 logit_mean=-13.96]
+  [w2x2_unique] test/blur+jpeg: acc=0.5262 ap=0.4218 (n=800) [acc_best=0.5262 logit_mean=-17.24]
+  [w2x2_unique] done -- 2/13 written to results/sweep_20260725_162055_seed100.txt
+
+=== [3/13] w3x3_multiscale : {'window_sizes': [3], 'scales': [1.0, 0.5, 0.25]} ===
+  [w3x3_multiscale] step 300/3000  loss=0.3411  (40s)
+  [w3x3_multiscale] step 600/3000  loss=0.2837  (80s)
+  [w3x3_multiscale] step 900/3000  loss=0.1618  (119s)
+  [w3x3_multiscale] step 1200/3000  loss=0.1190  (159s)
+  [w3x3_multiscale] step 1500/3000  loss=0.1303  (198s)
+  [w3x3_multiscale] step 1800/3000  loss=0.1807  (238s)
+  [w3x3_multiscale] step 2100/3000  loss=0.2086  (277s)
+  [w3x3_multiscale] step 2400/3000  loss=0.2198  (317s)
+  [w3x3_multiscale] step 2700/3000  loss=0.0769  (357s)
+  [w3x3_multiscale] step 3000/3000  loss=0.2366  (396s)
+  [w3x3_multiscale] trained 3000 steps in 396s (in_ch=9, params=0.68M)
+  [w3x3_multiscale] BN recalibrated on 50 train batches (7s)
+  [w3x3_multiscale] test/clean    : acc=0.9337 ap=0.9907 (n=800) [acc_best=0.9575 logit_mean=+0.70]
+  [w3x3_multiscale] test/blur     : acc=0.5625 ap=0.6548 (n=800) [acc_best=0.6663 logit_mean=+2.96]
+  [w3x3_multiscale] test/jpeg     : acc=0.5200 ap=0.4335 (n=800) [acc_best=0.5262 logit_mean=-5.74]
+  [w3x3_multiscale] test/webp     : acc=0.5288 ap=0.4232 (n=800) [acc_best=0.5300 logit_mean=-6.88]
+  [w3x3_multiscale] test/blur+jpeg: acc=0.5275 ap=0.4240 (n=800) [acc_best=0.5288 logit_mean=-9.27]
+  [w3x3_multiscale] done -- 3/13 written to results/sweep_20260725_162055_seed100.txt
+
+=== [4/13] w4x4_multiscale : {'window_sizes': [4], 'scales': [1.0, 0.5, 0.25]} ===
+  [w4x4_multiscale] step 300/3000  loss=0.5343  (42s)
+  [w4x4_multiscale] step 600/3000  loss=0.5311  (83s)
+  [w4x4_multiscale] step 900/3000  loss=0.4358  (125s)
+  [w4x4_multiscale] step 1200/3000  loss=0.2539  (166s)
+  [w4x4_multiscale] step 1500/3000  loss=0.4016  (207s)
+  [w4x4_multiscale] step 1800/3000  loss=0.3049  (249s)
+  [w4x4_multiscale] step 2100/3000  loss=0.2662  (291s)
+  [w4x4_multiscale] step 2400/3000  loss=0.3176  (332s)
+  [w4x4_multiscale] step 2700/3000  loss=0.1922  (374s)
+  [w4x4_multiscale] step 3000/3000  loss=0.3549  (415s)
+  [w4x4_multiscale] trained 3000 steps in 415s (in_ch=9, params=0.68M)
+  [w4x4_multiscale] BN recalibrated on 50 train batches (7s)
+  [w4x4_multiscale] test/clean    : acc=0.8925 ap=0.9716 (n=800) [acc_best=0.9012 logit_mean=-1.00]
+  [w4x4_multiscale] test/blur     : acc=0.6038 ap=0.6094 (n=800) [acc_best=0.6600 logit_mean=+1.96]
+  [w4x4_multiscale] test/jpeg     : acc=0.5112 ap=0.4131 (n=800) [acc_best=0.5262 logit_mean=-4.29]
+  [w4x4_multiscale] test/webp     : acc=0.5175 ap=0.4064 (n=800) [acc_best=0.5262 logit_mean=-6.01]
+  [w4x4_multiscale] test/blur+jpeg: acc=0.5225 ap=0.4350 (n=800) [acc_best=0.5262 logit_mean=-5.68]
+  [w4x4_multiscale] done -- 4/13 written to results/sweep_20260725_162055_seed100.txt
+
+=== [5/13] w5x5_multiscale : {'window_sizes': [5], 'scales': [1.0, 0.5, 0.25]} ===
+  [w5x5_multiscale] step 300/3000  loss=0.6197  (44s)
+  [w5x5_multiscale] step 600/3000  loss=0.6890  (89s)
+  [w5x5_multiscale] step 900/3000  loss=0.4325  (133s)
+  [w5x5_multiscale] step 1200/3000  loss=0.5885  (177s)
+  [w5x5_multiscale] step 1500/3000  loss=0.5793  (221s)
+  [w5x5_multiscale] step 1800/3000  loss=0.4540  (265s)
+  [w5x5_multiscale] step 2100/3000  loss=0.4910  (309s)
+  [w5x5_multiscale] step 2400/3000  loss=0.4729  (353s)
+  [w5x5_multiscale] step 2700/3000  loss=0.3560  (397s)
+  [w5x5_multiscale] step 3000/3000  loss=0.7546  (441s)
+  [w5x5_multiscale] trained 3000 steps in 441s (in_ch=9, params=0.68M)
+  [w5x5_multiscale] BN recalibrated on 50 train batches (8s)
+  [w5x5_multiscale] test/clean    : acc=0.7013 ap=0.7726 (n=800) [acc_best=0.7212 logit_mean=-1.29]
+  [w5x5_multiscale] test/blur     : acc=0.5463 ap=0.5663 (n=800) [acc_best=0.5775 logit_mean=-0.22]
+  [w5x5_multiscale] test/jpeg     : acc=0.4913 ap=0.4150 (n=800) [acc_best=0.5262 logit_mean=-3.18]
+  [w5x5_multiscale] test/webp     : acc=0.5138 ap=0.4119 (n=800) [acc_best=0.5262 logit_mean=-5.08]
+  [w5x5_multiscale] test/blur+jpeg: acc=0.5038 ap=0.4252 (n=800) [acc_best=0.5275 logit_mean=-4.03]
+  [w5x5_multiscale] done -- 5/13 written to results/sweep_20260725_162055_seed100.txt
+
+=== [6/13] w6x6_multiscale : {'window_sizes': [6], 'scales': [1.0, 0.5, 0.25]} ===
+  [w6x6_multiscale] step 300/3000  loss=0.6503  (56s)
+  [w6x6_multiscale] step 600/3000  loss=0.6746  (111s)
+  [w6x6_multiscale] step 900/3000  loss=0.6265  (166s)
+  [w6x6_multiscale] step 1200/3000  loss=0.6944  (221s)
+  [w6x6_multiscale] step 1500/3000  loss=0.6687  (277s)
+  [w6x6_multiscale] step 1800/3000  loss=0.5381  (332s)
+  [w6x6_multiscale] step 2100/3000  loss=0.5103  (387s)
+  [w6x6_multiscale] step 2400/3000  loss=0.5588  (443s)
+  [w6x6_multiscale] step 2700/3000  loss=0.5065  (498s)
+  [w6x6_multiscale] step 3000/3000  loss=0.7716  (553s)
+  [w6x6_multiscale] trained 3000 steps in 553s (in_ch=9, params=0.68M)
+  [w6x6_multiscale] BN recalibrated on 50 train batches (10s)
+  [w6x6_multiscale] test/clean    : acc=0.7163 ap=0.8012 (n=800) [acc_best=0.7350 logit_mean=-0.06]
+  [w6x6_multiscale] test/blur     : acc=0.5650 ap=0.5654 (n=800) [acc_best=0.5825 logit_mean=+0.79]
+  [w6x6_multiscale] test/jpeg     : acc=0.4838 ap=0.4338 (n=800) [acc_best=0.5262 logit_mean=-0.65]
+  [w6x6_multiscale] test/webp     : acc=0.4763 ap=0.4236 (n=800) [acc_best=0.5262 logit_mean=-1.29]
+  [w6x6_multiscale] test/blur+jpeg: acc=0.5062 ap=0.4665 (n=800) [acc_best=0.5325 logit_mean=-0.89]
+  [w6x6_multiscale] done -- 6/13 written to results/sweep_20260725_162055_seed100.txt
+
+=== [7/13] w7x7_multiscale : {'window_sizes': [7], 'scales': [1.0, 0.5, 0.25]} ===
+  [w7x7_multiscale] step 300/3000  loss=0.6816  (59s)
+  [w7x7_multiscale] step 600/3000  loss=0.6547  (117s)
+  [w7x7_multiscale] step 900/3000  loss=0.6335  (176s)
+  [w7x7_multiscale] step 1200/3000  loss=0.7238  (235s)
+  [w7x7_multiscale] step 1500/3000  loss=0.6440  (293s)
+  [w7x7_multiscale] step 1800/3000  loss=0.5683  (352s)
+  [w7x7_multiscale] step 2100/3000  loss=0.6476  (410s)
+  [w7x7_multiscale] step 2400/3000  loss=0.5885  (469s)
+  [w7x7_multiscale] step 2700/3000  loss=0.5570  (527s)
+  [w7x7_multiscale] step 3000/3000  loss=0.7530  (586s)
+  [w7x7_multiscale] trained 3000 steps in 586s (in_ch=9, params=0.68M)
+  [w7x7_multiscale] BN recalibrated on 50 train batches (10s)
+  [w7x7_multiscale] test/clean    : acc=0.5525 ap=0.5771 (n=800) [acc_best=0.5850 logit_mean=-0.54]
+  [w7x7_multiscale] test/blur     : acc=0.5075 ap=0.5116 (n=800) [acc_best=0.5437 logit_mean=+0.01]
+  [w7x7_multiscale] test/jpeg     : acc=0.4650 ap=0.4241 (n=800) [acc_best=0.5262 logit_mean=-1.06]
+  [w7x7_multiscale] test/webp     : acc=0.4950 ap=0.4259 (n=800) [acc_best=0.5262 logit_mean=-1.66]
+  [w7x7_multiscale] test/blur+jpeg: acc=0.4763 ap=0.4459 (n=800) [acc_best=0.5275 logit_mean=-0.80]
+  [w7x7_multiscale] done -- 7/13 written to results/sweep_20260725_162055_seed100.txt
+
+=== [8/13] w8x8_multiscale : {'window_sizes': [8], 'scales': [1.0, 0.5, 0.25]} ===
+  [w8x8_multiscale] step 300/3000  loss=0.6651  (63s)
+  [w8x8_multiscale] step 600/3000  loss=0.6837  (125s)
+  [w8x8_multiscale] step 900/3000  loss=0.6733  (187s)
+  [w8x8_multiscale] step 1200/3000  loss=0.7222  (250s)
+  [w8x8_multiscale] step 1500/3000  loss=0.6549  (312s)
+  [w8x8_multiscale] step 1800/3000  loss=0.5816  (374s)
+  [w8x8_multiscale] step 2100/3000  loss=0.6163  (436s)
+  [w8x8_multiscale] step 2400/3000  loss=0.6252  (499s)
+  [w8x8_multiscale] step 2700/3000  loss=0.6142  (561s)
+  [w8x8_multiscale] step 3000/3000  loss=0.7275  (623s)
+  [w8x8_multiscale] trained 3000 steps in 623s (in_ch=9, params=0.68M)
+  [w8x8_multiscale] BN recalibrated on 50 train batches (11s)
+  [w8x8_multiscale] test/clean    : acc=0.5500 ap=0.5395 (n=800) [acc_best=0.5600 logit_mean=+0.09]
+  [w8x8_multiscale] test/blur     : acc=0.5112 ap=0.5195 (n=800) [acc_best=0.5437 logit_mean=+0.22]
+  [w8x8_multiscale] test/jpeg     : acc=0.4662 ap=0.4399 (n=800) [acc_best=0.5262 logit_mean=+0.02]
+  [w8x8_multiscale] test/webp     : acc=0.4637 ap=0.4402 (n=800) [acc_best=0.5262 logit_mean=-0.13]
+  [w8x8_multiscale] test/blur+jpeg: acc=0.4700 ap=0.4587 (n=800) [acc_best=0.5337 logit_mean=-0.05]
+  [w8x8_multiscale] done -- 8/13 written to results/sweep_20260725_162055_seed100.txt
+
+=== [9/13] multiwindow_multiscale : {'window_sizes': [2, 4, 6], 'scales': [1.0, 0.5, 0.25]} ===
+  [multiwindow_multiscale] step 300/3000  loss=0.4304  (97s)
+  [multiwindow_multiscale] step 600/3000  loss=0.2874  (193s)
+  [multiwindow_multiscale] step 900/3000  loss=0.1466  (289s)
+  [multiwindow_multiscale] step 1200/3000  loss=0.3873  (385s)
+  [multiwindow_multiscale] step 1500/3000  loss=0.2399  (481s)
+  [multiwindow_multiscale] step 1800/3000  loss=0.3813  (577s)
+  [multiwindow_multiscale] step 2100/3000  loss=0.3477  (673s)
+  [multiwindow_multiscale] step 2400/3000  loss=0.1156  (769s)
+  [multiwindow_multiscale] step 2700/3000  loss=0.1901  (866s)
+  [multiwindow_multiscale] step 3000/3000  loss=0.0747  (962s)
+  [multiwindow_multiscale] trained 3000 steps in 962s (in_ch=27, params=0.69M)
+  [multiwindow_multiscale] BN recalibrated on 50 train batches (16s)
+  [multiwindow_multiscale] test/clean    : acc=0.9688 ap=0.9965 (n=800) [acc_best=0.9738 logit_mean=-0.36]
+  [multiwindow_multiscale] test/blur     : acc=0.6512 ap=0.6581 (n=800) [acc_best=0.6800 logit_mean=+2.30]
+  [multiwindow_multiscale] test/jpeg     : acc=0.5225 ap=0.4189 (n=800) [acc_best=0.5275 logit_mean=-9.74]
+  [multiwindow_multiscale] test/webp     : acc=0.5250 ap=0.4103 (n=800) [acc_best=0.5275 logit_mean=-11.30]
+  [multiwindow_multiscale] test/blur+jpeg: acc=0.5275 ap=0.4210 (n=800) [acc_best=0.5275 logit_mean=-12.27]
+  [multiwindow_multiscale] done -- 9/13 written to results/sweep_20260725_162055_seed100.txt
+
+=== [10/13] multiwindow_multiscale_normalized : {'window_sizes': [2, 4, 6], 'scales': [1.0, 0.5, 0.25], 'normalize_entropy': True} ===
+  [multiwindow_multiscale_normalized] step 300/3000  loss=0.4676  (97s)
+  [multiwindow_multiscale_normalized] step 600/3000  loss=0.2075  (193s)
+  [multiwindow_multiscale_normalized] step 900/3000  loss=0.0780  (289s)
+  [multiwindow_multiscale_normalized] step 1200/3000  loss=0.2616  (386s)
+  [multiwindow_multiscale_normalized] step 1500/3000  loss=0.2479  (482s)
+  [multiwindow_multiscale_normalized] step 1800/3000  loss=0.2654  (578s)
+  [multiwindow_multiscale_normalized] step 2100/3000  loss=0.2462  (674s)
+  [multiwindow_multiscale_normalized] step 2400/3000  loss=0.1488  (770s)
+  [multiwindow_multiscale_normalized] step 2700/3000  loss=0.3087  (866s)
+  [multiwindow_multiscale_normalized] step 3000/3000  loss=0.0502  (963s)
+  [multiwindow_multiscale_normalized] trained 3000 steps in 963s (in_ch=27, params=0.69M)
+  [multiwindow_multiscale_normalized] BN recalibrated on 50 train batches (16s)
+  [multiwindow_multiscale_normalized] test/clean    : acc=0.9575 ap=0.9938 (n=800) [acc_best=0.9613 logit_mean=-0.70]
+  [multiwindow_multiscale_normalized] test/blur     : acc=0.6650 ap=0.6762 (n=800) [acc_best=0.6875 logit_mean=+1.51]
+  [multiwindow_multiscale_normalized] test/jpeg     : acc=0.5188 ap=0.4153 (n=800) [acc_best=0.5275 logit_mean=-9.38]
+  [multiwindow_multiscale_normalized] test/webp     : acc=0.5225 ap=0.4090 (n=800) [acc_best=0.5262 logit_mean=-10.62]
+  [multiwindow_multiscale_normalized] test/blur+jpeg: acc=0.5262 ap=0.4242 (n=800) [acc_best=0.5262 logit_mean=-11.43]
+  [multiwindow_multiscale_normalized] done -- 10/13 written to results/sweep_20260725_162055_seed100.txt
+
+=== [11/13] multiwindow_multiscale_aligned : {'window_sizes': [2, 4, 6], 'scales': [1.0, 0.5, 0.25], 'window_align': 'pad'} ===
+  [multiwindow_multiscale_aligned] step 300/3000  loss=0.4137  (96s)
+  [multiwindow_multiscale_aligned] step 600/3000  loss=0.2266  (192s)
+  [multiwindow_multiscale_aligned] step 900/3000  loss=0.2021  (289s)
+  [multiwindow_multiscale_aligned] step 1200/3000  loss=0.3860  (385s)
+  [multiwindow_multiscale_aligned] step 1500/3000  loss=0.3158  (481s)
+  [multiwindow_multiscale_aligned] step 1800/3000  loss=0.3117  (577s)
+  [multiwindow_multiscale_aligned] step 2100/3000  loss=0.3100  (673s)
+  [multiwindow_multiscale_aligned] step 2400/3000  loss=0.1502  (769s)

@@ -1,0 +1,132 @@
+MLEP degradation prediction
+date: 2026-08-03 12:15:05
+STATUS: complete -- 2/2 configs.
+device=cuda (NVIDIA GeForce RTX 4090)  arch=resnet18  amp=True  workers=8  steps=3000  crop=224  batch=16  lr=0.0002  seed=200  classes=car,cat,chair,horse,boat,person,dog,bird  val_batches=50  bn_recal=50  variants=4  sev_weight=0.0  outputs=3
+
+leakage check: 0 identical (name, size) source file(s) shared between train/ and val/ over 32000 sampled files  -- ok
+leakage check: 64000 train sources, none present in any of the 6 evaluation sets -- ok
+grid: jpeg=['lossless', 15, 30, 45, 60, 75, 100] blur=['none', 'weak', 'medium', 'strong'] sigma=[0.0, 0.5, 1.5, 3.0]
+blur: gaussian(scipy.ndimage.gaussian_filter, truncate=4.0); kernel = 2*int(4*sigma+0.5)+1
+held out of training (the 'unseen' condition): [(30, 'medium'), (75, 'weak'), (15, 'strong'), (100, 'medium')]
+model: MLEP's released 2x2 entropy front-end; the only change is 3 output logits instead of 1 (ai / blur / jpeg)
+
+Per-model results
+------------------------------------------------------------
+[deg_renyi4_2x2]  {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25], 'entropy_mode': 'renyi_4'}
+    in_channels=9  params=0.68M  steps=3000  train_time=45s
+    test/clean/ai        acc=0.7600  ap=0.8895  (n=800)  roc_auc=0.8613  prec=0.7245  rec=0.8109  f1=0.7653  eer=0.2175  brier=0.1650  ece=0.1553
+    test/clean/blur      acc=0.4775  ap=nan  (n=800)  roc_auc=nan  prec=0.0000  rec=0.0000  f1=0.0000  eer=nan  brier=0.3858  ece=nan
+    test/clean/jpeg      acc=0.9125  ap=nan  (n=800)  roc_auc=nan  prec=0.0000  rec=0.0000  f1=0.0000  eer=nan  brier=0.0672  ece=nan
+    test/jpeg_only/ai    acc=0.5138  ap=0.6036  (n=800)  roc_auc=0.5668  prec=0.5975  rec=0.3241  f1=0.4203  eer=0.4438  brier=0.2501  ece=0.0813
+    test/jpeg_only/blur  acc=0.5225  ap=nan  (n=800)  roc_auc=nan  prec=0.0000  rec=0.0000  f1=0.0000  eer=nan  brier=0.3047  ece=nan
+    test/jpeg_only/jpeg  acc=0.9975  ap=nan  (n=800)  roc_auc=nan  prec=1.0000  rec=0.9975  f1=0.9987  eer=nan  brier=0.0025  ece=nan
+    test/blur_only/ai    acc=0.5775  ap=0.6347  (n=800)  roc_auc=0.6367  prec=0.6132  rec=0.3791  f1=0.4686  eer=0.4188  brier=0.2424  ece=0.0970
+    test/blur_only/blur  acc=0.9250  ap=nan  (n=800)  roc_auc=nan  prec=1.0000  rec=0.9250  f1=0.9610  eer=nan  brier=0.0447  ece=nan
+    test/blur_only/jpeg  acc=0.9812  ap=nan  (n=800)  roc_auc=nan  prec=0.0000  rec=0.0000  f1=0.0000  eer=nan  brier=0.0135  ece=nan
+    test/both/ai         acc=0.5537  ap=0.5784  (n=800)  roc_auc=0.5575  prec=0.5759  rec=0.6805  f1=0.6238  eer=0.4600  brier=0.2461  ece=0.0483
+    test/both/blur       acc=0.8425  ap=nan  (n=800)  roc_auc=nan  prec=1.0000  rec=0.8425  f1=0.9145  eer=nan  brier=0.1000  ece=nan
+    test/both/jpeg       acc=1.0000  ap=nan  (n=800)  roc_auc=nan  prec=1.0000  rec=1.0000  f1=1.0000  eer=nan  brier=0.0026  ece=nan
+    test/seen/ai         acc=0.5363  ap=0.6246  (n=800)  roc_auc=0.5682  prec=0.5812  rec=0.5264  f1=0.5525  eer=0.4564  brier=0.2468  ece=0.0589
+    test/seen/blur       acc=0.7575  ap=0.9080  (n=800)  roc_auc=0.8028  prec=0.8162  rec=0.8452  f1=0.8304  eer=0.2774  brier=0.1613  ece=0.0325
+    test/seen/jpeg       acc=0.9962  ap=1.0000  (n=800)  roc_auc=0.9998  prec=0.9970  rec=0.9985  f1=0.9977  eer=0.0051  brier=0.0043  ece=0.0163
+    test/unseen/ai       acc=0.5625  ap=0.5914  (n=800)  roc_auc=0.5618  prec=0.5832  rec=0.6851  f1=0.6300  eer=0.4612  brier=0.2447  ece=0.0431
+    test/unseen/blur     acc=0.8562  ap=nan  (n=800)  roc_auc=nan  prec=1.0000  rec=0.8562  f1=0.9226  eer=nan  brier=0.0999  ece=nan
+    test/unseen/jpeg     acc=0.9988  ap=nan  (n=800)  roc_auc=nan  prec=1.0000  rec=0.9988  f1=0.9994  eer=nan  brier=0.0024  ece=nan
+    confusion [seen] ai (rows=true):
+      true\pred       no      yes
+             no      200      165
+            yes      206      229
+    confusion [seen] blur (rows=true):
+      true\pred       no      yes
+             no      131      107
+            yes       87      475
+    confusion [seen] jpeg (rows=true):
+      true\pred       no      yes
+             no      138        2
+            yes        1      659
+    confusion [unseen] ai (rows=true):
+      true\pred       no      yes
+             no      152      213
+            yes      137      298
+    confusion [unseen] blur (rows=true):
+      true\pred       no      yes
+             no        0        0
+            yes      115      685
+    confusion [unseen] jpeg (rows=true):
+      true\pred       no      yes
+             no        0        0
+            yes        1      799
+
+[deg_baseline_2x2]  {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]}
+    in_channels=9  params=0.68M  steps=3000  train_time=47s
+    test/clean/ai        acc=0.8175  ap=0.9039  (n=800)  roc_auc=0.8810  prec=0.8429  rec=0.7642  f1=0.8016  eer=0.1963  brier=0.2010  ece=0.2439
+    test/clean/blur      acc=0.4062  ap=nan  (n=800)  roc_auc=nan  prec=0.0000  rec=0.0000  f1=0.0000  eer=nan  brier=0.3891  ece=nan
+    test/clean/jpeg      acc=0.8862  ap=nan  (n=800)  roc_auc=nan  prec=0.0000  rec=0.0000  f1=0.0000  eer=nan  brier=0.0857  ece=nan
+    test/jpeg_only/ai    acc=0.5075  ap=0.5860  (n=800)  roc_auc=0.5680  prec=0.5990  rec=0.2851  f1=0.3863  eer=0.4474  brier=0.2529  ece=0.0911
+    test/jpeg_only/blur  acc=0.5437  ap=nan  (n=800)  roc_auc=nan  prec=0.0000  rec=0.0000  f1=0.0000  eer=nan  brier=0.2945  ece=nan
+    test/jpeg_only/jpeg  acc=0.9975  ap=nan  (n=800)  roc_auc=nan  prec=1.0000  rec=0.9975  f1=0.9987  eer=nan  brier=0.0041  ece=nan
+    test/blur_only/ai    acc=0.5962  ap=0.6504  (n=800)  roc_auc=0.6651  prec=0.6423  rec=0.4020  f1=0.4945  eer=0.3963  brier=0.2348  ece=0.0779
+    test/blur_only/blur  acc=0.9375  ap=nan  (n=800)  roc_auc=nan  prec=1.0000  rec=0.9375  f1=0.9677  eer=nan  brier=0.0424  ece=nan
+    test/blur_only/jpeg  acc=0.9712  ap=nan  (n=800)  roc_auc=nan  prec=0.0000  rec=0.0000  f1=0.0000  eer=nan  brier=0.0180  ece=nan
+    test/both/ai         acc=0.5537  ap=0.5474  (n=800)  roc_auc=0.5347  prec=0.5699  rec=0.7310  f1=0.6405  eer=0.4701  brier=0.2481  ece=0.0499
+    test/both/blur       acc=0.8363  ap=nan  (n=800)  roc_auc=nan  prec=1.0000  rec=0.8363  f1=0.9108  eer=nan  brier=0.1051  ece=nan
+    test/both/jpeg       acc=0.9988  ap=nan  (n=800)  roc_auc=nan  prec=1.0000  rec=0.9988  f1=0.9994  eer=nan  brier=0.0025  ece=nan
+    test/seen/ai         acc=0.5513  ap=0.6021  (n=800)  roc_auc=0.5680  prec=0.5931  rec=0.5563  f1=0.5741  eer=0.4499  brier=0.2473  ece=0.0520
+    test/seen/blur       acc=0.7550  ap=0.9127  (n=800)  roc_auc=0.8075  prec=0.8166  rec=0.8399  f1=0.8281  eer=0.2628  brier=0.1592  ece=0.0349
+    test/seen/jpeg       acc=0.9925  ap=0.9999  (n=800)  roc_auc=0.9996  prec=0.9925  rec=0.9985  f1=0.9955  eer=0.0074  brier=0.0064  ece=0.0183
+    test/unseen/ai       acc=0.5475  ap=0.5740  (n=800)  roc_auc=0.5385  prec=0.5630  rec=0.7494  f1=0.6430  eer=0.4850  brier=0.2469  ece=0.0286
+    test/unseen/blur     acc=0.8425  ap=nan  (n=800)  roc_auc=nan  prec=1.0000  rec=0.8425  f1=0.9145  eer=nan  brier=0.1062  ece=nan
+    test/unseen/jpeg     acc=0.9962  ap=nan  (n=800)  roc_auc=nan  prec=1.0000  rec=0.9962  f1=0.9981  eer=nan  brier=0.0035  ece=nan
+    confusion [seen] ai (rows=true):
+      true\pred       no      yes
+             no      199      166
+            yes      193      242
+    confusion [seen] blur (rows=true):
+      true\pred       no      yes
+             no      132      106
+            yes       90      472
+    confusion [seen] jpeg (rows=true):
+      true\pred       no      yes
+             no      135        5
+            yes        1      659
+    confusion [unseen] ai (rows=true):
+      true\pred       no      yes
+             no      112      253
+            yes      109      326
+    confusion [unseen] blur (rows=true):
+      true\pred       no      yes
+             no        0        0
+            yes      126      674
+    confusion [unseen] jpeg (rows=true):
+      true\pred       no      yes
+             no        0        0
+            yes        3      797
+
+ROC-AUC of the ai head per condition
+========================================================================
+            config   clean  jpeg_only  blur_only    both    seen  unseen
+------------------------------------------------------------------------
+    deg_renyi4_2x2  0.8613     0.5668     0.6367  0.5575  0.5682  0.5618
+  deg_baseline_2x2  0.8810     0.5680     0.6651  0.5347  0.5680  0.5385
+========================================================================
+
+ROC-AUC of the blur head per condition
+=====================================================================
+            config  clean  jpeg_only  blur_only  both    seen  unseen
+---------------------------------------------------------------------
+    deg_renyi4_2x2    nan        nan        nan   nan  0.8028     nan
+  deg_baseline_2x2    nan        nan        nan   nan  0.8075     nan
+=====================================================================
+
+ROC-AUC of the jpeg head per condition
+=====================================================================
+            config  clean  jpeg_only  blur_only  both    seen  unseen
+---------------------------------------------------------------------
+    deg_renyi4_2x2    nan        nan        nan   nan  0.9998     nan
+  deg_baseline_2x2    nan        nan        nan   nan  0.9996     nan
+=====================================================================
+
+Notes
+- Untouched images are the only 'not compressed' condition; quality 100 is a compressed image at its own severity level.
+- Severity heads are off (--deg_sev_weight 0), so the model predicts only the three probabilities.
+- Every variant of a source image stays inside that source's split; cells are assigned by crc32(path), so they reproduce.

@@ -16,3 +16,5 @@ __pycache__/
 experiment_results.txt
 test_results.txt
 res_*.txt
+results/
+logs/

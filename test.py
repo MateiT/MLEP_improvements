@@ -23,11 +23,14 @@ def seed_torch(seed=1029):
 seed_torch(100)
 DATASETS_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'datasets', 'TestDatasets')
 DetectionTests = {
-# GAN-set-1 is BaiduYun-only (ForenSynths) and not downloaded yet; re-enable once present.
-#                   'GAN-set-1': { 'dataroot'   : os.path.join(DATASETS_ROOT, 'GAN-set-1'),
-#                                  'no_resize'  : False, # Due to the different shapes of images in the dataset, resizing is required during batch detection.
-#                                  'no_crop'    : True,
-#                                },
+# GAN-set-1 is the ForenSynths CNN_synth_testset (scripts/datasets/download_train_testset.sh).
+# progan/cyclegan/stylegan/stylegan2 nest a category level above 0_real/1_fake; the rest do not.
+# data.get_dataset handles both -- it concatenates one level of subdirs when the
+# dataroot itself has no 0_real/1_fake.
+                  'GAN-set-1': { 'dataroot'   : os.path.join(DATASETS_ROOT, 'GAN-set-1'),
+                                 'no_resize'  : False, # Due to the different shapes of images in the dataset, resizing is required during batch detection.
+                                 'no_crop'    : True,
+                               },
                   'GAN-set-2': { 'dataroot'   : os.path.join(DATASETS_ROOT, 'GAN-set-2'),
                                  'no_resize'  : True,
                                  'no_crop'    : True,

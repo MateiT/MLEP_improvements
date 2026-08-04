@@ -1,0 +1,49 @@
+Device: cuda (NVIDIA GeForce RTX 4090) | arch: resnet18 | steps: 3000 | crop: 224 | batch: 16 | workers: 8 | amp: True
+Running 13 config(s): ['baseline_2x2', 'w2x2_unique', 'w3x3_multiscale', 'w4x4_multiscale', 'w5x5_multiscale', 'w6x6_multiscale', 'w7x7_multiscale', 'w8x8_multiscale', 'multiwindow_multiscale', 'multiwindow_multiscale_normalized', 'multiwindow_multiscale_aligned', 'baseline_train_blur', 'baseline_train_jpeg']
+
+=== [1/13] baseline_2x2 : {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]} ===
+  [baseline_2x2] step 300/3000  loss=0.2938  (9s)
+  [baseline_2x2] step 600/3000  loss=0.1486  (14s)
+  [baseline_2x2] step 900/3000  loss=0.1919  (20s)
+  [baseline_2x2] step 1200/3000  loss=0.1981  (26s)
+  [baseline_2x2] step 1500/3000  loss=0.1966  (32s)
+  [baseline_2x2] step 1800/3000  loss=0.1185  (38s)
+  [baseline_2x2] step 2100/3000  loss=0.0627  (44s)
+  [baseline_2x2] step 2400/3000  loss=0.2356  (50s)
+  [baseline_2x2] step 2700/3000  loss=0.1123  (57s)
+  [baseline_2x2] step 3000/3000  loss=0.1731  (63s)
+  [baseline_2x2] trained 3000 steps in 63s (in_ch=9, params=0.68M)
+  [baseline_2x2] BN recalibrated on 50 train batches (1s)
+  [baseline_2x2] test/clean    : acc=0.9537 ap=0.9935 (n=800) [acc_best=0.9688 logit_mean=-0.85]
+  [baseline_2x2] test/blur     : acc=0.6112 ap=0.6697 (n=800) [acc_best=0.6450 logit_mean=+1.66]
+  [baseline_2x2] test/jpeg     : acc=0.5175 ap=0.4671 (n=800) [acc_best=0.5225 logit_mean=-12.41]
+  [baseline_2x2] test/webp     : acc=0.5175 ap=0.4747 (n=800) [acc_best=0.5238 logit_mean=-13.95]
+  [baseline_2x2] test/blur+jpeg: acc=0.5175 ap=0.4732 (n=800) [acc_best=0.5250 logit_mean=-15.62]
+  [baseline_2x2] done -- 1/13 written to results/sweep_20260725_192741_seed200.txt
+
+=== [2/13] w2x2_unique : {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25], 'entropy_mode': 'unique'} ===
+  [w2x2_unique] step 300/3000  loss=0.2587  (5s)
+  [w2x2_unique] step 600/3000  loss=0.1034  (9s)
+  [w2x2_unique] step 900/3000  loss=0.2574  (13s)
+  [w2x2_unique] step 1200/3000  loss=0.1305  (17s)
+  [w2x2_unique] step 1500/3000  loss=0.2111  (22s)
+  [w2x2_unique] step 1800/3000  loss=0.1671  (26s)
+  [w2x2_unique] step 2100/3000  loss=0.0612  (31s)
+  [w2x2_unique] step 2400/3000  loss=0.1936  (36s)
+  [w2x2_unique] step 2700/3000  loss=0.1085  (40s)
+  [w2x2_unique] step 3000/3000  loss=0.1926  (44s)
+  [w2x2_unique] trained 3000 steps in 44s (in_ch=9, params=0.68M)
+  [w2x2_unique] BN recalibrated on 50 train batches (1s)
+  [w2x2_unique] test/clean    : acc=0.9513 ap=0.9921 (n=800) [acc_best=0.9625 logit_mean=-0.78]
+  [w2x2_unique] test/blur     : acc=0.6262 ap=0.6662 (n=800) [acc_best=0.6488 logit_mean=+1.05]
+  [w2x2_unique] test/jpeg     : acc=0.5150 ap=0.4706 (n=800) [acc_best=0.5262 logit_mean=-12.50]
+  [w2x2_unique] test/webp     : acc=0.5238 ap=0.4888 (n=800) [acc_best=0.5262 logit_mean=-13.52]
+  [w2x2_unique] test/blur+jpeg: acc=0.5188 ap=0.4788 (n=800) [acc_best=0.5250 logit_mean=-16.29]
+  [w2x2_unique] done -- 2/13 written to results/sweep_20260725_192741_seed200.txt
+
+=== [3/13] w3x3_multiscale : {'window_sizes': [3], 'scales': [1.0, 0.5, 0.25]} ===
+  [w3x3_multiscale] step 300/3000  loss=0.4684  (41s)
+  [w3x3_multiscale] step 600/3000  loss=0.3061  (82s)
+  [w3x3_multiscale] step 900/3000  loss=0.2305  (122s)
+  [w3x3_multiscale] step 1200/3000  loss=0.2435  (162s)
+Terminated

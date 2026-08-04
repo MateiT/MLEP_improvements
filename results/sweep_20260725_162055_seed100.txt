@@ -1,0 +1,105 @@
+MLEP window / robustness sweep
+date: 2026-07-25 17:54:04
+STATUS: IN PROGRESS -- 10/13 configs done. This file is rewritten after each one, so it is safe to read now.
+device=cuda (NVIDIA GeForce RTX 4090)  arch=resnet18  amp=True  workers=8  steps=3000  crop=224  batch=16  lr=0.0002  seed=100  classes=car,cat,chair,horse,boat,person,dog,bird  val_batches=50  bn_recal=50
+
+Per-model results
+------------------------------------------------------------
+[w2x2_unique]  {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25], 'entropy_mode': 'unique'}
+    in_channels=9  params=0.68M  steps=3000  train_time=42s
+    test/clean       acc=0.9762  ap=0.9980  (n=800)  acc_best=0.9850  logit_mean=-0.28
+    test/blur        acc=0.5950  ap=0.6710  (n=800)  acc_best=0.6900  logit_mean=+2.65
+    test/jpeg        acc=0.5250  ap=0.4144  (n=800)  acc_best=0.5262  logit_mean=-12.77
+    test/webp        acc=0.5250  ap=0.4155  (n=800)  acc_best=0.5262  logit_mean=-13.96
+    test/blur+jpeg   acc=0.5262  ap=0.4218  (n=800)  acc_best=0.5262  logit_mean=-17.24
+
+[baseline_2x2]  {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]}
+    in_channels=9  params=0.68M  steps=3000  train_time=59s
+    test/clean       acc=0.9825  ap=0.9979  (n=800)  acc_best=0.9838  logit_mean=-0.17
+    test/blur        acc=0.5575  ap=0.6817  (n=800)  acc_best=0.6950  logit_mean=+3.51
+    test/jpeg        acc=0.5250  ap=0.4199  (n=800)  acc_best=0.5262  logit_mean=-11.19
+    test/webp        acc=0.5238  ap=0.4193  (n=800)  acc_best=0.5262  logit_mean=-12.09
+    test/blur+jpeg   acc=0.5262  ap=0.4265  (n=800)  acc_best=0.5262  logit_mean=-14.49
+
+[multiwindow_multiscale]  {'window_sizes': [2, 4, 6], 'scales': [1.0, 0.5, 0.25]}
+    in_channels=27  params=0.69M  steps=3000  train_time=962s
+    test/clean       acc=0.9688  ap=0.9965  (n=800)  acc_best=0.9738  logit_mean=-0.36
+    test/blur        acc=0.6512  ap=0.6581  (n=800)  acc_best=0.6800  logit_mean=+2.30
+    test/jpeg        acc=0.5225  ap=0.4189  (n=800)  acc_best=0.5275  logit_mean=-9.74
+    test/webp        acc=0.5250  ap=0.4103  (n=800)  acc_best=0.5275  logit_mean=-11.30
+    test/blur+jpeg   acc=0.5275  ap=0.4210  (n=800)  acc_best=0.5275  logit_mean=-12.27
+
+[multiwindow_multiscale_normalized]  {'window_sizes': [2, 4, 6], 'scales': [1.0, 0.5, 0.25], 'normalize_entropy': True}
+    in_channels=27  params=0.69M  steps=3000  train_time=963s
+    test/clean       acc=0.9575  ap=0.9938  (n=800)  acc_best=0.9613  logit_mean=-0.70
+    test/blur        acc=0.6650  ap=0.6762  (n=800)  acc_best=0.6875  logit_mean=+1.51
+    test/jpeg        acc=0.5188  ap=0.4153  (n=800)  acc_best=0.5275  logit_mean=-9.38
+    test/webp        acc=0.5225  ap=0.4090  (n=800)  acc_best=0.5262  logit_mean=-10.62
+    test/blur+jpeg   acc=0.5262  ap=0.4242  (n=800)  acc_best=0.5262  logit_mean=-11.43
+
+[w3x3_multiscale]  {'window_sizes': [3], 'scales': [1.0, 0.5, 0.25]}
+    in_channels=9  params=0.68M  steps=3000  train_time=396s
+    test/clean       acc=0.9337  ap=0.9907  (n=800)  acc_best=0.9575  logit_mean=+0.70
+    test/blur        acc=0.5625  ap=0.6548  (n=800)  acc_best=0.6663  logit_mean=+2.96
+    test/jpeg        acc=0.5200  ap=0.4335  (n=800)  acc_best=0.5262  logit_mean=-5.74
+    test/webp        acc=0.5288  ap=0.4232  (n=800)  acc_best=0.5300  logit_mean=-6.88
+    test/blur+jpeg   acc=0.5275  ap=0.4240  (n=800)  acc_best=0.5288  logit_mean=-9.27
+
+[w4x4_multiscale]  {'window_sizes': [4], 'scales': [1.0, 0.5, 0.25]}
+    in_channels=9  params=0.68M  steps=3000  train_time=415s
+    test/clean       acc=0.8925  ap=0.9716  (n=800)  acc_best=0.9012  logit_mean=-1.00
+    test/blur        acc=0.6038  ap=0.6094  (n=800)  acc_best=0.6600  logit_mean=+1.96
+    test/jpeg        acc=0.5112  ap=0.4131  (n=800)  acc_best=0.5262  logit_mean=-4.29
+    test/webp        acc=0.5175  ap=0.4064  (n=800)  acc_best=0.5262  logit_mean=-6.01
+    test/blur+jpeg   acc=0.5225  ap=0.4350  (n=800)  acc_best=0.5262  logit_mean=-5.68
+
+[w6x6_multiscale]  {'window_sizes': [6], 'scales': [1.0, 0.5, 0.25]}
+    in_channels=9  params=0.68M  steps=3000  train_time=553s
+    test/clean       acc=0.7163  ap=0.8012  (n=800)  acc_best=0.7350  logit_mean=-0.06
+    test/blur        acc=0.5650  ap=0.5654  (n=800)  acc_best=0.5825  logit_mean=+0.79
+    test/jpeg        acc=0.4838  ap=0.4338  (n=800)  acc_best=0.5262  logit_mean=-0.65
+    test/webp        acc=0.4763  ap=0.4236  (n=800)  acc_best=0.5262  logit_mean=-1.29
+    test/blur+jpeg   acc=0.5062  ap=0.4665  (n=800)  acc_best=0.5325  logit_mean=-0.89
+
+[w5x5_multiscale]  {'window_sizes': [5], 'scales': [1.0, 0.5, 0.25]}
+    in_channels=9  params=0.68M  steps=3000  train_time=441s
+    test/clean       acc=0.7013  ap=0.7726  (n=800)  acc_best=0.7212  logit_mean=-1.29
+    test/blur        acc=0.5463  ap=0.5663  (n=800)  acc_best=0.5775  logit_mean=-0.22
+    test/jpeg        acc=0.4913  ap=0.4150  (n=800)  acc_best=0.5262  logit_mean=-3.18
+    test/webp        acc=0.5138  ap=0.4119  (n=800)  acc_best=0.5262  logit_mean=-5.08
+    test/blur+jpeg   acc=0.5038  ap=0.4252  (n=800)  acc_best=0.5275  logit_mean=-4.03
+
+[w7x7_multiscale]  {'window_sizes': [7], 'scales': [1.0, 0.5, 0.25]}
+    in_channels=9  params=0.68M  steps=3000  train_time=586s
+    test/clean       acc=0.5525  ap=0.5771  (n=800)  acc_best=0.5850  logit_mean=-0.54
+    test/blur        acc=0.5075  ap=0.5116  (n=800)  acc_best=0.5437  logit_mean=+0.01
+    test/jpeg        acc=0.4650  ap=0.4241  (n=800)  acc_best=0.5262  logit_mean=-1.06
+    test/webp        acc=0.4950  ap=0.4259  (n=800)  acc_best=0.5262  logit_mean=-1.66
+    test/blur+jpeg   acc=0.4763  ap=0.4459  (n=800)  acc_best=0.5275  logit_mean=-0.80
+
+[w8x8_multiscale]  {'window_sizes': [8], 'scales': [1.0, 0.5, 0.25]}
+    in_channels=9  params=0.68M  steps=3000  train_time=623s
+    test/clean       acc=0.5500  ap=0.5395  (n=800)  acc_best=0.5600  logit_mean=+0.09
+    test/blur        acc=0.5112  ap=0.5195  (n=800)  acc_best=0.5437  logit_mean=+0.22
+    test/jpeg        acc=0.4662  ap=0.4399  (n=800)  acc_best=0.5262  logit_mean=+0.02
+    test/webp        acc=0.4637  ap=0.4402  (n=800)  acc_best=0.5262  logit_mean=-0.13
+    test/blur+jpeg   acc=0.4700  ap=0.4587  (n=800)  acc_best=0.5337  logit_mean=-0.05
+
+Average Precision (AP) per test scenario  [higher = more robust]
+===================================================================================================
+config                                  clean       blur       jpeg       webp  blur+jpeg   time(s)
+---------------------------------------------------------------------------------------------------
+w2x2_unique                            0.9980     0.6710     0.4144     0.4155     0.4218        42
+baseline_2x2                           0.9979     0.6817     0.4199     0.4193     0.4265        59
+multiwindow_multiscale                 0.9965     0.6581     0.4189     0.4103     0.4210       962
+multiwindow_multiscale_normalized      0.9938     0.6762     0.4153     0.4090     0.4242       963
+w3x3_multiscale                        0.9907     0.6548     0.4335     0.4232     0.4240       396
+w4x4_multiscale                        0.9716     0.6094     0.4131     0.4064     0.4350       415
+w6x6_multiscale                        0.8012     0.5654     0.4338     0.4236     0.4665       553
+w5x5_multiscale                        0.7726     0.5663     0.4150     0.4119     0.4252       441
+w7x7_multiscale                        0.5771     0.5116     0.4241     0.4259     0.4459       586
+w8x8_multiscale                        0.5395     0.5195     0.4399     0.4402     0.4587       623
+===================================================================================================
+Cols: clean vs corrupted test sets. Compare a config's clean AP with its blur / jpeg / webp / blur+jpeg AP to read off robustness.
+acc is at the fixed 0.5 threshold; acc_best is the best any threshold could do. acc << acc_best means the scores separate the classes but the decision boundary is misplaced -- check bn_recal.
+Note: short training -> ranking is indicative. Re-run the top configs with more --max_train_steps to confirm.

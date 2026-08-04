@@ -1,0 +1,178 @@
+Device: cuda (NVIDIA GeForce RTX 4090) | arch: resnet18 | steps: 3000 | crop: 224 | batch: 16 | workers: 8 | amp: True
+Entropy experiment: stage=deep  0 feature model(s) + 5 deep config(s)
+  leakage check: 0 identical (name, size) source file(s) shared between train/ and val/ over 32000 sampled files  -- ok
+
+=== [1/5] ent_A_shannon : {'entropy_mode': 'shannon', 'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]} ===
+  [ent_A_shannon] step 300/3000  loss=0.0970  (9s)
+  [ent_A_shannon] step 600/3000  loss=0.3223  (16s)
+  [ent_A_shannon] step 900/3000  loss=0.1903  (23s)
+  [ent_A_shannon] step 1200/3000  loss=0.0852  (30s)
+  [ent_A_shannon] step 1500/3000  loss=0.4005  (37s)
+  [ent_A_shannon] step 1800/3000  loss=0.1904  (44s)
+  [ent_A_shannon] step 2100/3000  loss=0.1444  (51s)
+  [ent_A_shannon] step 2400/3000  loss=0.3373  (59s)
+  [ent_A_shannon] step 2700/3000  loss=0.1032  (66s)
+  [ent_A_shannon] step 3000/3000  loss=0.0268  (72s)
+  [ent_A_shannon] trained 3000 steps in 72s (in_ch=9, params=0.68M)
+  [ent_A_shannon] BN recalibrated on 50 train batches (1s)
+  [ent_A_shannon] test/clean    : acc=0.9688 ap=0.9959 (n=800) [acc_best=0.9712 logit_mean=+0.28]
+  [ent_A_shannon] test/blur     : acc=0.5887 ap=0.6546 (n=800) [acc_best=0.6362 logit_mean=+3.58]
+  [ent_A_shannon] test/jpeg     : acc=0.4863 ap=0.4512 (n=800) [acc_best=0.5150 logit_mean=-11.02]
+  [ent_A_shannon] test/webp     : acc=0.4925 ap=0.4609 (n=800) [acc_best=0.5125 logit_mean=-11.26]
+  [ent_A_shannon] test/blur+jpeg: acc=0.4875 ap=0.4565 (n=800) [acc_best=0.5188 logit_mean=-12.75]
+  [ent_A_shannon] done -- 1/5 written to results/entropy_20260803_112924_seed300.txt
+
+=== [2/5] ent_B_renyi2 : {'entropy_mode': 'renyi_2', 'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]} ===
+  [ent_B_renyi2] step 300/3000  loss=0.0977  (6s)
+  [ent_B_renyi2] step 600/3000  loss=0.2811  (10s)
+  [ent_B_renyi2] step 900/3000  loss=0.1786  (14s)
+  [ent_B_renyi2] step 1200/3000  loss=0.0943  (19s)
+  [ent_B_renyi2] step 1500/3000  loss=0.3733  (25s)
+  [ent_B_renyi2] step 1800/3000  loss=0.1929  (30s)
+  [ent_B_renyi2] step 2100/3000  loss=0.1423  (36s)
+  [ent_B_renyi2] step 2400/3000  loss=0.3380  (41s)
+  [ent_B_renyi2] step 2700/3000  loss=0.1071  (47s)
+  [ent_B_renyi2] step 3000/3000  loss=0.0315  (52s)
+  [ent_B_renyi2] trained 3000 steps in 52s (in_ch=9, params=0.68M)
+  [ent_B_renyi2] BN recalibrated on 50 train batches (1s)
+  [ent_B_renyi2] test/clean    : acc=0.9712 ap=0.9964 (n=800) [acc_best=0.9725 logit_mean=+0.32]
+  [ent_B_renyi2] test/blur     : acc=0.5988 ap=0.6627 (n=800) [acc_best=0.6475 logit_mean=+3.43]
+  [ent_B_renyi2] test/jpeg     : acc=0.4900 ap=0.4524 (n=800) [acc_best=0.5175 logit_mean=-10.53]
+  [ent_B_renyi2] test/webp     : acc=0.4938 ap=0.4673 (n=800) [acc_best=0.5150 logit_mean=-10.98]
+  [ent_B_renyi2] test/blur+jpeg: acc=0.4888 ap=0.4574 (n=800) [acc_best=0.5175 logit_mean=-12.33]
+  [ent_B_renyi2] done -- 2/5 written to results/entropy_20260803_112924_seed300.txt
+
+=== [3/5] ent_B_renyi4 : {'entropy_mode': 'renyi_4', 'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]} ===
+  [ent_B_renyi4] step 300/3000  loss=0.0859  (6s)
+  [ent_B_renyi4] step 600/3000  loss=0.2109  (11s)
+  [ent_B_renyi4] step 900/3000  loss=0.1553  (16s)
+  [ent_B_renyi4] step 1200/3000  loss=0.1033  (21s)
+  [ent_B_renyi4] step 1500/3000  loss=0.2685  (27s)
+  [ent_B_renyi4] step 1800/3000  loss=0.2016  (33s)
+  [ent_B_renyi4] step 2100/3000  loss=0.1299  (38s)
+  [ent_B_renyi4] step 2400/3000  loss=0.3372  (43s)
+  [ent_B_renyi4] step 2700/3000  loss=0.1379  (47s)
+  [ent_B_renyi4] step 3000/3000  loss=0.0464  (53s)
+  [ent_B_renyi4] trained 3000 steps in 53s (in_ch=9, params=0.68M)
+  [ent_B_renyi4] BN recalibrated on 50 train batches (1s)
+  [ent_B_renyi4] test/clean    : acc=0.9725 ap=0.9970 (n=800) [acc_best=0.9750 logit_mean=+0.27]
+  [ent_B_renyi4] test/blur     : acc=0.6012 ap=0.6701 (n=800) [acc_best=0.6575 logit_mean=+3.15]
+  [ent_B_renyi4] test/jpeg     : acc=0.4913 ap=0.4560 (n=800) [acc_best=0.5200 logit_mean=-10.23]
+  [ent_B_renyi4] test/webp     : acc=0.4938 ap=0.4756 (n=800) [acc_best=0.5125 logit_mean=-10.14]
+  [ent_B_renyi4] test/blur+jpeg: acc=0.4888 ap=0.4606 (n=800) [acc_best=0.5138 logit_mean=-12.10]
+  [ent_B_renyi4] done -- 3/5 written to results/entropy_20260803_112924_seed300.txt
+
+=== [4/5] ent_C_tsallis2 : {'entropy_mode': 'tsallis_2', 'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]} ===
+  [ent_C_tsallis2] step 300/3000  loss=0.1651  (4s)
+  [ent_C_tsallis2] step 600/3000  loss=0.4114  (10s)
+  [ent_C_tsallis2] step 900/3000  loss=0.1455  (16s)
+  [ent_C_tsallis2] step 1200/3000  loss=0.0803  (22s)
+  [ent_C_tsallis2] step 1500/3000  loss=0.5204  (28s)
+  [ent_C_tsallis2] step 1800/3000  loss=0.2328  (34s)
+  [ent_C_tsallis2] step 2100/3000  loss=0.0952  (39s)
+  [ent_C_tsallis2] step 2400/3000  loss=0.3492  (45s)
+  [ent_C_tsallis2] step 2700/3000  loss=0.1053  (50s)
+  [ent_C_tsallis2] step 3000/3000  loss=0.0821  (56s)
+  [ent_C_tsallis2] trained 3000 steps in 56s (in_ch=9, params=0.68M)
+  [ent_C_tsallis2] BN recalibrated on 50 train batches (1s)
+  [ent_C_tsallis2] test/clean    : acc=0.9650 ap=0.9957 (n=800) [acc_best=0.9750 logit_mean=+0.19]
+  [ent_C_tsallis2] test/blur     : acc=0.5687 ap=0.6642 (n=800) [acc_best=0.6412 logit_mean=+4.25]
+  [ent_C_tsallis2] test/jpeg     : acc=0.4850 ap=0.4579 (n=800) [acc_best=0.5138 logit_mean=-11.37]
+  [ent_C_tsallis2] test/webp     : acc=0.4925 ap=0.4667 (n=800) [acc_best=0.5162 logit_mean=-11.86]
+  [ent_C_tsallis2] test/blur+jpeg: acc=0.4838 ap=0.4577 (n=800) [acc_best=0.5162 logit_mean=-13.02]
+  [ent_C_tsallis2] done -- 4/5 written to results/entropy_20260803_112924_seed300.txt
+
+=== [5/5] ent_C_tsallis4 : {'entropy_mode': 'tsallis_4', 'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]} ===
+  [ent_C_tsallis4] step 300/3000  loss=0.2161  (5s)
+  [ent_C_tsallis4] step 600/3000  loss=0.3115  (10s)
+  [ent_C_tsallis4] step 900/3000  loss=0.0942  (15s)
+  [ent_C_tsallis4] step 1200/3000  loss=0.1169  (21s)
+  [ent_C_tsallis4] step 1500/3000  loss=0.2759  (26s)
+  [ent_C_tsallis4] step 1800/3000  loss=0.2916  (31s)
+  [ent_C_tsallis4] step 2100/3000  loss=0.0901  (36s)
+  [ent_C_tsallis4] step 2400/3000  loss=0.1669  (40s)
+  [ent_C_tsallis4] step 2700/3000  loss=0.0884  (46s)
+  [ent_C_tsallis4] step 3000/3000  loss=0.1075  (52s)
+  [ent_C_tsallis4] trained 3000 steps in 52s (in_ch=9, params=0.68M)
+  [ent_C_tsallis4] BN recalibrated on 50 train batches (1s)
+  [ent_C_tsallis4] test/clean    : acc=0.9762 ap=0.9971 (n=800) [acc_best=0.9800 logit_mean=-0.23]
+  [ent_C_tsallis4] test/blur     : acc=0.5887 ap=0.6929 (n=800) [acc_best=0.6750 logit_mean=+3.68]
+  [ent_C_tsallis4] test/jpeg     : acc=0.4850 ap=0.4665 (n=800) [acc_best=0.5112 logit_mean=-10.51]
+  [ent_C_tsallis4] test/webp     : acc=0.4913 ap=0.4621 (n=800) [acc_best=0.5162 logit_mean=-11.85]
+  [ent_C_tsallis4] test/blur+jpeg: acc=0.4875 ap=0.4480 (n=800) [acc_best=0.5175 logit_mean=-13.32]
+  [ent_C_tsallis4] done -- 5/5 written to results/entropy_20260803_112924_seed300.txt
+
+
+MLEP entropy comparison
+date: 2026-08-03 11:46:59
+STATUS: complete -- 5/5 configs.
+device=cuda (NVIDIA GeForce RTX 4090)  arch=resnet18  amp=True  workers=8  steps=3000  crop=224  batch=16  lr=0.0002  seed=300  classes=car,cat,chair,horse,boat,person,dog,bird  val_batches=50  bn_recal=50  stage=deep  feat_batches=60/30
+
+leakage check: 0 identical (name, size) source file(s) shared between train/ and val/ over 32000 sampled files  -- ok
+
+Per-model results
+------------------------------------------------------------
+[ent_B_renyi4]  {'entropy_mode': 'renyi_4', 'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]}
+    in_channels=9  params=0.68M  steps=3000  train_time=53s
+    test/clean       acc=0.9725  ap=0.9970  (n=800)  roc_auc=0.9967  f1=0.9727  prec=0.9874  rec=0.9584  eer=0.0312  brier=0.0250  ece=0.0321
+    test/blur        acc=0.6012  ap=0.6701  (n=800)  roc_auc=0.6890  f1=0.7054  prec=0.5668  rec=0.9340  eer=0.3625  brier=0.3361  ece=0.3206
+    test/jpeg        acc=0.4913  ap=0.4560  (n=800)  roc_auc=0.4269  f1=0.0097  prec=1.0000  rec=0.0049  eer=0.5588  brier=0.5061  ece=0.5022
+    test/webp        acc=0.4938  ap=0.4756  (n=800)  roc_auc=0.4351  f1=0.0241  prec=0.8333  rec=0.0122  eer=0.5550  brier=0.5030  ece=0.5008
+    test/blur+jpeg   acc=0.4888  ap=0.4606  (n=800)  roc_auc=0.4307  f1=0.0097  prec=0.5000  rec=0.0049  eer=0.5599  brier=0.5085  ece=0.5088
+    clean roc_auc 95% CI (bootstrap): [0.9946, 0.9984]
+
+[ent_C_tsallis4]  {'entropy_mode': 'tsallis_4', 'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]}
+    in_channels=9  params=0.68M  steps=3000  train_time=52s
+    test/clean       acc=0.9762  ap=0.9971  (n=800)  roc_auc=0.9963  f1=0.9770  prec=0.9688  rec=0.9853  eer=0.0200  brier=0.0200  ece=0.0287
+    test/blur        acc=0.5887  ap=0.6929  (n=800)  roc_auc=0.7199  f1=0.7086  prec=0.5556  rec=0.9780  eer=0.3363  brier=0.3540  ece=0.3596
+    test/jpeg        acc=0.4850  ap=0.4665  (n=800)  roc_auc=0.4465  f1=0.0329  prec=0.4118  rec=0.0171  eer=0.5363  brier=0.5013  ece=0.4940
+    test/webp        acc=0.4913  ap=0.4621  (n=800)  roc_auc=0.4376  f1=0.0145  prec=0.7500  rec=0.0073  eer=0.5438  brier=0.5073  ece=0.5079
+    test/blur+jpeg   acc=0.4875  ap=0.4480  (n=800)  roc_auc=0.4222  f1=0.0049  prec=0.3333  rec=0.0024  eer=0.5475  brier=0.5106  ece=0.5110
+    clean roc_auc 95% CI (bootstrap): [0.9922, 0.9992]
+
+[ent_B_renyi2]  {'entropy_mode': 'renyi_2', 'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]}
+    in_channels=9  params=0.68M  steps=3000  train_time=52s
+    test/clean       acc=0.9712  ap=0.9964  (n=800)  roc_auc=0.9961  f1=0.9714  prec=0.9874  rec=0.9560  eer=0.0312  brier=0.0264  ece=0.0314
+    test/blur        acc=0.5988  ap=0.6627  (n=800)  roc_auc=0.6850  f1=0.7058  prec=0.5645  rec=0.9413  eer=0.3687  brier=0.3429  ece=0.3337
+    test/jpeg        acc=0.4900  ap=0.4524  (n=800)  roc_auc=0.4227  f1=0.0049  prec=1.0000  rec=0.0024  eer=0.5562  brier=0.5077  ece=0.5066
+    test/webp        acc=0.4938  ap=0.4673  (n=800)  roc_auc=0.4353  f1=0.0241  prec=0.8333  rec=0.0122  eer=0.5400  brier=0.5051  ece=0.5061
+    test/blur+jpeg   acc=0.4888  ap=0.4574  (n=800)  roc_auc=0.4301  f1=0.0049  prec=0.5000  rec=0.0024  eer=0.5538  brier=0.5099  ece=0.5111
+    clean roc_auc 95% CI (bootstrap): [0.9937, 0.9982]
+
+[ent_A_shannon]  {'entropy_mode': 'shannon', 'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]}
+    in_channels=9  params=0.68M  steps=3000  train_time=72s
+    test/clean       acc=0.9688  ap=0.9959  (n=800)  roc_auc=0.9956  f1=0.9689  prec=0.9848  rec=0.9535  eer=0.0325  brier=0.0281  ece=0.0291
+    test/blur        acc=0.5887  ap=0.6546  (n=800)  roc_auc=0.6754  f1=0.7006  prec=0.5580  rec=0.9413  eer=0.3887  brier=0.3497  ece=0.3400
+    test/jpeg        acc=0.4863  ap=0.4512  (n=800)  roc_auc=0.4195  f1=0.0048  prec=0.2500  rec=0.0024  eer=0.5662  brier=0.5078  ece=0.5058
+    test/webp        acc=0.4925  ap=0.4609  (n=800)  roc_auc=0.4244  f1=0.0146  prec=1.0000  rec=0.0073  eer=0.5575  brier=0.5063  ece=0.5062
+    test/blur+jpeg   acc=0.4875  ap=0.4565  (n=800)  roc_auc=0.4288  f1=0.0049  prec=0.3333  rec=0.0024  eer=0.5587  brier=0.5103  ece=0.5117
+    clean roc_auc 95% CI (bootstrap): [0.9929, 0.9979]
+
+[ent_C_tsallis2]  {'entropy_mode': 'tsallis_2', 'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]}
+    in_channels=9  params=0.68M  steps=3000  train_time=56s
+    test/clean       acc=0.9650  ap=0.9957  (n=800)  roc_auc=0.9954  f1=0.9652  prec=0.9823  rec=0.9487  eer=0.0250  brier=0.0277  ece=0.0324
+    test/blur        acc=0.5687  ap=0.6642  (n=800)  roc_auc=0.6807  f1=0.6950  prec=0.5443  rec=0.9609  eer=0.3612  brier=0.3751  ece=0.3722
+    test/jpeg        acc=0.4850  ap=0.4579  (n=800)  roc_auc=0.4333  f1=0.0048  prec=0.2000  rec=0.0024  eer=0.5463  brier=0.5083  ece=0.5093
+    test/webp        acc=0.4925  ap=0.4667  (n=800)  roc_auc=0.4273  f1=0.0193  prec=0.8000  rec=0.0098  eer=0.5575  brier=0.5043  ece=0.5021
+    test/blur+jpeg   acc=0.4838  ap=0.4577  (n=800)  roc_auc=0.4315  f1=0.0048  prec=0.1667  rec=0.0024  eer=0.5550  brier=0.5101  ece=0.5107
+    clean roc_auc 95% CI (bootstrap): [0.9918, 0.9982]
+
+ROC-AUC per test scenario  [higher = more robust]
+===========================================================
+          config   clean    blur    jpeg    webp  blur+jpeg
+-----------------------------------------------------------
+    ent_B_renyi4  0.9967  0.6890  0.4269  0.4351     0.4307
+  ent_C_tsallis4  0.9963  0.7199  0.4465  0.4376     0.4222
+    ent_B_renyi2  0.9961  0.6850  0.4227  0.4353     0.4301
+   ent_A_shannon  0.9956  0.6754  0.4195  0.4244     0.4288
+  ent_C_tsallis2  0.9954  0.6807  0.4333  0.4273     0.4315
+===========================================================
+Cols: clean vs corrupted test sets. Read a row's clean cell against its blur / jpeg / webp cells for robustness, and every row against the A_shannon row of the same stage/classifier.
+
+Notes
+- Feature stage: entropy summary statistics + sklearn; deep stage: the MLEP network trained by run_config(), identical to the sweep.
+- Splits are the on-disk train/ and val/ folders; crops, resizes and corruptions are applied after that split, never before.
+- Short training -> the deep ranking is indicative. Re-run the top configs with more --max_train_steps to confirm.
+
+Results written to results/entropy_20260803_112924_seed300.txt
+CSVs: results/entropy_20260803_112924_seed300_metrics.csv, results/entropy_20260803_112924_seed300_ablation.csv
