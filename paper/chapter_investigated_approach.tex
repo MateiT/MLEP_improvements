@@ -1,0 +1,1202 @@
+% !TeX root = ../main.tex
+%
+% Requires in the preamble:
+%   \usepackage{booktabs, graphicx, amsmath, amssymb}
+%   \usepackage[ruled,vlined]{algorithm2e}   % or algorithm + algpseudocode
+%   \usepackage{listings}
+%
+\chapter{Investigated approach}
+\label{chapter:proposedApproach}
+
+\section{Overview}
+\label{sec:overview}
+
+This chapter documents the full sequence of experiments we ran on MLEP
+(Multi-granularity Local Entropy Patterns)~\cite{yuan2025mlep}, an
+AI-generated-image detector whose input stage replaces the raw image with a
+stack of local-entropy maps. Our goal was twofold: first, to reproduce the
+published detector and confirm its reported clean-data behaviour; second, to
+find a modification of its entropy front-end that improves either raw detection
+accuracy or, more importantly, robustness to the image degradations that any
+image encounters in the wild --- blurring and lossy recompression.
+
+We report every experiment, including the ones that failed, because the pattern
+of failures is itself the result. The chapter is organised as a chain in which
+each experiment is motivated by the outcome of the previous one:
+
+\begin{enumerate}
+  \item We reproduce the baseline and, in doing so, uncover a
+        \emph{BatchNorm statistics} defect that invalidates naive evaluation
+        (Section~\ref{sec:setup-bn}).
+  \item We vary the \emph{sliding-window size} of the entropy operator, the
+        single most obvious hyper-parameter (Section~\ref{sec:exp-window}).
+        Larger windows monotonically hurt.
+  \item Because no single window helped, we test \emph{combining} several
+        windows, and two corrections to that combination --- per-window
+        normalisation and exact spatial registration
+        (Section~\ref{sec:exp-multiwindow}). Neither helps.
+  \item Because the window \emph{geometry} was exhausted, we ask whether the
+        entropy \emph{functional} itself is the wrong choice, and test Rényi,
+        Tsallis and permutation entropy, in both a classical-feature stage and
+        a deep stage (Section~\ref{sec:exp-entropy}). All are within noise.
+  \item Because scalar re-weightings of the same value distribution changed
+        nothing, we test a statistic the marginals provably cannot express ---
+        \emph{joint cross-channel colour entropy} (Section~\ref{sec:exp-color}).
+        No gain.
+  \item Because all front-end variants failed on \emph{clean} data, we attack
+        robustness directly: a PatchCraft-style \emph{rich/poor texture split}
+        (Section~\ref{sec:exp-texture}) and \emph{degradation-augmented
+        training} (Section~\ref{sec:exp-aug}). The texture split does not help;
+        augmentation helps only within the exact degradation it was trained on.
+  \item Finally we ask whether the front-end can at least \emph{report} the
+        degradation it is suffering, via a multi-head model trained to 200k
+        steps (Section~\ref{sec:exp-degradation}). It can identify the
+        degradation almost perfectly while remaining unable to detect through
+        it.
+\end{enumerate}
+
+Section~\ref{sec:conclusion} draws the conclusion that motivates the remainder
+of the thesis: no intervention on the entropy front-end recovered robustness,
+so we turn to combining MLEP with a second, architecturally different detector.
+
+\section{The baseline algorithm}
+\label{sec:algorithm}
+
+\subsection{Intuition}
+
+MLEP rests on a simple observation about how generative models synthesise
+pixels. A camera sensor produces independent photon and read noise at every
+site, so neighbouring pixels of a natural photograph almost never carry exactly
+equal 8-bit values. A generator, by contrast, produces its output through
+transposed convolutions or a decoder that upsamples a low-resolution latent, and
+upsampling \emph{duplicates} values: a nearest-neighbour or bilinear expansion
+makes adjacent pixels equal or near-equal far more often than a sensor would.
+
+MLEP turns that into a feature by discarding photometric content entirely and
+keeping only a measure of \emph{local value diversity}: for every position in the
+image it counts how many distinct values occur in a small sliding window. The
+network never sees brightness or colour --- only the spatial pattern of local
+diversity, the ``local entropy pattern''.
+
+\subsection{Local entropy}
+
+Let $x \in \mathbb{R}^{C \times H \times W}$ be the (ImageNet-normalised) image
+and let $\mathcal{W}_{ij}^{(w)}$ denote the $w \times w$ window whose top-left
+corner is $(i,j)$, containing $K = w^2$ values. Writing $p_g$ for the fraction
+of the $K$ values equal to distinct value $g$, the Shannon entropy of the window
+is
+\begin{equation}
+  H_{\text{S}}(\mathcal{W}) = -\sum_{g} p_g \log_2 p_g .
+  \label{eq:shannon}
+\end{equation}
+The map is computed at stride $1$ and \emph{independently per colour channel},
+so a $w\times w$ operator on a $C\times H\times W$ image yields
+$C \times (H-w+1) \times (W-w+1)$ values.
+
+For the default $w=2$ the window holds only $K=4$ pixels, so the value
+distribution can take exactly five forms, and MLEP exploits this with a lookup
+rather than a general computation. Table~\ref{tab:2x2} lists them. Note that the
+released implementation stores $0.8$ for the ``three equal'' case, a rounding of
+the exact value $\log_2 4 - \tfrac{3}{4}\log_2 3 = 0.8113$; we preserve this
+rounding so our reproduction is bit-compatible with the published weights.
+
+\begin{table}[t]
+  \centering
+  \caption{The five configurations of a $2\times2$ window and the entropy MLEP
+  assigns. ``Equal pairs'' counts, among the six unordered pairs of the four
+  pixels, how many are equal --- this integer identifies the case uniquely and
+  is what makes the five-entry lookup possible.}
+  \label{tab:2x2}
+  \begin{tabular}{llcc}
+    \toprule
+    Case & Group sizes & Equal pairs & $H_{\text{S}}$ \\
+    \midrule
+    all four equal            & $(4)$       & 6 & 0.0 \\
+    three equal, one different& $(3,1)$     & 3 & 0.8 \\
+    two pairs                 & $(2,2)$     & 2 & 1.0 \\
+    one pair, two singletons  & $(2,1,1)$   & 1 & 1.5 \\
+    all four different        & $(1,1,1,1)$ & 0 & 2.0 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Multi-granularity: the scale pyramid}
+
+A single window size sees structure at one spatial frequency only. MLEP
+therefore computes the entropy map at three \emph{scales}. Scale $s$ is realised
+by bilinearly downsampling the image by $s$ and immediately upsampling it back to
+the original size, which destroys detail finer than $1/s$ pixels while keeping
+the tensor shape fixed:
+\begin{equation}
+  x^{(s)} = \text{Up}_{H\times W}\big(\text{Down}_{s}(x)\big),
+  \qquad s \in \{1.0,\, 0.5,\, 0.25\}.
+\end{equation}
+With $C=3$ channels, $|S| = 3$ scales and one window size, the front-end emits
+$3 \times 3 \times 1 = 9$ channels, which is what the first convolution of the
+network consumes. In general
+\begin{equation}
+  C_{\text{in}} = |\text{canvases}| \cdot |S| \cdot |\mathcal{W}| \cdot |\mathcal{M}| \cdot 3,
+  \label{eq:channels}
+\end{equation}
+where $\mathcal{W}$ is the set of window sizes and $\mathcal{M}$ the set of
+entropy functionals --- both of which we vary in the experiments below.
+
+\subsection{Block shuffling}
+
+Before the entropy maps are computed, the image is diced into non-overlapping
+$2\times2$ blocks which are then randomly permuted across the whole frame. This
+destroys global semantics --- object shape, layout, scene content --- while
+leaving intra-block pixel relations intact, forcing the classifier onto local
+statistics rather than on what the picture depicts. During training a fresh
+permutation is drawn each forward pass; at evaluation the permutation is fixed
+by a seeded generator so that scoring is deterministic.
+
+\begin{quote}\small
+\textbf{Implementation note.} The released code called
+\texttt{torch.manual\_seed(99)} inside the forward pass. This both froze the
+shuffle to a single pattern during training and reseeded the \emph{global} RNG
+on every step, clobbering the randomness used for batching and augmentation. We
+replaced it with a local \texttt{torch.Generator} that is used only at
+evaluation. This is a fix to the harness, not a modification of the method,
+and is the reason our training curves differ from a naive re-run of the
+published code.
+\end{quote}
+
+\subsection{Backbone}
+
+The entropy stack is fed to a truncated ResNet: \texttt{conv1} is re-shaped to
+accept $C_{\text{in}}$ channels instead of $3$, and only \texttt{layer1} and
+\texttt{layer2} are retained before global average pooling and a single linear
+head. The result is a small model --- $0.68$M parameters for the ResNet-18
+variant used in the sweeps, $1.44$M for the ResNet-50 variant used for the final
+long run --- because the discriminative work is done by the front-end, not by
+depth.
+
+\subsection{Pseudocode}
+
+\begin{algorithm}[t]
+\caption{MLEP forward pass (generalised; the released model is the case
+$\mathcal{W}=\{2\}$, $\mathcal{M}=\{\text{shannon}\}$, no texture split)}
+\label{alg:mlep}
+\KwIn{image $x \in \mathbb{R}^{3\times H\times W}$; scales $S$; windows
+$\mathcal{W}$; entropy modes $\mathcal{M}$}
+\KwOut{logit(s) $z$}
+\BlankLine
+$\mathcal{X} \leftarrow \textsc{TextureSplit}(x)$ \tcp*{$\{x\}$, or (rich, poor); Sec.~\ref{sec:exp-texture}}
+\ForEach{canvas $c \in \mathcal{X}$}{
+  $c \leftarrow \textsc{ShuffleBlocks}(c, 2)$ \tcp*{random in train, seeded in eval}
+}
+$F \leftarrow [\;]$\;
+\ForEach{canvas $c \in \mathcal{X}$}{
+  \ForEach{scale $s \in S$}{
+    $c_s \leftarrow \textsc{Up}_{H\times W}(\textsc{Down}_s(c))$ \tcp*{identity if $s=1$}
+    \ForEach{window $w \in \mathcal{W}$}{
+      \ForEach{mode $m \in \mathcal{M}$}{
+        $P \leftarrow \textsc{Unfold}(c_s, w, \text{stride}=1)$ \tcp*{$(3, (H\!-\!w\!+\!1)(W\!-\!w\!+\!1), w^2)$}
+        $E \leftarrow \textsc{Entropy}_m(P)$ \tcp*{per channel, per window}
+        \lIf{$w=2$ \textbf{and} $m=$ shannon}{$E \leftarrow \textsc{Lookup}_5(P)$ \tcp*{Table~\ref{tab:2x2}}}
+        \lIf{normalise}{$E \leftarrow E / H_{\max}(m,w)$}
+        \lIf{align $=$ pad}{$E \leftarrow \textsc{ReplicatePad}(E, (w-w_{\min})/2)$}
+        append $E$ to $F$\;
+      }
+    }
+  }
+}
+$F \leftarrow \textsc{ResizeToCommon}(F)$;\quad $z_0 \leftarrow \textsc{Concat}(F)$ \tcp*{$C_{\text{in}}$ channels, Eq.~\ref{eq:channels}}
+$z \leftarrow \textsc{Head}(\textsc{Layer2}(\textsc{Layer1}(\textsc{Stem}(z_0))))$\;
+\Return $z$\;
+\end{algorithm}
+
+\subsection{A worked example}
+\label{sec:worked-example}
+
+To make the mechanism --- and its failure mode --- concrete, consider a
+$4\times4$ region of a single colour channel. Take first a patch of real
+photographic sky, where sensor noise perturbs every site:
+
+\[
+X_{\text{real}} =
+\begin{pmatrix}
+120 & 121 & 119 & 122\\
+121 & 123 & 120 & 118\\
+119 & 120 & 122 & 121\\
+122 & 118 & 121 & 123
+\end{pmatrix}
+\]
+
+Sliding a $2\times2$ window at stride 1 produces a $3\times3$ entropy map.
+The window at position $(0,0)$ holds $\{120,121,121,123\}$: one pair and two
+singletons, hence $1.5$ by Table~\ref{tab:2x2}. The window at $(0,1)$ holds
+$\{121,119,123,120\}$, all four different, hence $2.0$. Continuing:
+
+\[
+E_{\text{real}} =
+\begin{pmatrix}
+1.5 & 2.0 & 2.0\\
+2.0 & 1.5 & 2.0\\
+2.0 & 2.0 & 1.5
+\end{pmatrix},
+\qquad \overline{E}_{\text{real}} = 1.833 .
+\]
+
+Now take the corresponding region of a GAN image, where a $2\times$ upsampling
+step has duplicated every value into a $2\times2$ tile:
+
+\[
+X_{\text{fake}} =
+\begin{pmatrix}
+120 & 120 & 122 & 122\\
+120 & 120 & 122 & 122\\
+124 & 124 & 126 & 126\\
+124 & 124 & 126 & 126
+\end{pmatrix}
+\Longrightarrow
+E_{\text{fake}} =
+\begin{pmatrix}
+0.0 & 1.0 & 0.0\\
+1.0 & 2.0 & 1.0\\
+0.0 & 1.0 & 0.0
+\end{pmatrix},
+\qquad \overline{E}_{\text{fake}} = 0.667 .
+\]
+
+The separation is large and, crucially, \emph{structured}: the fake map is not
+merely lower on average, it is periodic, with zeros wherever a window falls
+inside one upsampled tile and maxima wherever it straddles a tile corner. This
+periodic lattice is what the convolutional backbone learns, and it is why MLEP
+achieves near-perfect clean accuracy on GAN imagery.
+
+\paragraph{Why this collapses under recompression.}
+Now apply strong JPEG compression to the \emph{real} patch. The DCT
+quantisation step flattens small fluctuations, and after dequantisation an
+$8\times8$ block of nearly-equal sky pixels typically returns a handful of
+repeated values:
+
+\[
+X_{\text{real}}^{\text{JPEG}} =
+\begin{pmatrix}
+120 & 120 & 120 & 120\\
+120 & 120 & 120 & 120\\
+122 & 122 & 122 & 122\\
+122 & 122 & 122 & 122
+\end{pmatrix}
+\Longrightarrow
+\overline{E}_{\text{real}}^{\text{JPEG}} = 0.333 .
+\]
+
+The real patch now scores \emph{lower} than the untouched fake patch
+($0.333 < 0.667$). The feature has not merely become noisy --- its ordering has
+\textbf{inverted}. A classifier trained to read ``low local entropy $\Rightarrow$
+generated'' will now confidently label compressed real photographs as
+generated.
+
+This single observation predicts, quantitatively, the dominant result of every
+experiment in this chapter: the corrupted-condition average precision of every
+MLEP variant we trained sits \emph{below} $0.5$, in the range $0.41$--$0.49$.
+Average precision below chance is not weak performance; it is a reversed
+ranking. The entropy front-end cannot distinguish ``smooth because the scene is
+smooth'' from ``smooth because a codec smoothed it'', and every intervention we
+describe below is, in one way or another, an attempt to give it a channel in
+which that distinction can be expressed.
+
+\section{Experimental setup}
+\label{sec:setup}
+
+\subsection{Hardware and software}
+
+All experiments ran on a single machine:
+
+\begin{table}[h]
+  \centering
+  \caption{Training and evaluation environment.}
+  \label{tab:hardware}
+  \begin{tabular}{ll}
+    \toprule
+    GPU              & NVIDIA GeForce RTX 4090, 24\,GB GDDR6X, driver 590.48.01 \\
+    CPU              & AMD EPYC-Milan, 8 vCPU (1 thread/core) \\
+    RAM              & 47\,GB; 24\,GB \texttt{tmpfs} used for data staging \\
+    Storage          & rotational volume, $\approx$9\,MB/s sequential, $\approx$50 file/s \\
+    OS / Python      & Ubuntu (Linux 6.8), Python 3.10, Conda \\
+    Framework        & PyTorch 2.4.0 (CUDA 11.8, cuDNN 9.1.0), torchvision 0.19.0 \\
+    Libraries        & scikit-learn 1.7.2, NumPy 2.2.6, SciPy 1.15.2, Pillow 12.3.0 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+TF32 matmul/convolution, the cuDNN autotuner and mixed precision (AMP, fp16)
+were enabled throughout. The entropy front-end itself is \emph{not}
+autocast-eligible --- \texttt{unfold}, \texttt{sort} and equality tests have no
+fp16 kernels --- so it executes in fp32 and only the convolutional backbone runs
+in half precision.
+
+\begin{quote}\small
+\textbf{A note on I/O.} The machine's root volume is rotational. Run directly
+from disk, every configuration was pinned at $\approx0.47$\,s/step regardless of
+its actual cost, because the GPU idled while dataloader workers blocked in
+uninterruptible sleep. All reported timings therefore come from runs whose data
+subset was staged into \texttt{tmpfs} first. Without this, the timing column of
+every sweep measures the disk rather than the model.
+\end{quote}
+
+\subsection{Data}
+
+Training used the standard ProGAN corpus of Wang et al.~\cite{wang2020cnn},
+distributed with CNNDetection/NPR: 20 LSUN categories, each with a
+\texttt{0\_real} and a \texttt{1\_fake} folder. Unless stated otherwise the
+sweeps used eight categories (\texttt{car, cat, chair, horse, boat, person,
+dog, bird}) to avoid a result that is a statement about cars specifically.
+Evaluation used the held-out \texttt{val} split for the sweeps, and for the
+final model the full ForenSynths / NPR test suite: 13 GAN generators
+(90{,}329 images) and 13 diffusion generators (51{,}992 images).
+
+Images are resized to $256\times256$ and cropped to $224\times224$ ---
+\texttt{RandomCrop} for training, \texttt{CenterCrop} for evaluation.
+
+\begin{quote}\small
+\textbf{Evaluation geometry.} The released \texttt{test.py} sets
+\texttt{no\_crop=True}, feeding full $256\times256$ frames at test time although
+training used $224$ crops. We centre-crop at evaluation instead, so that the
+BatchNorm statistics re-estimated on $224$ crops (Section~\ref{sec:setup-bn})
+are applied at the same input size. Measured in isolation this is worth
+$\approx0.06$ AP --- far less than the BatchNorm effect, but free to get right.
+\end{quote}
+
+\subsection{Training protocol}
+
+Every configuration in a sweep trains for exactly the same number of
+optimisation steps, so that comparisons are fair and wall-clock differs only
+with each configuration's per-step cost:
+
+\begin{table}[h]
+  \centering
+  \caption{Sweep protocol. The final long run
+  (Section~\ref{sec:exp-degradation}) differs and is described there.}
+  \label{tab:protocol}
+  \begin{tabular}{ll}
+    \toprule
+    Backbone        & ResNet-18 (0.68M parameters) \\
+    Steps           & 3{,}000 (200 for smoke tests) \\
+    Batch size      & 16 (sized for the most expensive configuration) \\
+    Optimiser       & Adam, $\beta = (0.9, 0.999)$, constant lr $2\times10^{-4}$ \\
+    Loss            & \texttt{BCEWithLogitsLoss} on a single logit \\
+    Crop            & $224$ from a $256$ resize, random horizontal flip \\
+    Precision       & AMP (fp16 backbone, fp32 front-end) \\
+    BN recalibration& 50 training batches, cumulative average \\
+    Validation      & 50 batches ($n=800$) per scenario \\
+    Seeds           & 100, 200, 300 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Batch size is held \emph{identical} across configurations on purpose. The
+fairness argument (``every configuration trains for the same number of steps'')
+only holds if a step means the same thing everywhere, so the batch is sized for
+the most expensive configuration rather than tuned per configuration. Memory,
+not speed, is the binding constraint: the general \texttt{unfold}+\texttt{sort}
+path materialises a $(B, 3, HW, w^2)$ patch tensor and \texttt{torch.sort} adds
+int64 indices at twice the value size, so the three-window configuration peaks
+at $21.3$\,GB of the card's $24.6$\,GB at batch 32.
+
+\subsection{Evaluation scenarios}
+
+Each trained model is scored on five test conditions, applied with probability
+$1.0$ so the measurement is deterministic. A fixed per-loader generator
+guarantees every scenario sees the same underlying images, so differences come
+only from the corruption:
+
+\begin{center}
+\begin{tabular}{ll}
+  \toprule
+  \texttt{clean}     & no degradation \\
+  \texttt{blur}      & Gaussian, $\sigma = 2.0$ \\
+  \texttt{jpeg}      & JPEG quality 75 (PIL) \\
+  \texttt{webp}      & WebP quality 80 --- never seen in training, an out-of-distribution probe \\
+  \texttt{blur+jpeg} & both, blur first \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+We report average precision (AP) as the headline metric, together with ROC-AUC,
+accuracy at threshold $0.5$, the best accuracy achievable at any threshold, and
+the mean logit. The last two exist to diagnose the failure described next.
+
+\subsection{A prerequisite: BatchNorm recalibration}
+\label{sec:setup-bn}
+
+Our first reproduction attempts produced an uninterpretable result: accuracy
+pinned at the class prior ($\approx0.50$) while AP remained high, and different
+configurations collapsed to \emph{different} constant classes. The cause is not
+the model but BatchNorm bookkeeping.
+
+BatchNorm's default momentum of $0.1$ makes \texttt{running\_mean} and
+\texttt{running\_var} an exponential moving average over roughly the last 20
+batches --- about 320 images at batch 16 --- collected while the weights were
+still moving. Per layer the error is small (at \texttt{bn1} the stored variance
+sits some 10\% below the true batch variance), but it compounds through the nine
+BatchNorm layers of \texttt{layer1}+\texttt{layer2}, and the head is a single
+\texttt{Linear(128,1)} on a global average pool, so nothing downstream absorbs
+the drift.
+
+We therefore re-estimate all BatchNorm statistics after training and before
+evaluation, by resetting them, switching momentum to \texttt{None} (a cumulative
+average) and running 50 forward passes over \emph{training} data. Using
+validation data here would be transductive. The effect, on identical weights, is
+dramatic:
+
+\begin{table}[h]
+  \centering
+  \caption{BatchNorm recalibration on \texttt{baseline\_2x2}, 3{,}000 steps,
+  eight categories, batch 16. Same weights in both rows.}
+  \label{tab:bn}
+  \begin{tabular}{lccc}
+    \toprule
+     & mean logit & accuracy & AP \\
+    \midrule
+    \texttt{model.eval()} as-is & $+24.16$ & 0.4938 & 0.8057 \\
+    after recalibration          & $-0.25$  & 0.9762 & 0.9985 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Every logit was displaced by roughly 24, collapsing every prediction to one
+class. The sign is arbitrary --- a 600-step run shifted by $-13.85$ instead ---
+which is exactly why some configurations reported all-real and others all-fake.
+Critically, \textbf{AP moves too} ($0.81 \to 0.9985$): this was never merely a
+threshold problem, it corrupted the very ranking the sweeps exist to produce.
+Every number reported in this chapter is post-recalibration.
+
+\section{Experiment 1: sliding-window size}
+\label{sec:exp-window}
+
+\paragraph{Hypothesis.} MLEP fixes the window at $2\times2$, the smallest
+possible. A $2\times2$ window can express only five distinct entropy values
+(Table~\ref{tab:2x2}), which is a very coarse quantisation of local diversity.
+A larger window admits a richer alphabet --- $w=4$ gives $K=16$ pixels and
+therefore many more distinguishable distributions --- and might capture
+generator fingerprints that operate over a longer spatial range.
+
+\paragraph{Method.} We trained one configuration per window size
+$w \in \{2,3,4,5,6,7,8\}$, holding the three-scale pyramid, the backbone, the
+step count and every other hyper-parameter fixed. We additionally tested
+\texttt{unique}, which replaces the entropy by a plain count of distinct values
+in the window, i.e. the cardinality of the value set rather than a weighted
+function of the distribution.
+
+\begin{table}[t]
+  \centering
+  \caption{Window-size sweep. ResNet-18, 3{,}000 steps, seed 100, eight
+  categories. Average precision; higher is better. ``Time'' is training
+  wall-clock in seconds.}
+  \label{tab:window}
+  \begin{tabular}{lrrrrrr}
+    \toprule
+    Configuration & clean & blur & jpeg & webp & blur+jpeg & time \\
+    \midrule
+    \texttt{w2x2\_unique}  & 0.9980 & 0.6710 & 0.4144 & 0.4155 & 0.4218 & 42 \\
+    \texttt{baseline\_2x2} & \textbf{0.9979} & 0.6817 & 0.4199 & 0.4193 & 0.4265 & 59 \\
+    \texttt{w3x3}          & 0.9907 & 0.6548 & 0.4335 & 0.4232 & 0.4240 & 396 \\
+    \texttt{w4x4}          & 0.9716 & 0.6094 & 0.4131 & 0.4064 & 0.4350 & 415 \\
+    \texttt{w6x6}          & 0.8012 & 0.5654 & 0.4338 & 0.4236 & 0.4665 & 553 \\
+    \texttt{w5x5}          & 0.7726 & 0.5663 & 0.4150 & 0.4119 & 0.4252 & 441 \\
+    \texttt{w7x7}          & 0.5771 & 0.5116 & 0.4241 & 0.4259 & 0.4459 & 586 \\
+    \texttt{w8x8}          & 0.5395 & 0.5195 & 0.4399 & 0.4402 & 0.4587 & 623 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\paragraph{Result: failed.} Clean AP decreases monotonically with window size,
+from $0.998$ at $w=2$ to $0.540$ at $w=8$ --- the latter barely above chance.
+Cost moves the opposite way: $w \geq 3$ leaves the five-entry lookup and takes
+the general sort-based path, making training an order of magnitude slower
+($59$\,s versus $623$\,s) for a strictly worse model.
+
+\paragraph{Interpretation.} The hypothesis inverted the actual mechanism. The
+generator fingerprint MLEP exploits is an upsampling lattice with a period of
+one or two pixels (Section~\ref{sec:worked-example}). A $2\times2$ window is
+\emph{matched} to that period. Widening the window averages the fingerprint
+together with genuine scene texture, and because entropy is a set statistic it
+cannot separate the two contributions once they are mixed --- a large window
+sees a busy distribution whether the business comes from the lattice or from
+grass. The coarse five-level quantisation is not a limitation to be overcome; it
+is a matched filter.
+
+Note also that \texttt{unique} performs identically to Shannon entropy
+($0.9980$ vs $0.9979$). Since \texttt{unique} discards the multiplicities
+entirely and keeps only the number of distinct values, this is the first
+indication that the \emph{precise functional} carries essentially no
+information beyond the coarse partition --- a finding Section~\ref{sec:exp-entropy}
+confirms much more thoroughly.
+
+\section{Experiment 2: multiple windows, normalisation and registration}
+\label{sec:exp-multiwindow}
+
+\paragraph{Hypothesis.} Because no \emph{single} larger window beat $2\times2$,
+the natural next question is whether several windows \emph{together} carry
+complementary information: the $2\times2$ map supplies the fingerprint and the
+wider maps supply context that could disambiguate scene texture from codec
+smoothing. We combine $w \in \{2,4,6\}$ over the same pyramid, giving
+$3 \times 3 \times 3 = 27$ input channels.
+
+We further identified two defects in the naive combination and tested a
+correction for each, as exact twins that change one thing only.
+
+\begin{description}
+  \item[Dynamic-range mismatch.] Shannon entropy is bounded by $\log_2 w^2$:
+    $2.0$ bits for $2\times2$ but $\approx5.17$ for $6\times6$. The wide-window
+    channels therefore enter \texttt{conv1} with $2.5\times$ the dynamic range of
+    the narrow ones. \texttt{conv1} has \texttt{bias=False} and \texttt{bn1}
+    normalises the 64 \emph{output} channels \emph{after} the convolution has
+    already summed the inputs, so nothing downstream undoes this imbalance.
+    \texttt{normalize\_entropy} divides each map by its own $\log_2 K$.
+  \item[Spatial misregistration.] A $w$-window map is $H-w+1$ wide, so the three
+    maps disagree in size and the default path bilinearly resamples them onto the
+    $2\times2$ grid. This is doubly lossy: it aligns the maps' outer extents
+    rather than the pixels they describe, which \emph{stretches} rather than
+    shifts them (measured error $\approx0$ at the image centre, growing to
+    $\approx1.6$\,px for the $6\times6$ window near the border), and the
+    resampling blurs exactly the high-frequency structure that is the entire
+    signal. A convnet can absorb a constant shift into learned filter positions
+    but not a position-dependent warp, since the weights are shared. The
+    \texttt{pad} variant replicate-pads by $(w-w_{\min})/2$ instead, which is
+    exact, interpolation-free, and measured to cost $+1$\,MiB and no extra time.
+\end{description}
+
+\begin{table}[t]
+  \centering
+  \caption{Multi-window configurations against the baseline. ResNet-18,
+  3{,}000 steps, seed 100.}
+  \label{tab:multiwindow}
+  \begin{tabular}{lrrrrrr}
+    \toprule
+    Configuration & clean & blur & jpeg & webp & blur+jpeg & time \\
+    \midrule
+    \texttt{baseline\_2x2}                      & \textbf{0.9979} & 0.6817 & 0.4199 & 0.4193 & 0.4265 & 59 \\
+    \texttt{multiwindow\_multiscale}            & 0.9965 & 0.6581 & 0.4189 & 0.4103 & 0.4210 & 962 \\
+    \texttt{multiwindow\_normalized}            & 0.9938 & 0.6762 & 0.4153 & 0.4090 & 0.4242 & 963 \\
+    \texttt{multiwindow\_aligned} (\texttt{pad})& 0.9944 & 0.6472 & 0.4146 & 0.4071 & 0.4194 & 1024 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\paragraph{Result: failed.} All three multi-window variants are marginally
+\emph{worse} than the single $2\times2$ baseline on clean data and no better
+under any corruption, at $16$--$17\times$ the training cost. Both principled
+corrections --- normalisation and exact registration --- recovered part of the
+gap relative to the uncorrected combination on some cells (normalisation
+improves blur from $0.6581$ to $0.6762$) but neither reached the baseline.
+
+\paragraph{Interpretation.} The corrections were real; the thing they corrected
+was not worth having. Adding wide-window channels adds noise-carrying inputs to
+\texttt{conv1}, and no amount of correctly scaling and registering a
+non-informative channel makes it informative. Combined with Experiment 1, this
+closes the question of window \emph{geometry}: neither the size of the window
+nor the number of window sizes is where any improvement lies.
+
+\section{Experiment 3: the entropy functional}
+\label{sec:exp-entropy}
+
+\paragraph{Hypothesis.} Having exhausted the geometry, we turn to the
+functional. Shannon entropy weights a value's contribution by $-p\log_2 p$,
+which is one choice among many. Generalised entropies re-weight rare versus
+common values by a tunable exponent, and a rare value is precisely what a
+sensor's noise produces and an upsampler does not. Concretely we tested:
+
+\begin{align}
+  \text{Rényi:}   \quad H_\alpha &= \frac{1}{1-\alpha}\log_2 \sum_g p_g^{\alpha},
+  & \alpha &\in \{0.5, 2, 4\} \label{eq:renyi}\\
+  \text{Tsallis:} \quad S_q      &= \frac{1 - \sum_g p_g^{q}}{q-1},
+  & q &\in \{0.5, 2, 4\} \label{eq:tsallis}
+\end{align}
+
+Both reduce to Shannon as $\alpha, q \to 1$; $\alpha > 1$ emphasises the
+dominant value, $\alpha < 1$ the rare ones. We also tested \emph{permutation}
+(Bandt--Pompe ordinal-pattern) entropy, which is categorically different: it
+discards magnitudes and keeps only the \emph{rank order} of pixels, and so is
+invariant to any monotone intensity transform. Since a single window read as one
+sequence yields exactly one ordinal pattern (and therefore zero entropy), we
+define the pattern population inside a window as all order-3 sub-sequences of
+its rows and columns; this requires $w \geq 3$.
+
+\paragraph{Method.} The experiment ran in two stages, so that a null result
+could not be blamed on the deep model's optimisation.
+
+\begin{description}
+  \item[Feature stage.] Entropy summary statistics (mean, std, min, max, median,
+    IQR, and the 10th/25th/75th/90th percentiles of each local map), computed
+    over whole-image and non-overlapping $8\times8$/$16\times16$/$32\times32$
+    windows as well as the $2\times2$ MLEP convention, in grayscale, R, G, B and
+    the joint RGB view. Four classical classifiers --- logistic regression,
+    random forest, SVM and gradient-boosted trees --- were fitted on each
+    ablation subset. This stage can afford whole-image and $32\times32$ windows
+    that are far too expensive as a stride-1 front-end.
+  \item[Deep stage.] The MLEP network itself trained with each entropy
+    front-end, through exactly the same \texttt{run\_config()} used by the window
+    sweep: same steps, same BN recalibration, same corruption scenarios.
+\end{description}
+
+The ablation groups were: A~Shannon (baseline), B~Rényi only, C~Tsallis only,
+D~permutation only, E~Shannon+Rényi, F~Shannon+Tsallis, G~Shannon+permutation,
+H~all. Combined modes stack one map per functional, with mode 0's channels
+bit-identical to the corresponding single-mode configuration, making every
+combination a clean \emph{additive} test. In total 46 configurations were
+scored in the combined run.
+
+\begin{table}[t]
+  \centering
+  \caption{Deep stage, ROC-AUC, seed 100. Only the top rows are shown; the full
+  46-row table appears in \texttt{results/entropy\_20260802\_160157\_seed100.txt}.}
+  \label{tab:entropy-deep}
+  \begin{tabular}{lrrrrr}
+    \toprule
+    Configuration & clean & blur & jpeg & webp & blur+jpeg \\
+    \midrule
+    \texttt{ent\_C\_tsallis4}  & 0.9987 & 0.7452 & 0.4365 & 0.4644 & 0.4644 \\
+    \texttt{ent\_B\_renyi2}    & 0.9984 & 0.7408 & 0.4256 & 0.4316 & 0.4576 \\
+    \texttt{ent\_C\_tsallis2}  & 0.9983 & 0.7435 & 0.4444 & 0.4432 & 0.4702 \\
+    \texttt{ent\_B\_renyi4}    & 0.9982 & \textbf{0.7520} & 0.4253 & 0.4374 & 0.4595 \\
+    \texttt{ent\_A\_shannon}   & 0.9978 & 0.7335 & 0.4282 & 0.4320 & 0.4574 \\
+    \midrule
+    \texttt{ent\_H\_all}       & 0.9854 & 0.7024 & 0.4317 & 0.4175 & 0.4688 \\
+    \texttt{ent\_G\_shannon\_perm} & 0.9453 & 0.6481 & 0.4214 & 0.4002 & 0.4454 \\
+    \texttt{ent\_D\_perm3}     & 0.8087 & 0.6038 & 0.4654 & 0.4390 & 0.4777 \\
+    \texttt{ent\_D\_perm4}     & 0.7555 & 0.5913 & 0.4615 & 0.4576 & 0.4505 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\paragraph{Result: failed (within noise).} The apparent ordering in
+Table~\ref{tab:entropy-deep} spans $0.9978$--$0.9987$ clean ROC-AUC, a range of
+$0.0009$. To test whether it survives, we re-ran the five leading
+configurations across three seeds:
+
+\begin{table}[h]
+  \centering
+  \caption{Entropy functionals, average precision, mean $\pm$ std over seeds
+  100/200/300.}
+  \label{tab:entropy-seeds}
+  \begin{tabular}{lccc}
+    \toprule
+    Configuration & clean & blur & jpeg \\
+    \midrule
+    \texttt{ent\_C\_tsallis4} & $0.997 \pm 0.002$ & $0.677 \pm 0.024$ & $0.448 \pm 0.023$ \\
+    \texttt{ent\_B\_renyi4}   & $0.996 \pm 0.003$ & $0.684 \pm 0.015$ & $0.448 \pm 0.030$ \\
+    \texttt{ent\_A\_shannon}  & $0.996 \pm 0.002$ & $0.669 \pm 0.014$ & $0.446 \pm 0.024$ \\
+    \texttt{ent\_B\_renyi2}   & $0.996 \pm 0.002$ & $0.675 \pm 0.013$ & $0.446 \pm 0.031$ \\
+    \texttt{ent\_C\_tsallis2} & $0.995 \pm 0.003$ & $0.673 \pm 0.015$ & $0.449 \pm 0.015$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Every difference is smaller than its own standard deviation. The single
+consistent signal is that Rényi with $\alpha=4$ gains roughly $+0.015$ blur
+ROC-AUC over Shannon, in all three seeds and monotonically in $\alpha$ --- which
+is why we carried it forward as an explicit test in
+Section~\ref{sec:exp-degradation}, where blur is a target rather than a side
+effect. It did not survive there either.
+
+The feature stage agrees independently: the best classifier per group beats
+Shannon by at most $+0.0040$ clean ROC-AUC (E, logistic regression), and
+permutation entropy alone \emph{loses} $0.1074$. Mean corrupted performance
+across all groups sits in $0.502$--$0.532$, i.e. barely above chance for every
+functional.
+
+\paragraph{Interpretation.} This is the strongest null result in the chapter,
+and it follows from Table~\ref{tab:2x2}. At $w=2$ the window admits only five
+possible partitions of four values. \emph{Any} entropy functional is a function
+of the partition alone, so every functional in Equations~\ref{eq:renyi} and
+\ref{eq:tsallis} is merely a relabelling of the same five categories by five
+different real numbers --- and a strictly monotone relabelling at that. The
+first convolution can absorb a monotone rescaling of its input almost
+completely. Changing the functional therefore cannot add information; it can
+only change the spacing of five levels that the network is free to re-space
+anyway. Permutation entropy is the one genuinely different functional, since
+rank order is not a function of the value partition --- and it is markedly
+\emph{worse}, because discarding magnitudes discards the value-duplication cue
+that is the entire fingerprint.
+
+(This partition argument also yields a useful engineering result: a five-entry
+lookup indexed by the number of equal pairs computes \emph{any} entropy on a
+$2\times2$ window, making Rényi and Tsallis as cheap as Shannon --- $0.63$ vs
+$0.98$\,ms per batch-16 map, against $41$\,ms for the general path.)
+
+\section{Experiment 4: cross-channel (joint colour) entropy}
+\label{sec:exp-color}
+
+\paragraph{Hypothesis.} Experiment 3 established that no scalar re-weighting of
+a \emph{marginal} value distribution helps. But MLEP computes its three maps
+per channel independently, so the front-end only ever sees three marginals. A
+$2\times2$ window can be maximally entropic in R, in G and in B and still
+contain just two distinct \emph{colours} --- and no function of the marginals
+can recover that. We therefore add the entropy of the joint RGB-triple
+distribution, where two pixels count as the same symbol only if they agree in
+all three channels.
+
+This is specifically motivated by the robustness problem. JPEG and WebP both
+convert to YCbCr, subsample chroma 4:2:0 and quantise the chroma planes far more
+aggressively than luma. Recompression therefore damages cross-channel structure
+and per-channel structure by \emph{different} amounts --- a difference a
+marginal-only front-end has no channel in which to express.
+
+\paragraph{Method.} Two variants: \texttt{joint} appends the joint map to the
+marginals ($4$ maps per (scale, window) $=12$ channels, with channels 0--2 of
+each group bit-identical to the baseline, hence a strictly additive test), and
+\texttt{joint\_only} feeds the joint map alone ($3$ channels, \emph{fewer} than
+the baseline) as the ablation that says whether the joint statistic carries
+signal itself or merely rides along. Both were also tested on top of augmented
+training, since that is where robustness actually lives.
+
+\begin{table}[t]
+  \centering
+  \caption{Joint colour entropy. ResNet-18, 3{,}000 steps, seed 100.}
+  \label{tab:color}
+  \begin{tabular}{lrrrrr}
+    \toprule
+    Configuration & clean & blur & jpeg & webp & blur+jpeg \\
+    \midrule
+    \texttt{color\_joint\_2x2}          & \textbf{0.9982} & \textbf{0.6943} & 0.4063 & 0.4140 & 0.4247 \\
+    \texttt{baseline\_2x2}              & 0.9979 & 0.6813 & 0.4194 & 0.4194 & 0.4269 \\
+    \texttt{baseline\_train\_jpeg}      & 0.9866 & 0.6116 & 0.4726 & 0.4943 & 0.4510 \\
+    \texttt{color\_joint\_train\_jpeg}  & 0.9834 & 0.6321 & \textbf{0.4759} & 0.4882 & \textbf{0.4911} \\
+    \texttt{color\_jointonly\_2x2}      & 0.9821 & 0.5922 & 0.4919 & 0.4625 & 0.4730 \\
+    \texttt{baseline\_train\_webp\_p1}  & 0.6462 & 0.5079 & 0.5910 & 0.5474 & 0.5246 \\
+    \texttt{color\_joint\_train\_webp\_p1} & 0.4912 & 0.4524 & 0.5417 & 0.5552 & 0.5030 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\paragraph{Result: failed.} On clean data the joint map is worth $+0.0003$ AP
+($0.9982$ vs $0.9979$) --- indistinguishable from the seed-to-seed spread of
+$\pm0.002$ measured in Table~\ref{tab:entropy-seeds}. Under corruption it is
+\emph{worse} than the baseline on jpeg ($0.4063$ vs $0.4194$). Paired with
+JPEG-augmented training it does produce the largest \texttt{blur+jpeg} figure we
+observed from a front-end change ($0.4911$ vs $0.4510$), but the cell is still
+below chance, so the ranking is still inverted --- the model has become
+\emph{less badly} inverted, not correct. The \texttt{joint\_only} ablation loses
+$0.016$ clean AP, showing the joint statistic is weaker on its own than the
+marginals it would replace, and the WebP-trained pairing collapses outright to
+$0.4912$.
+
+\paragraph{Interpretation.} The premise was sound --- the joint statistic is
+genuinely not recoverable from the marginals --- and it still did not help.
+Cross-channel duplication and per-channel duplication evidently carry
+near-identical information for this task, because the generator's upsampling
+operates on all three channels simultaneously: a duplicated pixel is duplicated
+in R, G and B at once, so the joint map is very nearly a deterministic function
+of the marginals \emph{in practice}, even though it is not in principle.
+
+\section{Experiment 5: rich/poor texture separation}
+\label{sec:exp-texture}
+
+\paragraph{Hypothesis.} Every front-end change so far has failed, so we
+attack the failure mechanism identified in Section~\ref{sec:worked-example}
+directly. The problem is that a single whole-image entropy map cannot tell
+``smooth because the scene is smooth'' from ``smooth because the codec smoothed
+it''. Following PatchCraft~\cite{zhong2024patchcraft}, we sort image patches by
+texture diversity and hand the network the flat regions and the busy regions as
+two \emph{separate} images. The poor canvas then isolates exactly what a codec
+destroys, the rich canvas what mostly survives, and the network can read the two
+populations independently.
+
+\paragraph{Method.} Texture diversity of a $p\times p$ patch is the summed
+absolute pixel fluctuation in four directions (horizontal, vertical, diagonal,
+anti-diagonal), computed on the RGB mean. Patches are ranked, split into the top
+and bottom halves, and reassembled into two canvases of identical size. Two
+combination modes: \texttt{concat} stacks both entropy stacks (18 channels), and
+\texttt{diff} feeds their difference (9 channels), which is what PatchCraft
+itself uses and is capacity-matched to the baseline, so a win there could not be
+explained by \texttt{conv1} merely being wider.
+
+The split runs \emph{before} block shuffling and on the original image: texture
+diversity is only meaningful on spatially coherent patches, and shuffling first
+would leave every patch with the same image-average diversity, collapsing the
+split into a raster-order tie-break --- an experiment that measures nothing while
+looking perfectly healthy. We chose $p=16$ because the patch grid has an even
+axis at crop sizes 128, 224 \emph{and} 256, so the split discards no pixels;
+PatchCraft's own $p=32$ leaves a $7\times7$ grid at crop 224 and forces a
+one-column trim that throws away 14.3\% of the crop.
+
+\begin{table}[t]
+  \centering
+  \caption{Texture split. Upper block: clean-trained, 200 steps, one category
+  (screening). Lower block: paired against augmented training, 3{,}000 steps,
+  eight categories.}
+  \label{tab:texture}
+  \begin{tabular}{lrrrrr}
+    \toprule
+    Configuration & clean & blur & jpeg & webp & blur+jpeg \\
+    \midrule
+    \texttt{baseline\_2x2}            & \textbf{0.9951} & 0.6717 & 0.5179 & 0.4866 & 0.5047 \\
+    \texttt{texsplit\_2x2}            & 0.9646 & 0.6208 & 0.4888 & 0.4710 & 0.4863 \\
+    \texttt{texsplit\_2x2\_diff}      & 0.9550 & 0.6497 & 0.4978 & 0.4865 & 0.5085 \\
+    \midrule
+    \texttt{texsplit\_2x2\_train\_blur} & \textbf{0.9931} & 0.6879 & 0.4188 & 0.4174 & 0.4225 \\
+    \texttt{baseline\_train\_blur}      & 0.9926 & \textbf{0.7209} & 0.4177 & 0.4152 & 0.4175 \\
+    \texttt{baseline\_train\_jpeg}      & 0.9865 & 0.6119 & \textbf{0.4726} & 0.4940 & 0.4508 \\
+    \texttt{texsplit\_2x2\_train\_jpeg} & 0.9855 & 0.6092 & 0.4616 & 0.4903 & 0.4410 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\paragraph{Result: failed.} Clean-trained, the split costs $0.030$ clean AP
+(\texttt{concat}) or $0.040$ (\texttt{diff}) and helps in no corrupted cell.
+Paired against augmented training --- the cell where it should have shown, since
+that is where the robustness lives --- it is worth $+0.0005$ on blur and
+$-0.0010$ on jpeg, both far inside noise, while \emph{losing} $0.033$ blur AP
+relative to \texttt{baseline\_train\_blur}.
+
+\paragraph{Interpretation.} We attribute this to an interaction with block
+shuffling that is specific to MLEP. PatchCraft's split works on a network that
+consumes patches directly; MLEP additionally shuffles $2\times2$ blocks, which
+already destroys the spatial coherence that makes a rich/poor distinction
+meaningful downstream. The two operations are partially redundant scrambles, and
+the split's cost --- halving the effective spatial support of each canvas --- is
+paid without its benefit. The dedicated control configuration
+(\texttt{baseline\_2x2\_norearr}, which disables shuffling) was implemented to
+isolate this, but a full paired sweep against it remains outstanding and is the
+one loose end of this experiment.
+
+\section{Experiment 6: degradation-augmented training}
+\label{sec:exp-aug}
+
+\paragraph{Hypothesis.} Since no change to the \emph{representation} restored
+robustness, we test the standard remedy: show the model degraded images during
+training. If the entropy front-end retains any usable signal under compression,
+augmentation should let the classifier find it.
+
+\paragraph{Method.} Two augmentations, each applied with probability $0.5$
+during training: Gaussian blur with $\sigma \sim U(0,3)$, and JPEG at quality
+30 or 100 using either the OpenCV or the PIL encoder. Evaluation is unchanged.
+
+A first round showed every corrupted AP cell \emph{below} $0.5$ (0.415--0.494,
+12/12 cells across four configurations) while accuracy sat at $\approx0.52$. As
+established in Section~\ref{sec:worked-example}, below-chance AP is an inverted
+ranking. We hypothesised that the $0.5$ probability was itself the cause: it
+trains on a 50/50 mixture of clean and corrupted images whose class orderings
+are \emph{opposite}, and the clean domain is $\approx0.99$ separable against
+$\approx0.5$ for the corrupted one, so the clean domain dominates the gradient
+and its ordering is applied backwards to corrupted input. We therefore re-ran
+with probability $1.0$, training on one domain instead of a contradictory
+mixture.
+
+\begin{table}[t]
+  \centering
+  \caption{Augmented training. ResNet-18, 3{,}000 steps, seed 100.
+  \texttt{\_p1} = corruption probability 1.0 instead of 0.5.}
+  \label{tab:aug}
+  \begin{tabular}{lrrrrr}
+    \toprule
+    Configuration & clean & blur & jpeg & webp & blur+jpeg \\
+    \midrule
+    \texttt{baseline\_2x2}             & \textbf{0.9979} & 0.6813 & 0.4191 & 0.4191 & 0.4267 \\
+    \texttt{baseline\_train\_blur}     & 0.9936 & \textbf{0.7229} & 0.4148 & 0.4153 & 0.4170 \\
+    \texttt{baseline\_train\_jpeg}     & 0.9866 & 0.6092 & 0.4726 & 0.4923 & 0.4533 \\
+    \texttt{baseline\_train\_jpeg\_p1} & 0.9339 & 0.4927 & 0.4747 & 0.4557 & 0.4295 \\
+    \texttt{baseline\_train\_webp\_p1} & 0.6431 & 0.5079 & \textbf{0.5950} & \textbf{0.5484} & \textbf{0.5297} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\paragraph{Result: partial, and revealing.} Blur augmentation is the one
+unambiguous success in this chapter: it raises blur AP from $0.6813$ to
+$0.7229$ at a cost of only $0.004$ clean AP. But the gain is strictly confined
+to the degradation trained on --- jpeg and webp are unchanged or slightly worse.
+
+JPEG augmentation raises jpeg AP from $0.4199$ to $0.4726$ and webp from
+$0.4193$ to $0.4923$, and is the only configuration whose mean logit stays near
+zero across every scenario; but both cells remain \emph{below} $0.5$. The model
+is less badly inverted, not correct.
+
+The probability-1.0 test confirmed the mixture hypothesis and simultaneously
+demolished it as a solution. \texttt{baseline\_train\_webp\_p1} is the only
+configuration in the entire study to push \emph{any} corrupted cell decisively
+above chance (jpeg $0.5950$, webp $0.5484$, blur+jpeg $0.5297$) --- and it does
+so by destroying clean performance, which falls from $0.998$ to $0.6431$. There
+is no operating point in between: the model can detect generated images
+\emph{or} it can survive recompression, but the entropy front-end does not admit
+a representation that does both.
+
+\paragraph{Interpretation.} This is the sharpest statement of the central
+problem. The clean-image fingerprint and the recompressed-image fingerprint are
+not merely different, they are \emph{antagonistic}: a representation optimised
+for one is anti-optimised for the other. That is exactly what the worked example
+in Section~\ref{sec:worked-example} predicts, and no amount of augmentation
+weighting reconciles them, because the conflict is in the feature, not in the
+training distribution.
+
+\section{Experiment 7: can MLEP at least report the degradation?}
+\label{sec:exp-degradation}
+
+\paragraph{Hypothesis.} Given that MLEP cannot detect \emph{through} a
+degradation, we ask a different question: can the same front-end \emph{identify}
+the degradation? A positive answer would be useful in a pipeline --- a detector
+that knows it is looking at a heavily recompressed image can abstain, or defer
+to a second model --- and it also directly measures how much
+degradation-specific information the entropy maps actually carry.
+
+\paragraph{Method.} The AI-vs-real detector is not rewritten. We keep MLEP's own
+front-end at its own settings ($2\times2$ windows, three-scale pyramid) and only
+widen the final layer from one logit to three:
+\[
+  z_0 = \Pr(\text{AI-generated}), \quad
+  z_1 = \Pr(\text{blurred}), \quad
+  z_2 = \Pr(\text{JPEG-compressed}),
+\]
+trained jointly with a single \texttt{BCEWithLogitsLoss}. Since \texttt{num\_classes}
+is already a ResNet argument, there is \emph{no} architectural change at all.
+
+Degradation is applied on a deterministic $7 \times 4$ grid rather than
+sampled: JPEG quality $\in \{\text{lossless}, 15, 30, 45, 60, 75, 100\}$ and
+Gaussian blur $\in \{$none $0.0$, weak $0.5$, medium $1.5$, strong $3.0\}$,
+blur before JPEG. Quality 100 counts as compressed; only the untouched image is
+``not compressed''. Four cells --- $(30,\text{medium})$, $(75,\text{weak})$,
+$(15,\text{strong})$, $(100,\text{medium})$ --- are held out of training entirely
+and form the \texttt{unseen} condition, an unseen-\emph{combination} test.
+
+Which cell a sample receives is a deterministic function of its source path,
+$\text{crc32}(\text{path}) + 7919v + \text{seed} \bmod |\text{cells}|$, rather
+than a random draw. This makes the assignment reproducible and, critically,
+\emph{independent of the class label}, so the model cannot use degradation as a
+shortcut for ``generated''. Every variant of a source stays inside that source's
+split; both properties are asserted by unit tests, and each run logs an explicit
+leakage check (206{,}752 train sources, none present in any of the six
+evaluation sets).
+
+\paragraph{Class-balance correction.} The plain 24-cell training list contains
+exactly one untouched cell, so a source lands clean $1/24 \approx 4\%$ of the
+time and the blur/JPEG heads train on 71\%/83\% positives. This starved the AI
+head. We oversampled the clean cell $12\times$, giving 36 entries of which 13
+are untouched. This fixes the marginals well:
+
+\begin{center}
+\begin{tabular}{lcc}
+  \toprule
+   & before & after \\
+  \midrule
+  clean fraction   & 4.2\%  & 36.1\% \\
+  blur positives   & 70.8\% & 47.2\% \\
+  JPEG positives   & 83.3\% & 55.6\% \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Final training run.} Unlike the sweeps, this configuration was
+trained to convergence:
+
+\begin{table}[h]
+  \centering
+  \caption{Final degradation-aware model.}
+  \label{tab:final-training}
+  \begin{tabular}{ll}
+    \toprule
+    Backbone        & ResNet-50 front-end variant, 1.44M parameters, 9 input channels \\
+    Initialisation  & warm start from \texttt{pretrained/model\_epoch\_best.pth}, \texttt{fc1} re-initialised \\
+    Steps / batch   & 200{,}000 $\times$ 32 (AMP), $\approx$7.7 epochs \\
+    Optimiser       & Adam $(0.9, 0.999)$, no weight decay \\
+    Schedule        & lr $5\times10^{-5}$ cosine after 2{,}000 warmup steps, floor $10^{-6}$ \\
+    Data            & 206{,}752 sources $\times$ 4 variants $\approx$ 827k samples, 8 categories \\
+    Wall-clock      & 9{,}886\,s ($\approx$2\,h\,45\,m) on the RTX 4090 \\
+    Post-training   & BatchNorm recalibrated on 50 batches, \emph{then} saved \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[t]
+  \centering
+  \caption{Degradation experiment, ROC-AUC per condition. The 3{,}000-step rows
+  are the sweep-protocol runs; the last row is the 200{,}000-step model.}
+  \label{tab:degradation}
+  \begin{tabular}{llrrrrrr}
+    \toprule
+    Model & Head & clean & jpeg only & blur only & both & seen & unseen \\
+    \midrule
+    3k steps, Shannon    & AI   & 0.8750 & 0.5602 & 0.6679 & 0.5746 & 0.5743 & 0.5411 \\
+    3k steps, Rényi-4    & AI   & 0.9209 & 0.5928 & 0.6915 & 0.5780 & 0.5907 & 0.5389 \\
+    200k steps, Shannon  & AI   & \textbf{0.9999} & 0.7141 & 0.8898 & 0.6401 & 0.7281 & 0.6099 \\
+    200k steps, Shannon  & blur & --- & --- & --- & --- & 0.8705 & --- \\
+    200k steps, Shannon  & JPEG & --- & --- & --- & --- & \textbf{1.0000} & --- \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\paragraph{Result: the auxiliary task succeeds, the main task does not.} The
+JPEG head reaches ROC-AUC $1.0000$ with a perfect confusion matrix, and the blur
+head $0.8705$. The AI head reaches $0.9999$ on clean images --- confirming the
+class-balance fix worked --- but degrades to $0.7141$ under JPEG and $0.6401$
+when both degradations are present.
+
+On the full held-out test suite the final model achieves, per generator set:
+
+\begin{center}
+\begin{tabular}{lrrr}
+  \toprule
+  Set & generators & mean accuracy & mean AP \\
+  \midrule
+  Diffusion-set & 13 & 82.8\% & 92.4\% \\
+  GAN-set-1     & 13 & 72.7\% & 80.8\% \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+with near-perfect scores on the training-adjacent generators (ProGAN 99.3\%
+accuracy / 100.0 AP, StarGAN 99.9/100.0, StyleGAN2 94.4/100.0) and failures on
+several others (CRN 48.3/35.4, SeeingDark 50.0/40.6, improved-diffusion
+55.6/49.6). A dedicated perturbation sweep confirms the robustness gap survives
+full-length training: StarGAN falls from AP 100.0 clean to 58.7 at JPEG quality
+75, a drop of 41.3 points --- on a degradation that was \emph{in} the training
+grid.
+
+\paragraph{Interpretation and caveats.} Two conclusions. First, the entropy maps
+manifestly \emph{do} carry near-complete information about whether an image has
+been JPEG-compressed --- so the failure to detect through compression is not a
+lack of information about the compression, but an inability to factor it out of
+the AI-vs-real decision. Second, and negatively, multi-task training bought no
+robustness for the primary head.
+
+We note honestly that the JPEG head's perfect score is partly an artefact of our
+protocol: blur always runs \emph{before} JPEG, so compression is always the last
+pixel operation and its $8\times8$ block artefacts reach the network pristine,
+never smeared by a subsequent resampling. A randomised operation order would
+make the task substantially harder. The WebP probe is informative here: the JPEG
+head fires at $\approx1.0$ on WebP, which was never in training, so what it has
+learned is ``is compressed'', not ``is JPEG''.
+
+A second limitation concerns the \texttt{unseen} condition. All four held-out
+cells have \emph{both} JPEG $\neq$ lossless \emph{and} blur $\neq$ none, so that
+condition contains no negatives for either auxiliary head, and their AP/ROC-AUC
+there are undefined. The held-out set should have included at least one
+single-degradation and one clean cell; as designed, \texttt{unseen} measures the
+AI head only.
+
+\section{Summary of experiments}
+\label{sec:summary}
+
+\begin{table}[t]
+  \centering
+  \caption{All investigated modifications. $\Delta_{\text{clean}}$ is the change
+  in clean AP and $\Delta_{\text{corr}}$ the change in AP averaged over the four
+  corrupted scenarios, both relative to the appropriate control under the same
+  protocol. Rows marked $^\dagger$ are paired against the corresponding
+  \emph{augmented} baseline rather than \texttt{baseline\_2x2}; rows marked
+  $^\ddagger$ come from the 200-step screening run. The seed-to-seed standard
+  deviation is $\pm0.002$ clean and up to $\pm0.03$ corrupted, so anything
+  inside that band is noise.}
+  \label{tab:summary}
+  \small
+  \begin{tabular}{llrrl}
+    \toprule
+    \# & Modification & $\Delta_{\text{clean}}$ & $\Delta_{\text{corr}}$ & Outcome \\
+    \midrule
+    1 & Window $3\times3$                        & $-0.0072$ & $-0.0030$ & failed \\
+    1 & Window $8\times8$                        & $-0.4584$ & $-0.0223$ & failed (monotone in $w$) \\
+    1 & \texttt{unique} instead of Shannon       & $+0.0001$ & $-0.0062$ & no effect \\
+    \midrule
+    2 & Multi-window $\{2,4,6\}$                 & $-0.0014$ & $-0.0098$ & failed \\
+    2 & \quad + per-window normalisation         & $-0.0041$ & $-0.0057$ & failed \\
+    2 & \quad + exact registration (pad)         & $-0.0035$ & $-0.0148$ & failed \\
+    \midrule
+    3 & Rényi $\alpha \in \{0.5,2,4\}$           & $\pm0.001$ & $+0.015$ (blur) & within noise \\
+    3 & Tsallis $q \in \{0.5,2,4\}$              & $\pm0.001$ & $\pm0.010$ & within noise \\
+    3 & Permutation entropy$^{*}$                & $-0.1891$ & $+0.037$ & failed \\
+    3 & All functionals stacked$^{*}$            & $-0.0124$ & $\pm0.010$ & failed \\
+    \midrule
+    4 & Joint colour entropy (additive)          & $+0.0003$ & $-0.0020$ & within noise \\
+    4 & Joint colour entropy only                & $-0.0158$ & $+0.0180$ & failed \\
+    4 & Joint colour + JPEG aug.$^\dagger$       & $-0.0032$ & $+0.0144$ & within noise \\
+    \midrule
+    5 & Texture split, concat$^\ddagger$         & $-0.0309$ & $-0.0277$ & failed \\
+    5 & Texture split, diff$^\ddagger$           & $-0.0403$ & $-0.0090$ & failed \\
+    5 & Texture split + blur aug.$^\dagger$      & $+0.0005$ & $-0.0061$ & within noise \\
+    5 & Texture split + JPEG aug.$^\dagger$      & $-0.0010$ & $-0.0068$ & within noise \\
+    \midrule
+    6 & Blur augmentation ($p=0.5$)              & $-0.0043$ & $\mathbf{+0.0056}$ & \textbf{succeeded, narrow} \\
+    6 & JPEG augmentation ($p=0.5$)              & $-0.0113$ & $+0.0196$ & partial, cells still $<0.5$ \\
+    6 & JPEG augmentation ($p=1.0$)              & $-0.0640$ & $-0.0237$ & failed \\
+    6 & WebP augmentation ($p=1.0$)              & $-0.3548$ & $\mathbf{+0.0584}$ & trade-off, not a solution \\
+    \midrule
+    7 & Multi-head degradation prediction        & $\approx 0$ & $\approx 0$ & auxiliary task only \\
+    \bottomrule
+  \end{tabular}
+  \\[2pt]
+  \raggedright\footnotesize
+  $^{*}$ ROC-AUC rather than AP (the entropy deep stage reports ROC-AUC).
+\end{table}
+
+For the narrow successes it is worth isolating the specific cell rather than the
+mean. Blur augmentation moves the \texttt{blur} scenario from $0.6817$ to
+$0.7229$ ($+0.0412$); JPEG augmentation moves \texttt{jpeg} from $0.4199$ to
+$0.4726$ ($+0.0527$); WebP augmentation at $p=1.0$ moves \texttt{jpeg} from
+$0.4199$ to $0.5950$ ($+0.1751$), the only decisively above-chance corrupted
+figure in the study, at the cost of $0.355$ clean AP.
+
+\paragraph{Reproducibility.} \texttt{baseline\_2x2} was retrained from scratch in
+three independent runs on different days and returned clean AP $0.9979$ in all
+three, with mean corrupted AP $0.4869$, $0.4866$ and $0.4868$. The measurement
+apparatus is therefore stable to roughly $\pm0.0003$ within a fixed seed, which
+is what licenses treating the sub-$0.002$ differences above as noise rather than
+as small effects.
+
+\subsection{Threats to validity}
+
+Three caveats bound the strength of these negative results.
+
+\begin{enumerate}
+  \item \textbf{Training length.} The sweeps use 3{,}000 steps as a proxy for
+    full training. A modification that needs longer to pay off would be scored as
+    a failure here. The one configuration we did train to 200{,}000 steps
+    (Section~\ref{sec:exp-degradation}) improved substantially in absolute terms
+    --- clean ROC-AUC $0.875 \to 0.9999$ --- but its \emph{relative} robustness
+    gap did not close, which is weak evidence that the ranking is stable in
+    training length.
+  \item \textbf{Seeds.} Only the entropy comparison was run across three seeds.
+    Single-seed differences below $\approx0.002$ clean AP are not interpretable,
+    and we have refrained from claiming any.
+  \item \textbf{Scope of the augmentation grid.} Blur is always applied before
+    JPEG, and re-encoding after resizing --- the most common real-world
+    pipeline --- is untested.
+\end{enumerate}
+
+\section{Conclusion and transition}
+\label{sec:conclusion}
+
+We investigated eleven distinct modifications to MLEP's entropy front-end,
+spanning the window geometry (size, multiplicity, normalisation, registration),
+the entropy functional (Rényi, Tsallis, permutation, and their combinations),
+the channel structure (joint cross-channel colour entropy), the spatial
+decomposition (rich/poor texture separation), and the training distribution
+(blur, JPEG and WebP augmentation at two probabilities). We were unable to find
+a modification that improves MLEP's detection accuracy on clean images beyond
+seed-level noise, and we were unable to find any that restores its robustness to
+recompression.
+
+The results converge on a single explanation, illustrated concretely in
+Section~\ref{sec:worked-example}. MLEP's feature is a count of local value
+duplication. Generative upsampling creates such duplication; so does lossy
+compression. The two causes are not merely confusable --- they act on the
+feature in the \emph{same direction}, so that a strongly compressed real
+photograph presents the same low-entropy signature as a generated image. This is
+why every corrupted-condition average precision we measured lies below $0.5$: not
+a weak detector, but an inverted one. And it is why every intervention failed in
+the same way. Changing the window changes the spatial scale at which the
+ambiguity is measured; changing the functional relabels the same five
+partitions; adding the joint colour map adds a statistic that upsampling
+correlates with the marginals anyway. None of them adds a channel in which
+``smooth because generated'' and ``smooth because compressed'' are
+\emph{separable}, because that distinction is not present in local value
+duplication at all. Experiment 7 makes the point precisely: the same front-end
+identifies JPEG compression with ROC-AUC $1.0000$, yet cannot use that knowledge
+to protect its own AI-vs-real decision.
+
+The one intervention that did move a corrupted cell decisively above chance
+(WebP augmentation at probability $1.0$, jpeg AP $0.5950$) did so by sacrificing
+clean AP from $0.998$ to $0.643$. That trade-off is the clearest evidence that
+the limitation is representational rather than one of training: within this
+feature space, clean-image detection and compression-robust detection are
+antagonistic objectives.
+
+We therefore conclude that MLEP's robustness cannot be repaired from inside its
+own front-end, and that the missing information must come from a
+\emph{different} representation --- one whose failure modes are not aligned with
+MLEP's. This motivates the combined approach investigated in the remainder of
+this work, in which MLEP is paired with a second detector built on different
+principles, so that the degradations which destroy one model's evidence leave
+the other's intact. That combination is developed in the following chapter.
