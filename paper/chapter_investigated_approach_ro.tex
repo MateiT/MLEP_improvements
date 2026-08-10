@@ -1,0 +1,1265 @@
+% !TeX root = ../main.tex
+%
+% Necesită în preambul:
+%   \usepackage{booktabs, graphicx, amsmath, amssymb}
+%   \usepackage[ruled,vlined]{algorithm2e}   % sau algorithm + algpseudocode
+%   \usepackage{listings}
+%   \usepackage[utf8]{inputenc}              % pentru diacriticele româneşti (dacă se compilează cu pdfLaTeX)
+%   \usepackage[romanian]{babel}
+%
+\chapter{Abordarea investigată}
+\label{chapter:proposedApproach}
+
+\section{Prezentare generală}
+\label{sec:overview}
+
+Acest capitol documentează întreaga succesiune de experimente pe care le-am
+realizat asupra MLEP (Multi-granularity Local Entropy Patterns)~\cite{yuan2025mlep},
+un detector de imagini generate de inteligenţa artificială al cărui etaj de
+intrare înlocuieşte imaginea brută cu un teanc de hărţi de entropie locală.
+Obiectivul nostru a fost dublu: în primul rând, reproducerea detectorului
+publicat şi confirmarea comportamentului raportat pe date curate; în al doilea
+rând, găsirea unei modificări a etajului său de entropie care să îmbunătăţească
+fie acurateţea brută de detecţie, fie --- mai important --- robusteţea la
+degradările pe care orice imagine le întâlneşte în lumea reală: neclaritatea
+(blur) şi recompresia cu pierderi.
+
+Raportăm fiecare experiment, inclusiv pe cele care au eşuat, deoarece tiparul
+eşecurilor este el însuşi rezultatul. Capitolul este organizat ca un lanţ în
+care fiecare experiment este motivat de rezultatul celui precedent:
+
+\begin{enumerate}
+  \item Reproducem modelul de referinţă şi, făcând acest lucru, descoperim un
+        defect al \emph{statisticilor BatchNorm} care invalidează evaluarea
+        naivă (Secţiunea~\ref{sec:setup-bn}).
+  \item Variem \emph{dimensiunea ferestrei glisante} a operatorului de entropie,
+        cel mai evident hiperparametru (Secţiunea~\ref{sec:exp-window}).
+        Ferestrele mai mari dăunează monoton.
+  \item Deoarece nicio fereastră individuală nu a ajutat, testăm
+        \emph{combinarea} mai multor ferestre, precum şi două corecţii aduse
+        acestei combinaţii --- normalizarea per fereastră şi înregistrarea
+        spaţială exactă (Secţiunea~\ref{sec:exp-multiwindow}). Niciuna nu ajută.
+  \item Deoarece \emph{geometria} ferestrei a fost epuizată, ne întrebăm dacă
+        \emph{funcţionala} de entropie însăşi este alegerea greşită şi testăm
+        entropiile Rényi, Tsallis şi de permutare, atât într-un etaj de
+        trăsături clasice, cât şi într-un etaj profund
+        (Secţiunea~\ref{sec:exp-entropy}). Toate se încadrează în zgomot.
+  \item Deoarece reponderările scalare ale aceleiaşi distribuţii de valori nu au
+        schimbat nimic, testăm o statistică pe care marginalele, demonstrabil,
+        nu o pot exprima --- \emph{entropia comună de culoare între canale}
+        (Secţiunea~\ref{sec:exp-color}). Niciun câştig.
+  \item Deoarece toate variantele etajului de intrare au eşuat pe date
+        \emph{curate}, atacăm robusteţea în mod direct: o \emph{separare a
+        texturilor bogate/sărace} în stil PatchCraft
+        (Secţiunea~\ref{sec:exp-texture}) şi \emph{antrenarea cu augmentare prin
+        degradări} (Secţiunea~\ref{sec:exp-aug}). Separarea texturilor nu ajută;
+        augmentarea ajută doar în cadrul degradării exacte pe care a fost
+        antrenată.
+  \item În final ne întrebăm dacă etajul de intrare poate măcar \emph{raporta}
+        degradarea pe care o suferă, printr-un model cu mai multe capete
+        antrenat 200k paşi (Secţiunea~\ref{sec:exp-degradation}). Acesta poate
+        identifica degradarea aproape perfect, rămânând totuşi incapabil să
+        detecteze prin ea.
+\end{enumerate}
+
+Secţiunea~\ref{sec:conclusion} formulează concluzia care motivează restul
+lucrării: nicio intervenţie asupra etajului de entropie nu a recuperat
+robusteţea, aşa că ne îndreptăm către combinarea MLEP cu un al doilea detector,
+diferit din punct de vedere arhitectural.
+
+\section{Algoritmul de referinţă}
+\label{sec:algorithm}
+
+\subsection{Intuiţia}
+
+MLEP se bazează pe o observaţie simplă privind modul în care modelele generative
+sintetizează pixelii. Un senzor de cameră produce zgomot de fotoni şi de citire
+independent în fiecare punct, astfel încât pixelii vecini ai unei fotografii
+naturale aproape niciodată nu poartă valori pe 8 biţi exact egale. Un generator,
+prin contrast, îşi produce ieşirea prin convoluţii transpuse sau printr-un
+decodor care supraeşantionează un cod latent de rezoluţie mică, iar
+supraeşantionarea \emph{duplică} valori: o expandare de tip nearest-neighbour
+sau biliniară face ca pixelii adiacenţi să fie egali sau cvasi-egali mult mai
+des decât ar face-o un senzor.
+
+MLEP transformă acest lucru într-o trăsătură renunţând complet la conţinutul
+fotometric şi păstrând doar o măsură a \emph{diversităţii locale de valori}:
+pentru fiecare poziţie din imagine numără câte valori distincte apar într-o
+fereastră glisantă mică. Reţeaua nu vede niciodată luminozitatea sau culoarea
+--- doar tiparul spaţial al diversităţii locale, ,,tiparul de entropie locală''.
+
+\subsection{Entropia locală}
+
+Fie $x \in \mathbb{R}^{C \times H \times W}$ imaginea (normalizată ImageNet) şi
+fie $\mathcal{W}_{ij}^{(w)}$ fereastra $w \times w$ al cărei colţ stânga-sus este
+$(i,j)$, conţinând $K = w^2$ valori. Notând cu $p_g$ fracţiunea celor $K$ valori
+egale cu valoarea distinctă $g$, entropia Shannon a ferestrei este
+\begin{equation}
+  H_{\text{S}}(\mathcal{W}) = -\sum_{g} p_g \log_2 p_g .
+  \label{eq:shannon}
+\end{equation}
+Harta este calculată cu pasul $1$ şi \emph{independent pe fiecare canal de
+culoare}, astfel încât un operator $w\times w$ aplicat unei imagini
+$C\times H\times W$ produce $C \times (H-w+1) \times (W-w+1)$ valori.
+
+Pentru valoarea implicită $w=2$ fereastra conţine doar $K=4$ pixeli, deci
+distribuţia de valori poate lua exact cinci forme, iar MLEP exploatează acest
+lucru printr-o tabelă de căutare, nu printr-un calcul general.
+Tabelul~\ref{tab:2x2} le enumeră. De remarcat că implementarea publicată
+stochează $0.8$ pentru cazul ,,trei egale'', o rotunjire a valorii exacte
+$\log_2 4 - \tfrac{3}{4}\log_2 3 = 0.8113$; păstrăm această rotunjire pentru ca
+reproducerea noastră să fie compatibilă la nivel de bit cu ponderile publicate.
+
+\begin{table}[t]
+  \centering
+  \caption{Cele cinci configuraţii ale unei ferestre $2\times2$ şi entropia pe
+  care MLEP le-o atribuie. ,,Perechi egale'' numără, dintre cele şase perechi
+  neordonate ale celor patru pixeli, câte sunt egale --- acest număr întreg
+  identifică unic cazul şi este ceea ce face posibilă tabela de căutare cu cinci
+  intrări.}
+  \label{tab:2x2}
+  \begin{tabular}{llcc}
+    \toprule
+    Caz & Dimensiunile grupurilor & Perechi egale & $H_{\text{S}}$ \\
+    \midrule
+    toate patru egale              & $(4)$       & 6 & 0.0 \\
+    trei egale, una diferită       & $(3,1)$     & 3 & 0.8 \\
+    două perechi                   & $(2,2)$     & 2 & 1.0 \\
+    o pereche, două valori unice   & $(2,1,1)$   & 1 & 1.5 \\
+    toate patru diferite           & $(1,1,1,1)$ & 0 & 2.0 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Multi-granularitate: piramida de scări}
+
+O singură dimensiune de fereastră vede structura la o singură frecvenţă
+spaţială. Prin urmare, MLEP calculează harta de entropie la trei \emph{scări}.
+Scara $s$ este realizată prin subeşantionarea biliniară a imaginii cu factorul
+$s$ şi supraeşantionarea imediată înapoi la dimensiunea originală, ceea ce
+distruge detaliile mai fine de $1/s$ pixeli, păstrând totodată forma tensorului
+fixă:
+\begin{equation}
+  x^{(s)} = \text{Up}_{H\times W}\big(\text{Down}_{s}(x)\big),
+  \qquad s \in \{1.0,\, 0.5,\, 0.25\}.
+\end{equation}
+Cu $C=3$ canale, $|S| = 3$ scări şi o singură dimensiune de fereastră, etajul de
+intrare emite $3 \times 3 \times 1 = 9$ canale, exact ceea ce consumă prima
+convoluţie a reţelei. În general
+\begin{equation}
+  C_{\text{in}} = |\text{pânze}| \cdot |S| \cdot |\mathcal{W}| \cdot |\mathcal{M}| \cdot 3,
+  \label{eq:channels}
+\end{equation}
+unde $\mathcal{W}$ este mulţimea dimensiunilor de fereastră, iar $\mathcal{M}$
+mulţimea funcţionalelor de entropie --- ambele fiind variate în experimentele de
+mai jos.
+
+\subsection{Amestecarea blocurilor}
+
+Înainte de calculul hărţilor de entropie, imaginea este tăiată în blocuri
+$2\times2$ neîntrepătrunse, care sunt apoi permutate aleator pe întregul cadru.
+Acest lucru distruge semantica globală --- forma obiectelor, dispunerea,
+conţinutul scenei --- lăsând însă intacte relaţiile dintre pixelii din interiorul
+unui bloc, ceea ce forţează clasificatorul să se bazeze pe statistici locale şi
+nu pe ceea ce înfăţişează imaginea. În timpul antrenării se extrage o permutare
+nouă la fiecare trecere înainte; la evaluare permutarea este fixată de un
+generator cu sămânţă, astfel încât scorarea să fie deterministă.
+
+\begin{quote}\small
+\textbf{Notă de implementare.} Codul publicat apela
+\texttt{torch.manual\_seed(99)} în interiorul trecerii înainte. Acest lucru atât
+îngheţa amestecarea la un singur tipar în timpul antrenării, cât şi reiniţializa
+generatorul de numere aleatoare \emph{global} la fiecare pas, distrugând
+aleatorismul folosit pentru formarea loturilor şi pentru augmentare. L-am
+înlocuit cu un \texttt{torch.Generator} local, folosit doar la evaluare. Aceasta
+este o corecţie a infrastructurii experimentale, nu o modificare a metodei, şi
+este motivul pentru care curbele noastre de antrenare diferă de cele ale unei
+rulări naive a codului publicat.
+\end{quote}
+
+\subsection{Reţeaua de bază}
+
+Teancul de entropie este dat unui ResNet trunchiat: \texttt{conv1} este
+redimensionat pentru a accepta $C_{\text{in}}$ canale în loc de $3$, iar dintre
+straturi se păstrează doar \texttt{layer1} şi \texttt{layer2} înainte de
+agregarea globală prin medie şi de un singur cap liniar. Rezultatul este un
+model mic --- $0.68$M parametri pentru varianta ResNet-18 folosită în baleiaje
+şi $1.44$M pentru varianta ResNet-50 folosită la rularea lungă finală ---
+deoarece munca discriminativă este făcută de etajul de intrare, nu de adâncime.
+
+\subsection{Pseudocod}
+
+\begin{algorithm}[t]
+\caption{Trecerea înainte MLEP (generalizată; modelul publicat este cazul
+$\mathcal{W}=\{2\}$, $\mathcal{M}=\{\text{shannon}\}$, fără separare de texturi)}
+\label{alg:mlep}
+\KwIn{imaginea $x \in \mathbb{R}^{3\times H\times W}$; scările $S$; ferestrele
+$\mathcal{W}$; modurile de entropie $\mathcal{M}$}
+\KwOut{logit(-ii) $z$}
+\BlankLine
+$\mathcal{X} \leftarrow \textsc{TextureSplit}(x)$ \tcp*{$\{x\}$, sau (bogat, sărac); Sec.~\ref{sec:exp-texture}}
+\ForEach{pânza $c \in \mathcal{X}$}{
+  $c \leftarrow \textsc{ShuffleBlocks}(c, 2)$ \tcp*{aleator la antrenare, cu sămânţă la evaluare}
+}
+$F \leftarrow [\;]$\;
+\ForEach{pânza $c \in \mathcal{X}$}{
+  \ForEach{scara $s \in S$}{
+    $c_s \leftarrow \textsc{Up}_{H\times W}(\textsc{Down}_s(c))$ \tcp*{identitate dacă $s=1$}
+    \ForEach{fereastra $w \in \mathcal{W}$}{
+      \ForEach{modul $m \in \mathcal{M}$}{
+        $P \leftarrow \textsc{Unfold}(c_s, w, \text{pas}=1)$ \tcp*{$(3, (H\!-\!w\!+\!1)(W\!-\!w\!+\!1), w^2)$}
+        $E \leftarrow \textsc{Entropy}_m(P)$ \tcp*{pe canal, pe fereastră}
+        \lIf{$w=2$ \textbf{şi} $m=$ shannon}{$E \leftarrow \textsc{Lookup}_5(P)$ \tcp*{Tabelul~\ref{tab:2x2}}}
+        \lIf{normalizare}{$E \leftarrow E / H_{\max}(m,w)$}
+        \lIf{aliniere $=$ pad}{$E \leftarrow \textsc{ReplicatePad}(E, (w-w_{\min})/2)$}
+        adaugă $E$ la $F$\;
+      }
+    }
+  }
+}
+$F \leftarrow \textsc{ResizeToCommon}(F)$;\quad $z_0 \leftarrow \textsc{Concat}(F)$ \tcp*{$C_{\text{in}}$ canale, Ec.~\ref{eq:channels}}
+$z \leftarrow \textsc{Head}(\textsc{Layer2}(\textsc{Layer1}(\textsc{Stem}(z_0))))$\;
+\Return $z$\;
+\end{algorithm}
+
+\subsection{Un exemplu lucrat}
+\label{sec:worked-example}
+
+Pentru a face concret mecanismul --- şi modul său de eşec --- să considerăm o
+regiune $4\times4$ dintr-un singur canal de culoare. Luăm mai întâi o porţiune
+de cer fotografiat real, unde zgomotul senzorului perturbă fiecare punct:
+
+\[
+X_{\text{real}} =
+\begin{pmatrix}
+120 & 121 & 119 & 122\\
+121 & 123 & 120 & 118\\
+119 & 120 & 122 & 121\\
+122 & 118 & 121 & 123
+\end{pmatrix}
+\]
+
+Glisarea unei ferestre $2\times2$ cu pasul 1 produce o hartă de entropie
+$3\times3$. Fereastra de la poziţia $(0,0)$ conţine $\{120,121,121,123\}$: o
+pereche şi două valori unice, deci $1.5$ conform Tabelului~\ref{tab:2x2}.
+Fereastra de la $(0,1)$ conţine $\{121,119,123,120\}$, toate patru diferite,
+deci $2.0$. Continuând:
+
+\[
+E_{\text{real}} =
+\begin{pmatrix}
+1.5 & 2.0 & 2.0\\
+2.0 & 1.5 & 2.0\\
+2.0 & 2.0 & 1.5
+\end{pmatrix},
+\qquad \overline{E}_{\text{real}} = 1.833 .
+\]
+
+Luăm acum regiunea corespunzătoare dintr-o imagine GAN, unde un pas de
+supraeşantionare $2\times$ a duplicat fiecare valoare într-o dală $2\times2$:
+
+\[
+X_{\text{fake}} =
+\begin{pmatrix}
+120 & 120 & 122 & 122\\
+120 & 120 & 122 & 122\\
+124 & 124 & 126 & 126\\
+124 & 124 & 126 & 126
+\end{pmatrix}
+\Longrightarrow
+E_{\text{fake}} =
+\begin{pmatrix}
+0.0 & 1.0 & 0.0\\
+1.0 & 2.0 & 1.0\\
+0.0 & 1.0 & 0.0
+\end{pmatrix},
+\qquad \overline{E}_{\text{fake}} = 0.667 .
+\]
+
+Separarea este mare şi, esenţial, \emph{structurată}: harta falsului nu este
+doar mai mică în medie, ci este periodică, cu zerouri oriunde o fereastră cade
+în interiorul unei dale supraeşantionate şi cu maxime oriunde traversează colţul
+unei dale. Această reţea periodică este ceea ce învaţă reţeaua convoluţională de
+bază şi este motivul pentru care MLEP atinge o acurateţe aproape perfectă pe
+imagini GAN curate.
+
+\paragraph{De ce se prăbuşeşte acest lucru la recompresie.}
+Aplicăm acum o compresie JPEG puternică asupra porţiunii \emph{reale}. Pasul de
+cuantizare DCT aplatizează fluctuaţiile mici, iar după decuantizare un bloc
+$8\times8$ de pixeli de cer aproape egali returnează de regulă o mână de valori
+repetate:
+
+\[
+X_{\text{real}}^{\text{JPEG}} =
+\begin{pmatrix}
+120 & 120 & 120 & 120\\
+120 & 120 & 120 & 120\\
+122 & 122 & 122 & 122\\
+122 & 122 & 122 & 122
+\end{pmatrix}
+\Longrightarrow
+\overline{E}_{\text{real}}^{\text{JPEG}} = 0.333 .
+\]
+
+Porţiunea reală are acum un scor \emph{mai mic} decât porţiunea falsă neatinsă
+($0.333 < 0.667$). Trăsătura nu a devenit doar zgomotoasă --- ordonarea ei
+s-a \textbf{inversat}. Un clasificator antrenat să citească ,,entropie locală
+mică $\Rightarrow$ generată'' va eticheta acum, cu încredere, fotografii reale
+comprimate drept generate.
+
+Această singură observaţie prezice, cantitativ, rezultatul dominant al fiecărui
+experiment din acest capitol: precizia medie în condiţie coruptă a fiecărei
+variante MLEP pe care am antrenat-o se situează \emph{sub} $0.5$, în intervalul
+$0.41$--$0.49$. O precizie medie sub nivelul hazardului nu înseamnă performanţă
+slabă; înseamnă o ordonare inversată. Etajul de entropie nu poate distinge
+,,neted pentru că scena este netedă'' de ,,neted pentru că un codec l-a
+netezit'', iar fiecare intervenţie descrisă mai jos este, într-un fel sau altul,
+o încercare de a-i oferi un canal în care această distincţie să poată fi
+exprimată.
+
+\section{Configuraţia experimentală}
+\label{sec:setup}
+
+\subsection{Hardware şi software}
+
+Toate experimentele au rulat pe o singură maşină:
+
+\begin{table}[h]
+  \centering
+  \caption{Mediul de antrenare şi evaluare.}
+  \label{tab:hardware}
+  \begin{tabular}{ll}
+    \toprule
+    GPU              & NVIDIA GeForce RTX 4090, 24\,GB GDDR6X, driver 590.48.01 \\
+    CPU              & AMD EPYC-Milan, 8 vCPU (1 fir/nucleu) \\
+    RAM              & 47\,GB; 24\,GB \texttt{tmpfs} folosit pentru pregătirea datelor \\
+    Stocare          & volum rotaţional, $\approx$9\,MB/s secvenţial, $\approx$50 fişiere/s \\
+    SO / Python      & Ubuntu (Linux 6.8), Python 3.10, Conda \\
+    Framework        & PyTorch 2.4.0 (CUDA 11.8, cuDNN 9.1.0), torchvision 0.19.0 \\
+    Biblioteci       & scikit-learn 1.7.2, NumPy 2.2.6, SciPy 1.15.2, Pillow 12.3.0 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Înmulţirea de matrice/convoluţia TF32, autotunerul cuDNN şi precizia mixtă (AMP,
+fp16) au fost activate pe tot parcursul. Etajul de entropie propriu-zis
+\emph{nu} este eligibil pentru autocast --- \texttt{unfold}, \texttt{sort} şi
+testele de egalitate nu au nuclee fp16 --- aşa că acesta se execută în fp32 şi
+doar reţeaua convoluţională de bază rulează în semi-precizie.
+
+\begin{quote}\small
+\textbf{O notă despre I/O.} Volumul rădăcină al maşinii este rotaţional. Rulând
+direct de pe disc, fiecare configuraţie era blocată la $\approx0.47$\,s/pas
+indiferent de costul său real, deoarece GPU-ul stătea inactiv în timp ce
+procesele de încărcare a datelor erau blocate în somn neîntreruptibil. Prin
+urmare, toate duratele raportate provin din rulări al căror subset de date a
+fost mai întâi transferat în \texttt{tmpfs}. Fără acest lucru, coloana de timp a
+fiecărui baleiaj măsoară discul, nu modelul.
+\end{quote}
+
+\subsection{Datele}
+
+Antrenarea a folosit corpusul standard ProGAN al lui Wang şi
+colab.~\cite{wang2020cnn}, distribuit împreună cu CNNDetection/NPR: 20 de
+categorii LSUN, fiecare cu un director \texttt{0\_real} şi unul
+\texttt{1\_fake}. Dacă nu se precizează altfel, baleiajele au folosit opt
+categorii (\texttt{car, cat, chair, horse, boat, person, dog, bird}), pentru a
+evita un rezultat care să fie o afirmaţie despre maşini în particular. Evaluarea
+a folosit partiţia \texttt{val} rezervată pentru baleiaje, iar pentru modelul
+final întreaga suită de test ForenSynths / NPR: 13 generatoare GAN
+(90{,}329 imagini) şi 13 generatoare de difuzie (51{,}992 imagini).
+
+Imaginile sunt redimensionate la $256\times256$ şi decupate la $224\times224$ ---
+\texttt{RandomCrop} pentru antrenare, \texttt{CenterCrop} pentru evaluare.
+
+\begin{quote}\small
+\textbf{Geometria de evaluare.} Fişierul \texttt{test.py} publicat setează
+\texttt{no\_crop=True}, alimentând cadre complete $256\times256$ la testare, deşi
+antrenarea a folosit decupaje de $224$. Noi decupăm central la evaluare, astfel
+încât statisticile BatchNorm reestimate pe decupaje de $224$
+(Secţiunea~\ref{sec:setup-bn}) să fie aplicate la aceeaşi dimensiune a intrării.
+Măsurat izolat, acest lucru valorează $\approx0.06$ AP --- mult mai puţin decât
+efectul BatchNorm, dar gratuit de făcut corect.
+\end{quote}
+
+\subsection{Protocolul de antrenare}
+
+Fiecare configuraţie dintr-un baleiaj se antrenează pentru exact acelaşi număr
+de paşi de optimizare, astfel încât comparaţiile să fie corecte, iar timpul real
+să difere doar în funcţie de costul pe pas al fiecărei configuraţii:
+
+\begin{table}[h]
+  \centering
+  \caption{Protocolul de baleiaj. Rularea lungă finală
+  (Secţiunea~\ref{sec:exp-degradation}) diferă şi este descrisă acolo.}
+  \label{tab:protocol}
+  \begin{tabular}{ll}
+    \toprule
+    Reţea de bază      & ResNet-18 (0.68M parametri) \\
+    Paşi               & 3{,}000 (200 pentru testele de fum) \\
+    Dimensiunea lotului& 16 (dimensionat pentru configuraţia cea mai costisitoare) \\
+    Optimizator        & Adam, $\beta = (0.9, 0.999)$, rată de învăţare constantă $2\times10^{-4}$ \\
+    Funcţia de cost    & \texttt{BCEWithLogitsLoss} pe un singur logit \\
+    Decupaj            & $224$ dintr-o redimensionare la $256$, oglindire orizontală aleatoare \\
+    Precizie           & AMP (reţea de bază fp16, etaj de intrare fp32) \\
+    Recalibrare BN     & 50 de loturi de antrenare, medie cumulativă \\
+    Validare           & 50 de loturi ($n=800$) per scenariu \\
+    Seminţe            & 100, 200, 300 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Dimensiunea lotului este menţinută \emph{identică} între configuraţii în mod
+intenţionat. Argumentul de corectitudine (,,fiecare configuraţie se antrenează
+acelaşi număr de paşi'') se susţine doar dacă un pas înseamnă acelaşi lucru
+peste tot, aşa că lotul este dimensionat pentru configuraţia cea mai
+costisitoare, în loc să fie reglat per configuraţie. Constrângerea determinantă
+este memoria, nu viteza: calea generală \texttt{unfold}+\texttt{sort}
+materializează un tensor de porţiuni $(B, 3, HW, w^2)$, iar \texttt{torch.sort}
+adaugă indici int64 la dublul dimensiunii valorilor, astfel încât configuraţia
+cu trei ferestre atinge un vârf de $21.3$\,GB din cei $24.6$\,GB ai plăcii la
+lot 32.
+
+\subsection{Scenariile de evaluare}
+
+Fiecare model antrenat este evaluat în cinci condiţii de test, aplicate cu
+probabilitatea $1.0$, astfel încât măsurătoarea să fie deterministă. Un generator
+fix per încărcător de date garantează că fiecare scenariu vede aceleaşi imagini
+de bază, deci diferenţele provin doar din corupţie:
+
+\begin{center}
+\begin{tabular}{ll}
+  \toprule
+  \texttt{clean}     & fără degradare \\
+  \texttt{blur}      & gaussian, $\sigma = 2.0$ \\
+  \texttt{jpeg}      & JPEG calitate 75 (PIL) \\
+  \texttt{webp}      & WebP calitate 80 --- niciodată văzut la antrenare, o sondă în afara distribuţiei \\
+  \texttt{blur+jpeg} & ambele, mai întâi blur \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+Raportăm precizia medie (AP) ca metrică principală, împreună cu ROC-AUC,
+acurateţea la pragul $0.5$, cea mai bună acurateţe realizabilă la orice prag şi
+logitul mediu. Ultimele două există pentru a diagnostica eşecul descris în
+continuare.
+
+\subsection{O precondiţie: recalibrarea BatchNorm}
+\label{sec:setup-bn}
+
+Primele noastre încercări de reproducere au produs un rezultat neinterpretabil:
+acurateţea blocată la proporţia claselor ($\approx0.50$), în timp ce AP rămânea
+ridicată, iar configuraţii diferite se prăbuşeau spre clase constante
+\emph{diferite}. Cauza nu este modelul, ci contabilitatea BatchNorm.
+
+Momentul implicit de $0.1$ al BatchNorm face din \texttt{running\_mean} şi
+\texttt{running\_var} o medie mobilă exponenţială pe aproximativ ultimele 20 de
+loturi --- circa 320 de imagini la lot 16 --- colectate în timp ce ponderile
+încă se mişcau. Per strat, eroarea este mică (la \texttt{bn1} varianţa stocată
+se situează cu circa 10\% sub varianţa reală a lotului), dar ea se acumulează
+prin cele nouă straturi BatchNorm din \texttt{layer1}+\texttt{layer2}, iar capul
+este un singur \texttt{Linear(128,1)} peste o agregare globală prin medie, deci
+nimic în aval nu absoarbe această derivă.
+
+Prin urmare, reestimăm toate statisticile BatchNorm după antrenare şi înainte de
+evaluare, resetându-le, comutând momentul pe \texttt{None} (medie cumulativă) şi
+rulând 50 de treceri înainte peste datele de \emph{antrenare}. Folosirea datelor
+de validare aici ar fi transductivă. Efectul, la ponderi identice, este
+dramatic:
+
+\begin{table}[h]
+  \centering
+  \caption{Recalibrarea BatchNorm pe \texttt{baseline\_2x2}, 3{,}000 paşi, opt
+  categorii, lot 16. Aceleaşi ponderi în ambele rânduri.}
+  \label{tab:bn}
+  \begin{tabular}{lccc}
+    \toprule
+     & logit mediu & acurateţe & AP \\
+    \midrule
+    \texttt{model.eval()} ca atare & $+24.16$ & 0.4938 & 0.8057 \\
+    după recalibrare                & $-0.25$  & 0.9762 & 0.9985 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Fiecare logit era deplasat cu aproximativ 24, prăbuşind fiecare predicţie într-o
+singură clasă. Semnul este arbitrar --- o rulare de 600 de paşi s-a deplasat cu
+$-13.85$ în schimb --- ceea ce explică exact de ce unele configuraţii raportau
+totul ca real, iar altele totul ca fals. Esenţial, \textbf{şi AP se modifică}
+($0.81 \to 0.9985$): aceasta nu a fost niciodată doar o problemă de prag, ci
+corupea chiar ordonarea pe care baleiajele există să o producă. Fiecare cifră
+raportată în acest capitol este de după recalibrare.
+
+\section{Experimentul 1: dimensiunea ferestrei glisante}
+\label{sec:exp-window}
+
+\paragraph{Ipoteza.} MLEP fixează fereastra la $2\times2$, cea mai mică posibilă.
+O fereastră $2\times2$ poate exprima doar cinci valori distincte de entropie
+(Tabelul~\ref{tab:2x2}), ceea ce reprezintă o cuantizare foarte grosieră a
+diversităţii locale. O fereastră mai mare admite un alfabet mai bogat ---
+$w=4$ dă $K=16$ pixeli şi deci mult mai multe distribuţii distinctibile --- şi
+ar putea capta amprente ale generatoarelor care operează pe o rază spaţială mai
+mare.
+
+\paragraph{Metoda.} Am antrenat câte o configuraţie pentru fiecare dimensiune de
+fereastră $w \in \{2,3,4,5,6,7,8\}$, menţinând fixe piramida cu trei scări,
+reţeaua de bază, numărul de paşi şi orice alt hiperparametru. Am testat
+suplimentar \texttt{unique}, care înlocuieşte entropia cu o simplă numărare a
+valorilor distincte din fereastră, adică cardinalul mulţimii de valori în locul
+unei funcţii ponderate a distribuţiei.
+
+\begin{table}[t]
+  \centering
+  \caption{Baleiajul dimensiunii ferestrei. ResNet-18, 3{,}000 paşi, sămânţa 100,
+  opt categorii. Precizie medie; mai mare este mai bine. ,,Timp'' este timpul
+  real de antrenare în secunde.}
+  \label{tab:window}
+  \begin{tabular}{lrrrrrr}
+    \toprule
+    Configuraţie & clean & blur & jpeg & webp & blur+jpeg & timp \\
+    \midrule
+    \texttt{w2x2\_unique}  & 0.9980 & 0.6710 & 0.4144 & 0.4155 & 0.4218 & 42 \\
+    \texttt{baseline\_2x2} & \textbf{0.9979} & 0.6817 & 0.4199 & 0.4193 & 0.4265 & 59 \\
+    \texttt{w3x3}          & 0.9907 & 0.6548 & 0.4335 & 0.4232 & 0.4240 & 396 \\
+    \texttt{w4x4}          & 0.9716 & 0.6094 & 0.4131 & 0.4064 & 0.4350 & 415 \\
+    \texttt{w6x6}          & 0.8012 & 0.5654 & 0.4338 & 0.4236 & 0.4665 & 553 \\
+    \texttt{w5x5}          & 0.7726 & 0.5663 & 0.4150 & 0.4119 & 0.4252 & 441 \\
+    \texttt{w7x7}          & 0.5771 & 0.5116 & 0.4241 & 0.4259 & 0.4459 & 586 \\
+    \texttt{w8x8}          & 0.5395 & 0.5195 & 0.4399 & 0.4402 & 0.4587 & 623 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\paragraph{Rezultat: eşec.} AP pe date curate scade monoton odată cu dimensiunea
+ferestrei, de la $0.998$ la $w=2$ până la $0.540$ la $w=8$ --- ultima abia peste
+nivelul hazardului. Costul se mişcă în direcţia opusă: $w \geq 3$ părăseşte
+tabela de căutare cu cinci intrări şi urmează calea generală bazată pe sortare,
+făcând antrenarea cu un ordin de mărime mai lentă ($59$\,s faţă de $623$\,s)
+pentru un model strict mai slab.
+
+\paragraph{Interpretare.} Ipoteza a inversat mecanismul real. Amprenta
+generatorului pe care o exploatează MLEP este o reţea de supraeşantionare cu o
+perioadă de unul sau doi pixeli (Secţiunea~\ref{sec:worked-example}). O fereastră
+$2\times2$ este \emph{potrivită} acestei perioade. Lărgirea ferestrei mediază
+amprenta împreună cu textura autentică a scenei şi, deoarece entropia este o
+statistică de mulţime, ea nu poate separa cele două contribuţii odată amestecate
+--- o fereastră mare vede o distribuţie agitată indiferent dacă agitaţia provine
+din reţeaua de supraeşantionare sau din iarbă. Cuantizarea grosieră pe cinci
+niveluri nu este o limitare care trebuie depăşită; este un filtru adaptat.
+
+De remarcat, de asemenea, că \texttt{unique} performează identic cu entropia
+Shannon ($0.9980$ faţă de $0.9979$). Întrucât \texttt{unique} elimină complet
+multiplicităţile şi păstrează doar numărul de valori distincte, aceasta este
+prima indicaţie că \emph{funcţionala precisă} nu poartă practic nicio informaţie
+dincolo de partiţia grosieră --- o constatare pe care
+Secţiunea~\ref{sec:exp-entropy} o confirmă mult mai temeinic.
+
+\section{Experimentul 2: ferestre multiple, normalizare şi înregistrare}
+\label{sec:exp-multiwindow}
+
+\paragraph{Ipoteza.} Deoarece nicio fereastră \emph{individuală} mai mare nu a
+depăşit $2\times2$, întrebarea firească următoare este dacă mai multe ferestre
+\emph{împreună} poartă informaţie complementară: harta $2\times2$ furnizează
+amprenta, iar hărţile mai largi furnizează contextul care ar putea dezambiguiza
+textura scenei de netezirea produsă de codec. Combinăm $w \in \{2,4,6\}$ peste
+aceeaşi piramidă, obţinând $3 \times 3 \times 3 = 27$ canale de intrare.
+
+Am identificat în plus două defecte ale combinaţiei naive şi am testat câte o
+corecţie pentru fiecare, ca gemeni exacţi care schimbă un singur lucru.
+
+\begin{description}
+  \item[Nepotrivirea intervalului dinamic.] Entropia Shannon este mărginită de
+    $\log_2 w^2$: $2.0$ biţi pentru $2\times2$, dar $\approx5.17$ pentru
+    $6\times6$. Canalele cu ferestre late intră deci în \texttt{conv1} cu un
+    interval dinamic de $2.5\times$ mai mare decât cele înguste. \texttt{conv1}
+    are \texttt{bias=False}, iar \texttt{bn1} normalizează cele 64 de canale de
+    \emph{ieşire} \emph{după} ce convoluţia a însumat deja intrările, aşa că
+    nimic în aval nu anulează acest dezechilibru. \texttt{normalize\_entropy}
+    împarte fiecare hartă la propriul $\log_2 K$.
+  \item[Dezalinierea spaţială.] O hartă cu fereastră $w$ are lăţimea $H-w+1$,
+    deci cele trei hărţi diferă ca dimensiune, iar calea implicită le
+    reeşantionează biliniar pe grila $2\times2$. Acest lucru este de două ori
+    păgubitor: aliniază extremităţile exterioare ale hărţilor, nu pixelii pe care
+    îi descriu, ceea ce le \emph{întinde} în loc să le deplaseze (eroare măsurată
+    $\approx0$ în centrul imaginii, crescând la $\approx1.6$\,px pentru fereastra
+    $6\times6$ lângă margine), iar reeşantionarea estompează exact structura de
+    frecvenţă înaltă care constituie întregul semnal. O reţea convoluţională
+    poate absorbi o deplasare constantă în poziţiile filtrelor învăţate, dar nu
+    şi o deformare dependentă de poziţie, întrucât ponderile sunt partajate.
+    Varianta \texttt{pad} completează prin replicare cu $(w-w_{\min})/2$ în
+    schimb, ceea ce este exact, fără interpolare, şi s-a măsurat că a costat
+    $+1$\,MiB şi niciun timp suplimentar.
+\end{description}
+
+\begin{table}[t]
+  \centering
+  \caption{Configuraţii cu ferestre multiple faţă de modelul de referinţă.
+  ResNet-18, 3{,}000 paşi, sămânţa 100.}
+  \label{tab:multiwindow}
+  \begin{tabular}{lrrrrrr}
+    \toprule
+    Configuraţie & clean & blur & jpeg & webp & blur+jpeg & timp \\
+    \midrule
+    \texttt{baseline\_2x2}                      & \textbf{0.9979} & 0.6817 & 0.4199 & 0.4193 & 0.4265 & 59 \\
+    \texttt{multiwindow\_multiscale}            & 0.9965 & 0.6581 & 0.4189 & 0.4103 & 0.4210 & 962 \\
+    \texttt{multiwindow\_normalized}            & 0.9938 & 0.6762 & 0.4153 & 0.4090 & 0.4242 & 963 \\
+    \texttt{multiwindow\_aligned} (\texttt{pad})& 0.9944 & 0.6472 & 0.4146 & 0.4071 & 0.4194 & 1024 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\paragraph{Rezultat: eşec.} Toate cele trei variante cu ferestre multiple sunt
+marginal \emph{mai slabe} decât modelul de referinţă cu o singură fereastră
+$2\times2$ pe date curate şi nu sunt mai bune sub nicio corupţie, la un cost de
+antrenare de $16$--$17\times$ mai mare. Ambele corecţii principiale ---
+normalizarea şi înregistrarea exactă --- au recuperat o parte din decalajul faţă
+de combinaţia necorectată în unele celule (normalizarea îmbunătăţeşte blur de la
+$0.6581$ la $0.6762$), dar niciuna nu a atins modelul de referinţă.
+
+\paragraph{Interpretare.} Corecţiile erau reale; lucrul pe care îl corectau nu
+merita avut. Adăugarea de canale cu ferestre late adaugă la \texttt{conv1}
+intrări purtătoare de zgomot, iar nicio scalare şi înregistrare, oricât de
+corectă, a unui canal neinformativ nu îl face informativ. Împreună cu
+Experimentul 1, aceasta închide chestiunea \emph{geometriei} ferestrei: nici
+dimensiunea ferestrei, nici numărul de dimensiuni de fereastră nu reprezintă
+locul în care se află vreo îmbunătăţire.
+
+\section{Experimentul 3: funcţionala de entropie}
+\label{sec:exp-entropy}
+
+\paragraph{Ipoteza.} Epuizând geometria, ne îndreptăm către funcţională.
+Entropia Shannon ponderează contribuţia unei valori cu $-p\log_2 p$, ceea ce
+este o alegere între multe altele. Entropiile generalizate reponderează valorile
+rare faţă de cele frecvente printr-un exponent reglabil, iar o valoare rară este
+exact ceea ce produce zgomotul unui senzor şi nu produce un supraeşantionator.
+Concret, am testat:
+
+\begin{align}
+  \text{Rényi:}   \quad H_\alpha &= \frac{1}{1-\alpha}\log_2 \sum_g p_g^{\alpha},
+  & \alpha &\in \{0.5, 2, 4\} \label{eq:renyi}\\
+  \text{Tsallis:} \quad S_q      &= \frac{1 - \sum_g p_g^{q}}{q-1},
+  & q &\in \{0.5, 2, 4\} \label{eq:tsallis}
+\end{align}
+
+Ambele se reduc la Shannon când $\alpha, q \to 1$; $\alpha > 1$ accentuează
+valoarea dominantă, $\alpha < 1$ pe cele rare. Am testat de asemenea entropia de
+\emph{permutare} (tipare ordinale Bandt--Pompe), care este categoric diferită: ea
+elimină magnitudinile şi păstrează doar \emph{ordinea de rang} a pixelilor,
+fiind astfel invariantă la orice transformare monotonă a intensităţii. Întrucât o
+singură fereastră citită ca o secvenţă produce exact un tipar ordinal (şi deci
+entropie zero), definim populaţia de tipare din interiorul unei ferestre ca
+totalitatea subsecvenţelor de ordin 3 ale liniilor şi coloanelor sale; acest
+lucru necesită $w \geq 3$.
+
+\paragraph{Metoda.} Experimentul s-a desfăşurat în două etape, astfel încât un
+rezultat nul să nu poată fi pus pe seama optimizării modelului profund.
+
+\begin{description}
+  \item[Etapa de trăsături.] Statistici de rezumat ale entropiei (media,
+    abaterea standard, minimul, maximul, mediana, IQR şi percentilele
+    10/25/75/90 ale fiecărei hărţi locale), calculate pe imaginea întreagă şi pe
+    ferestre neîntrepătrunse de $8\times8$/$16\times16$/$32\times32$, precum şi
+    pe convenţia MLEP de $2\times2$, în tonuri de gri, R, G, B şi în vederea RGB
+    comună. Patru clasificatori clasici --- regresie logistică, pădure aleatoare,
+    SVM şi arbori cu gradient boosting --- au fost antrenaţi pe fiecare submulţime
+    de ablaţie. Această etapă îşi poate permite ferestre pe imaginea întreagă şi
+    de $32\times32$, care ar fi mult prea costisitoare ca etaj de intrare cu
+    pasul 1.
+  \item[Etapa profundă.] Reţeaua MLEP însăşi, antrenată cu fiecare etaj de
+    entropie, prin exact aceeaşi funcţie \texttt{run\_config()} folosită de
+    baleiajul de ferestre: aceiaşi paşi, aceeaşi recalibrare BN, aceleaşi
+    scenarii de corupţie.
+\end{description}
+
+Grupurile de ablaţie au fost: A~Shannon (referinţă), B~doar Rényi, C~doar
+Tsallis, D~doar permutare, E~Shannon+Rényi, F~Shannon+Tsallis,
+G~Shannon+permutare, H~toate. Modurile combinate stivuiesc câte o hartă per
+funcţională, canalele modului 0 fiind identice la nivel de bit cu configuraţia
+corespunzătoare cu un singur mod, ceea ce face din fiecare combinaţie un test
+\emph{aditiv} curat. În total, 46 de configuraţii au fost evaluate în rularea
+combinată.
+
+\begin{table}[t]
+  \centering
+  \caption{Etapa profundă, ROC-AUC, sămânţa 100. Sunt afişate doar rândurile de
+  sus; tabelul complet cu 46 de rânduri apare în
+  \texttt{results/entropy\_20260802\_160157\_seed100.txt}.}
+  \label{tab:entropy-deep}
+  \begin{tabular}{lrrrrr}
+    \toprule
+    Configuraţie & clean & blur & jpeg & webp & blur+jpeg \\
+    \midrule
+    \texttt{ent\_C\_tsallis4}  & 0.9987 & 0.7452 & 0.4365 & 0.4644 & 0.4644 \\
+    \texttt{ent\_B\_renyi2}    & 0.9984 & 0.7408 & 0.4256 & 0.4316 & 0.4576 \\
+    \texttt{ent\_C\_tsallis2}  & 0.9983 & 0.7435 & 0.4444 & 0.4432 & 0.4702 \\
+    \texttt{ent\_B\_renyi4}    & 0.9982 & \textbf{0.7520} & 0.4253 & 0.4374 & 0.4595 \\
+    \texttt{ent\_A\_shannon}   & 0.9978 & 0.7335 & 0.4282 & 0.4320 & 0.4574 \\
+    \midrule
+    \texttt{ent\_H\_all}       & 0.9854 & 0.7024 & 0.4317 & 0.4175 & 0.4688 \\
+    \texttt{ent\_G\_shannon\_perm} & 0.9453 & 0.6481 & 0.4214 & 0.4002 & 0.4454 \\
+    \texttt{ent\_D\_perm3}     & 0.8087 & 0.6038 & 0.4654 & 0.4390 & 0.4777 \\
+    \texttt{ent\_D\_perm4}     & 0.7555 & 0.5913 & 0.4615 & 0.4576 & 0.4505 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\paragraph{Rezultat: eşec (în limita zgomotului).} Ordonarea aparentă din
+Tabelul~\ref{tab:entropy-deep} se întinde pe $0.9978$--$0.9987$ ROC-AUC pe date
+curate, un interval de $0.0009$. Pentru a testa dacă ea rezistă, am reluat cele
+cinci configuraţii fruntaşe pe trei seminţe:
+
+\begin{table}[h]
+  \centering
+  \caption{Funcţionale de entropie, precizie medie, medie $\pm$ abatere standard
+  pe seminţele 100/200/300.}
+  \label{tab:entropy-seeds}
+  \begin{tabular}{lccc}
+    \toprule
+    Configuraţie & clean & blur & jpeg \\
+    \midrule
+    \texttt{ent\_C\_tsallis4} & $0.997 \pm 0.002$ & $0.677 \pm 0.024$ & $0.448 \pm 0.023$ \\
+    \texttt{ent\_B\_renyi4}   & $0.996 \pm 0.003$ & $0.684 \pm 0.015$ & $0.448 \pm 0.030$ \\
+    \texttt{ent\_A\_shannon}  & $0.996 \pm 0.002$ & $0.669 \pm 0.014$ & $0.446 \pm 0.024$ \\
+    \texttt{ent\_B\_renyi2}   & $0.996 \pm 0.002$ & $0.675 \pm 0.013$ & $0.446 \pm 0.031$ \\
+    \texttt{ent\_C\_tsallis2} & $0.995 \pm 0.003$ & $0.673 \pm 0.015$ & $0.449 \pm 0.015$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Fiecare diferenţă este mai mică decât propria abatere standard. Singurul semnal
+consistent este că Rényi cu $\alpha=4$ câştigă aproximativ $+0.015$ ROC-AUC pe
+blur faţă de Shannon, în toate cele trei seminţe şi monoton în $\alpha$ ---
+motiv pentru care l-am dus mai departe ca test explicit în
+Secţiunea~\ref{sec:exp-degradation}, unde blurul este o ţintă, nu un efect
+secundar. Nici acolo nu a rezistat.
+
+Etapa de trăsături confirmă independent: cel mai bun clasificator per grup
+depăşeşte Shannon cu cel mult $+0.0040$ ROC-AUC pe date curate (E, regresie
+logistică), iar entropia de permutare singură \emph{pierde} $0.1074$.
+Performanţa medie în condiţii corupte, pe toate grupurile, se situează în
+$0.502$--$0.532$, adică abia peste nivelul hazardului pentru fiecare
+funcţională.
+
+\paragraph{Interpretare.} Acesta este cel mai puternic rezultat nul din capitol
+şi decurge din Tabelul~\ref{tab:2x2}. La $w=2$ fereastra admite doar cinci
+partiţii posibile ale celor patru valori. \emph{Orice} funcţională de entropie
+este o funcţie doar de partiţie, deci fiecare funcţională din
+Ecuaţiile~\ref{eq:renyi} şi \ref{eq:tsallis} este doar o reetichetare a
+aceloraşi cinci categorii prin cinci numere reale diferite --- şi încă o
+reetichetare strict monotonă. Prima convoluţie poate absorbi aproape complet o
+rescalare monotonă a intrării sale. Schimbarea funcţionalei nu poate deci adăuga
+informaţie; poate doar schimba spaţierea a cinci niveluri pe care reţeaua este
+oricum liberă să le respaţieze. Entropia de permutare este singura funcţională
+cu adevărat diferită, întrucât ordinea de rang nu este o funcţie de partiţia
+valorilor --- şi este net \emph{mai slabă}, deoarece eliminarea magnitudinilor
+elimină indiciul de duplicare a valorilor, care constituie întreaga amprentă.
+
+(Acest argument al partiţiei produce şi un rezultat ingineresc util: o tabelă de
+căutare cu cinci intrări, indexată după numărul de perechi egale, calculează
+\emph{orice} entropie pe o fereastră $2\times2$, făcând Rényi şi Tsallis la fel
+de ieftine ca Shannon --- $0.63$ faţă de $0.98$\,ms per hartă la lot 16, faţă de
+$41$\,ms pentru calea generală.)
+
+\section{Experimentul 4: entropia între canale (culoare comună)}
+\label{sec:exp-color}
+
+\paragraph{Ipoteza.} Experimentul 3 a stabilit că nicio reponderare scalară a
+unei distribuţii de valori \emph{marginale} nu ajută. Dar MLEP îşi calculează
+cele trei hărţi independent pe fiecare canal, deci etajul de intrare vede doar
+trei marginale. O fereastră $2\times2$ poate fi maximal entropică în R, în G şi
+în B şi totuşi să conţină doar două \emph{culori} distincte --- iar nicio
+funcţie de marginale nu poate recupera acest lucru. Adăugăm prin urmare entropia
+distribuţiei comune a tripletelor RGB, unde doi pixeli contează ca acelaşi
+simbol doar dacă coincid pe toate cele trei canale.
+
+Aceasta este motivată în mod specific de problema robusteţii. Atât JPEG cât şi
+WebP convertesc în YCbCr, subeşantionează croma 4:2:0 şi cuantizează planurile
+de cromă mult mai agresiv decât luma. Recompresia afectează deci structura
+dintre canale şi structura per canal în măsuri \emph{diferite} --- o diferenţă
+pe care un etaj de intrare bazat doar pe marginale nu are niciun canal în care
+să o exprime.
+
+\paragraph{Metoda.} Două variante: \texttt{joint} adaugă harta comună la
+marginale ($4$ hărţi per (scară, fereastră) $=12$ canale, canalele 0--2 din
+fiecare grup fiind identice la nivel de bit cu referinţa, deci un test strict
+aditiv), iar \texttt{joint\_only} alimentează doar harta comună ($3$ canale,
+\emph{mai puţine} decât referinţa), ca ablaţie care spune dacă statistica comună
+poartă semnal în sine sau doar profită de context. Ambele au fost testate şi
+peste antrenarea augmentată, întrucât acolo se află de fapt robusteţea.
+
+\begin{table}[t]
+  \centering
+  \caption{Entropia comună de culoare. ResNet-18, 3{,}000 paşi, sămânţa 100.}
+  \label{tab:color}
+  \begin{tabular}{lrrrrr}
+    \toprule
+    Configuraţie & clean & blur & jpeg & webp & blur+jpeg \\
+    \midrule
+    \texttt{color\_joint\_2x2}          & \textbf{0.9982} & \textbf{0.6943} & 0.4063 & 0.4140 & 0.4247 \\
+    \texttt{baseline\_2x2}              & 0.9979 & 0.6813 & 0.4194 & 0.4194 & 0.4269 \\
+    \texttt{baseline\_train\_jpeg}      & 0.9866 & 0.6116 & 0.4726 & 0.4943 & 0.4510 \\
+    \texttt{color\_joint\_train\_jpeg}  & 0.9834 & 0.6321 & \textbf{0.4759} & 0.4882 & \textbf{0.4911} \\
+    \texttt{color\_jointonly\_2x2}      & 0.9821 & 0.5922 & 0.4919 & 0.4625 & 0.4730 \\
+    \texttt{baseline\_train\_webp\_p1}  & 0.6462 & 0.5079 & 0.5910 & 0.5474 & 0.5246 \\
+    \texttt{color\_joint\_train\_webp\_p1} & 0.4912 & 0.4524 & 0.5417 & 0.5552 & 0.5030 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\paragraph{Rezultat: eşec.} Pe date curate harta comună valorează $+0.0003$ AP
+($0.9982$ faţă de $0.9979$) --- imposibil de distins de dispersia între seminţe
+de $\pm0.002$ măsurată în Tabelul~\ref{tab:entropy-seeds}. Sub corupţie este
+\emph{mai slabă} decât referinţa pe jpeg ($0.4063$ faţă de $0.4194$). Combinată
+cu antrenarea augmentată JPEG, produce într-adevăr cea mai mare valoare
+\texttt{blur+jpeg} pe care am observat-o dintr-o schimbare a etajului de intrare
+($0.4911$ faţă de $0.4510$), dar celula rămâne sub nivelul hazardului, deci
+ordonarea este în continuare inversată --- modelul a devenit \emph{mai puţin
+grav} inversat, nu corect. Ablaţia \texttt{joint\_only} pierde $0.016$ AP pe
+date curate, arătând că statistica comună este mai slabă pe cont propriu decât
+marginalele pe care le-ar înlocui, iar perechea antrenată pe WebP se prăbuşeşte
+de-a dreptul la $0.4912$.
+
+\paragraph{Interpretare.} Premisa era corectă --- statistica comună chiar nu
+poate fi recuperată din marginale --- şi totuşi nu a ajutat. Duplicarea între
+canale şi duplicarea per canal poartă, evident, informaţie aproape identică
+pentru această sarcină, deoarece supraeşantionarea generatorului operează
+simultan pe toate cele trei canale: un pixel duplicat este duplicat în R, G şi B
+deodată, deci harta comună este, \emph{în practică}, aproape o funcţie
+deterministă a marginalelor, chiar dacă în principiu nu este.
+
+\section{Experimentul 5: separarea texturilor bogate/sărace}
+\label{sec:exp-texture}
+
+\paragraph{Ipoteza.} Fiecare schimbare a etajului de intrare de până acum a
+eşuat, aşa că atacăm direct mecanismul de eşec identificat în
+Secţiunea~\ref{sec:worked-example}. Problema este că o singură hartă de entropie
+pe imaginea întreagă nu poate distinge ,,neted pentru că scena este netedă'' de
+,,neted pentru că a netezit-o codecul''. Urmând PatchCraft~\cite{zhong2024patchcraft},
+sortăm porţiunile imaginii după diversitatea texturii şi îi dăm reţelei regiunile
+plate şi regiunile agitate ca două imagini \emph{separate}. Pânza săracă
+izolează astfel exact ceea ce distruge un codec, pânza bogată ceea ce
+supravieţuieşte în cea mai mare parte, iar reţeaua poate citi cele două populaţii
+independent.
+
+\paragraph{Metoda.} Diversitatea texturii unei porţiuni $p\times p$ este suma
+fluctuaţiilor absolute ale pixelilor pe patru direcţii (orizontală, verticală,
+diagonală, antidiagonală), calculată pe media RGB. Porţiunile sunt clasate,
+împărţite în jumătatea superioară şi cea inferioară şi reasamblate în două pânze
+de dimensiuni identice. Două moduri de combinare: \texttt{concat} stivuieşte
+ambele teancuri de entropie (18 canale), iar \texttt{diff} alimentează diferenţa
+lor (9 canale), ceea ce foloseşte PatchCraft însuşi şi este echivalent ca
+capacitate cu referinţa, astfel încât o victorie acolo nu ar putea fi explicată
+prin simplul fapt că \texttt{conv1} este mai lat.
+
+Separarea rulează \emph{înainte} de amestecarea blocurilor şi pe imaginea
+originală: diversitatea texturii are sens doar pe porţiuni coerente spaţial, iar
+amestecarea prealabilă ar lăsa fiecare porţiune cu aceeaşi diversitate medie pe
+imagine, reducând separarea la o departajare după ordinea de baleiere --- un
+experiment care nu măsoară nimic, deşi arată perfect sănătos. Am ales $p=16$
+deoarece grila de porţiuni are o axă pară la dimensiunile de decupaj 128, 224
+\emph{şi} 256, aşa că separarea nu aruncă niciun pixel; valoarea $p=32$ folosită
+de PatchCraft lasă o grilă $7\times7$ la decupaj 224 şi forţează o tăiere de o
+coloană, care aruncă 14.3\% din decupaj.
+
+\begin{table}[t]
+  \centering
+  \caption{Separarea texturilor. Blocul superior: antrenare pe date curate, 200
+  de paşi, o categorie (triere). Blocul inferior: în pereche cu antrenarea
+  augmentată, 3{,}000 de paşi, opt categorii.}
+  \label{tab:texture}
+  \begin{tabular}{lrrrrr}
+    \toprule
+    Configuraţie & clean & blur & jpeg & webp & blur+jpeg \\
+    \midrule
+    \texttt{baseline\_2x2}            & \textbf{0.9951} & 0.6717 & 0.5179 & 0.4866 & 0.5047 \\
+    \texttt{texsplit\_2x2}            & 0.9646 & 0.6208 & 0.4888 & 0.4710 & 0.4863 \\
+    \texttt{texsplit\_2x2\_diff}      & 0.9550 & 0.6497 & 0.4978 & 0.4865 & 0.5085 \\
+    \midrule
+    \texttt{texsplit\_2x2\_train\_blur} & \textbf{0.9931} & 0.6879 & 0.4188 & 0.4174 & 0.4225 \\
+    \texttt{baseline\_train\_blur}      & 0.9926 & \textbf{0.7209} & 0.4177 & 0.4152 & 0.4175 \\
+    \texttt{baseline\_train\_jpeg}      & 0.9865 & 0.6119 & \textbf{0.4726} & 0.4940 & 0.4508 \\
+    \texttt{texsplit\_2x2\_train\_jpeg} & 0.9855 & 0.6092 & 0.4616 & 0.4903 & 0.4410 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\paragraph{Rezultat: eşec.} Antrenată pe date curate, separarea costă $0.030$ AP
+pe date curate (\texttt{concat}) sau $0.040$ (\texttt{diff}) şi nu ajută în
+nicio celulă coruptă. În pereche cu antrenarea augmentată --- celula în care ar
+fi trebuit să se vadă, întrucât acolo se află robusteţea --- valorează $+0.0005$
+pe blur şi $-0.0010$ pe jpeg, ambele mult sub pragul de zgomot, \emph{pierzând}
+totodată $0.033$ AP pe blur faţă de \texttt{baseline\_train\_blur}.
+
+\paragraph{Interpretare.} Atribuim acest lucru unei interacţiuni cu amestecarea
+blocurilor, specifică MLEP. Separarea din PatchCraft funcţionează pe o reţea care
+consumă direct porţiuni; MLEP amestecă în plus blocuri $2\times2$, ceea ce
+distruge deja coerenţa spaţială care face distincţia bogat/sărac semnificativă în
+aval. Cele două operaţii sunt amestecări parţial redundante, iar costul separării
+--- înjumătăţirea suportului spaţial efectiv al fiecărei pânze --- este plătit
+fără beneficiul ei. Configuraţia de control dedicată
+(\texttt{baseline\_2x2\_norearr}, care dezactivează amestecarea) a fost
+implementată pentru a izola acest lucru, dar un baleiaj complet în pereche cu ea
+rămâne nerealizat şi constituie singurul capăt liber al acestui experiment.
+
+\section{Experimentul 6: antrenare cu augmentare prin degradări}
+\label{sec:exp-aug}
+
+\paragraph{Ipoteza.} Întrucât nicio schimbare a \emph{reprezentării} nu a
+restabilit robusteţea, testăm remediul standard: arătarea de imagini degradate
+modelului în timpul antrenării. Dacă etajul de entropie păstrează vreun semnal
+utilizabil sub compresie, augmentarea ar trebui să permită clasificatorului să
+îl găsească.
+
+\paragraph{Metoda.} Două augmentări, fiecare aplicată cu probabilitatea $0.5$ în
+timpul antrenării: blur gaussian cu $\sigma \sim U(0,3)$ şi JPEG la calitatea 30
+sau 100, folosind fie codificatorul OpenCV, fie pe cel PIL. Evaluarea rămâne
+neschimbată.
+
+O primă rundă a arătat fiecare celulă AP coruptă \emph{sub} $0.5$ (0.415--0.494,
+12/12 celule pe patru configuraţii), în timp ce acurateţea se situa la
+$\approx0.52$. După cum s-a stabilit în Secţiunea~\ref{sec:worked-example}, un AP
+sub nivelul hazardului înseamnă o ordonare inversată. Am emis ipoteza că
+probabilitatea de $0.5$ era ea însăşi cauza: aceasta antrenează pe un amestec
+50/50 de imagini curate şi corupte ale căror ordonări de clasă sunt
+\emph{opuse}, iar domeniul curat este separabil în proporţie de $\approx0.99$
+faţă de $\approx0.5$ pentru cel corupt, aşa că domeniul curat domină gradientul
+şi ordonarea sa este aplicată invers pe intrarea coruptă. Am reluat prin urmare
+rularea cu probabilitatea $1.0$, antrenând pe un singur domeniu în loc de un
+amestec contradictoriu.
+
+\begin{table}[t]
+  \centering
+  \caption{Antrenare augmentată. ResNet-18, 3{,}000 paşi, sămânţa 100.
+  \texttt{\_p1} = probabilitate de corupţie 1.0 în loc de 0.5.}
+  \label{tab:aug}
+  \begin{tabular}{lrrrrr}
+    \toprule
+    Configuraţie & clean & blur & jpeg & webp & blur+jpeg \\
+    \midrule
+    \texttt{baseline\_2x2}             & \textbf{0.9979} & 0.6813 & 0.4191 & 0.4191 & 0.4267 \\
+    \texttt{baseline\_train\_blur}     & 0.9936 & \textbf{0.7229} & 0.4148 & 0.4153 & 0.4170 \\
+    \texttt{baseline\_train\_jpeg}     & 0.9866 & 0.6092 & 0.4726 & 0.4923 & 0.4533 \\
+    \texttt{baseline\_train\_jpeg\_p1} & 0.9339 & 0.4927 & 0.4747 & 0.4557 & 0.4295 \\
+    \texttt{baseline\_train\_webp\_p1} & 0.6431 & 0.5079 & \textbf{0.5950} & \textbf{0.5484} & \textbf{0.5297} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\paragraph{Rezultat: parţial şi revelator.} Augmentarea cu blur este singurul
+succes neechivoc din acest capitol: ridică AP pe blur de la $0.6813$ la $0.7229$
+la un cost de doar $0.004$ AP pe date curate. Dar câştigul este strict limitat la
+degradarea pe care s-a antrenat --- jpeg şi webp rămân neschimbate sau uşor mai
+slabe.
+
+Augmentarea JPEG ridică AP pe jpeg de la $0.4199$ la $0.4726$ şi pe webp de la
+$0.4193$ la $0.4923$ şi este singura configuraţie al cărei logit mediu rămâne
+aproape de zero în fiecare scenariu; dar ambele celule rămân \emph{sub} $0.5$.
+Modelul este mai puţin grav inversat, nu corect.
+
+Testul cu probabilitate 1.0 a confirmat ipoteza amestecului şi, simultan, a
+demolat-o ca soluţie. \texttt{baseline\_train\_webp\_p1} este singura
+configuraţie din întregul studiu care împinge \emph{vreo} celulă coruptă
+decisiv peste nivelul hazardului (jpeg $0.5950$, webp $0.5484$, blur+jpeg
+$0.5297$) --- şi o face distrugând performanţa pe date curate, care scade de la
+$0.998$ la $0.6431$. Nu există niciun punct de funcţionare intermediar: modelul
+poate detecta imagini generate \emph{sau} poate supravieţui recompresiei, dar
+etajul de entropie nu admite o reprezentare care să le facă pe amândouă.
+
+\paragraph{Interpretare.} Aceasta este cea mai clară formulare a problemei
+centrale. Amprenta imaginii curate şi amprenta imaginii recomprimate nu sunt doar
+diferite, ci \emph{antagonice}: o reprezentare optimizată pentru una este
+anti-optimizată pentru cealaltă. Exact acest lucru îl prezice exemplul lucrat din
+Secţiunea~\ref{sec:worked-example}, iar nicio ponderare a augmentării nu le
+reconciliază, deoarece conflictul este în trăsătură, nu în distribuţia de
+antrenare.
+
+\section{Experimentul 7: poate MLEP măcar să raporteze degradarea?}
+\label{sec:exp-degradation}
+
+\paragraph{Ipoteza.} Dat fiind că MLEP nu poate detecta \emph{prin} degradare,
+punem o întrebare diferită: poate acelaşi etaj de intrare să \emph{identifice}
+degradarea? Un răspuns pozitiv ar fi util într-un flux de prelucrare --- un
+detector care ştie că priveşte o imagine puternic recomprimată se poate abţine
+sau poate transfera decizia unui al doilea model --- şi măsoară totodată direct
+câtă informaţie specifică degradării poartă efectiv hărţile de entropie.
+
+\paragraph{Metoda.} Detectorul AI-vs-real nu este rescris. Păstrăm etajul de
+intrare propriu al MLEP la setările sale ($2\times2$ ferestre, piramidă cu trei
+scări) şi doar lărgim stratul final de la un logit la trei:
+\[
+  z_0 = \Pr(\text{generat de IA}), \quad
+  z_1 = \Pr(\text{neclarizat}), \quad
+  z_2 = \Pr(\text{comprimat JPEG}),
+\]
+antrenaţi împreună cu o singură funcţie \texttt{BCEWithLogitsLoss}. Întrucât
+\texttt{num\_classes} este deja un argument al ResNet, \emph{nu} există nicio
+schimbare arhitecturală.
+
+Degradarea este aplicată pe o grilă deterministă $7 \times 4$ în loc să fie
+eşantionată: calitatea JPEG $\in \{\text{fără pierderi}, 15, 30, 45, 60, 75, 100\}$
+şi blurul gaussian $\in \{$fără $0.0$, slab $0.5$, mediu $1.5$, puternic $3.0\}$,
+blurul înaintea JPEG. Calitatea 100 se consideră comprimată; doar imaginea
+neatinsă este ,,necomprimată''. Patru celule --- $(30,\text{mediu})$,
+$(75,\text{slab})$, $(15,\text{puternic})$, $(100,\text{mediu})$ --- sunt
+excluse complet din antrenare şi formează condiţia \texttt{unseen}, un test de
+\emph{combinaţie} nevăzută.
+
+Celula pe care o primeşte un eşantion este o funcţie deterministă de calea sa
+sursă, $\text{crc32}(\text{cale}) + 7919v + \text{sămânţă} \bmod |\text{celule}|$,
+în loc de o extragere aleatoare. Acest lucru face atribuirea reproductibilă şi,
+esenţial, \emph{independentă de eticheta de clasă}, astfel încât modelul nu poate
+folosi degradarea ca scurtătură pentru ,,generat''. Fiecare variantă a unei surse
+rămâne în interiorul partiţiei acelei surse; ambele proprietăţi sunt verificate
+prin teste unitare, iar fiecare rulare înregistrează o verificare explicită de
+scurgere a datelor (206{,}752 surse de antrenare, niciuna prezentă în vreuna
+dintre cele şase mulţimi de evaluare).
+
+\paragraph{Corecţia echilibrului claselor.} Lista simplă de antrenare cu 24 de
+celule conţine exact o celulă neatinsă, deci o sursă ajunge curată în
+$1/24 \approx 4\%$ din cazuri, iar capetele de blur/JPEG se antrenează pe
+71\%/83\% exemple pozitive. Acest lucru a înfometat capul AI. Am supraeşantionat
+celula curată de $12\times$, obţinând 36 de intrări dintre care 13 sunt
+neatinse. Aceasta corectează bine marginalele:
+
+\begin{center}
+\begin{tabular}{lcc}
+  \toprule
+   & înainte & după \\
+  \midrule
+  fracţiunea curată      & 4.2\%  & 36.1\% \\
+  pozitive blur          & 70.8\% & 47.2\% \\
+  pozitive JPEG          & 83.3\% & 55.6\% \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Rularea finală de antrenare.} Spre deosebire de baleiaje, această
+configuraţie a fost antrenată până la convergenţă:
+
+\begin{table}[h]
+  \centering
+  \caption{Modelul final conştient de degradare.}
+  \label{tab:final-training}
+  \begin{tabular}{ll}
+    \toprule
+    Reţea de bază      & varianta ResNet-50 a etajului de intrare, 1.44M parametri, 9 canale de intrare \\
+    Iniţializare       & pornire ,,caldă'' din \texttt{pretrained/model\_epoch\_best.pth}, \texttt{fc1} reiniţializat \\
+    Paşi / lot         & 200{,}000 $\times$ 32 (AMP), $\approx$7.7 epoci \\
+    Optimizator        & Adam $(0.9, 0.999)$, fără regularizare a ponderilor \\
+    Program lr         & lr $5\times10^{-5}$ cosinusoidal după 2{,}000 de paşi de încălzire, prag inferior $10^{-6}$ \\
+    Date               & 206{,}752 surse $\times$ 4 variante $\approx$ 827k eşantioane, 8 categorii \\
+    Timp real          & 9{,}886\,s ($\approx$2\,h\,45\,m) pe RTX 4090 \\
+    Post-antrenare     & BatchNorm recalibrat pe 50 de loturi, \emph{apoi} salvat \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[t]
+  \centering
+  \caption{Experimentul de degradare, ROC-AUC per condiţie. Rândurile cu 3{,}000
+  de paşi sunt rulările din protocolul de baleiaj; ultimul rând este modelul cu
+  200{,}000 de paşi.}
+  \label{tab:degradation}
+  \begin{tabular}{llrrrrrr}
+    \toprule
+    Model & Cap & clean & doar jpeg & doar blur & ambele & seen & unseen \\
+    \midrule
+    3k paşi, Shannon     & AI   & 0.8750 & 0.5602 & 0.6679 & 0.5746 & 0.5743 & 0.5411 \\
+    3k paşi, Rényi-4     & AI   & 0.9209 & 0.5928 & 0.6915 & 0.5780 & 0.5907 & 0.5389 \\
+    200k paşi, Shannon   & AI   & \textbf{0.9999} & 0.7141 & 0.8898 & 0.6401 & 0.7281 & 0.6099 \\
+    200k paşi, Shannon   & blur & --- & --- & --- & --- & 0.8705 & --- \\
+    200k paşi, Shannon   & JPEG & --- & --- & --- & --- & \textbf{1.0000} & --- \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\paragraph{Rezultat: sarcina auxiliară reuşeşte, cea principală nu.} Capul JPEG
+atinge un ROC-AUC de $1.0000$ cu o matrice de confuzie perfectă, iar capul de
+blur $0.8705$. Capul AI atinge $0.9999$ pe imagini curate --- confirmând că
+remedierea echilibrului claselor a funcţionat --- dar se degradează la $0.7141$
+sub JPEG şi la $0.6401$ când ambele degradări sunt prezente.
+
+Pe suita completă de test rezervată, modelul final obţine, pe fiecare mulţime de
+generatoare:
+
+\begin{center}
+\begin{tabular}{lrrr}
+  \toprule
+  Mulţime & generatoare & acurateţe medie & AP mediu \\
+  \midrule
+  Mulţimea de difuzie & 13 & 82.8\% & 92.4\% \\
+  Mulţimea GAN 1      & 13 & 72.7\% & 80.8\% \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+cu scoruri aproape perfecte pe generatoarele apropiate de datele de antrenare
+(ProGAN 99.3\% acurateţe / 100.0 AP, StarGAN 99.9/100.0, StyleGAN2 94.4/100.0) şi
+eşecuri pe altele (CRN 48.3/35.4, SeeingDark 50.0/40.6, improved-diffusion
+55.6/49.6). Un baleiaj dedicat de perturbaţii confirmă că decalajul de robusteţe
+supravieţuieşte antrenării complete: StarGAN scade de la AP 100.0 pe date curate
+la 58.7 la calitate JPEG 75, o cădere de 41.3 puncte --- pe o degradare care era
+\emph{în} grila de antrenare.
+
+\paragraph{Interpretare şi rezerve.} Două concluzii. În primul rând, hărţile de
+entropie chiar \emph{poartă} informaţie aproape completă despre faptul că o
+imagine a fost comprimată JPEG --- deci incapacitatea de a detecta prin compresie
+nu este o lipsă de informaţie despre compresie, ci o incapacitate de a o
+factoriza în afara deciziei AI-vs-real. În al doilea rând, şi negativ,
+antrenarea multi-sarcină nu a adus niciun câştig de robusteţe pentru capul
+principal.
+
+Menţionăm cinstit că scorul perfect al capului JPEG este parţial un artefact al
+protocolului nostru: blurul rulează întotdeauna \emph{înaintea} JPEG, deci
+compresia este întotdeauna ultima operaţie asupra pixelilor, iar artefactele sale
+de blocuri $8\times8$ ajung la reţea intacte, niciodată estompate de o
+reeşantionare ulterioară. O ordine aleatorizată a operaţiilor ar face sarcina
+substanţial mai grea. Sonda WebP este informativă aici: capul JPEG se activează
+la $\approx1.0$ pe WebP, care nu a fost niciodată în antrenare, deci ceea ce a
+învăţat este ,,este comprimată'', nu ,,este JPEG''.
+
+O a doua limitare priveşte condiţia \texttt{unseen}. Toate cele patru celule
+excluse au \emph{atât} JPEG $\neq$ fără pierderi, \emph{cât şi} blur $\neq$ fără,
+deci acea condiţie nu conţine exemple negative pentru niciunul dintre capetele
+auxiliare, iar AP/ROC-AUC ale acestora sunt acolo nedefinite. Mulţimea exclusă ar
+fi trebuit să includă cel puţin o celulă cu o singură degradare şi una curată;
+aşa cum a fost proiectată, \texttt{unseen} măsoară doar capul AI.
+
+\section{Sinteza experimentelor}
+\label{sec:summary}
+
+\begin{table}[t]
+  \centering
+  \caption{Toate modificările investigate. $\Delta_{\text{clean}}$ este
+  variaţia AP pe date curate, iar $\Delta_{\text{corr}}$ variaţia AP mediată pe
+  cele patru scenarii corupte, ambele relative la controlul potrivit sub acelaşi
+  protocol. Rândurile marcate cu $^\dagger$ sunt împerecheate cu referinţa
+  \emph{augmentată} corespunzătoare, nu cu \texttt{baseline\_2x2}; rândurile
+  marcate cu $^\ddagger$ provin din rularea de triere de 200 de paşi. Abaterea
+  standard între seminţe este $\pm0.002$ pe date curate şi până la $\pm0.03$ pe
+  date corupte, deci orice se află în această bandă este zgomot.}
+  \label{tab:summary}
+  \small
+  \begin{tabular}{llrrl}
+    \toprule
+    \# & Modificare & $\Delta_{\text{clean}}$ & $\Delta_{\text{corr}}$ & Rezultat \\
+    \midrule
+    1 & Fereastră $3\times3$                     & $-0.0072$ & $-0.0030$ & eşec \\
+    1 & Fereastră $8\times8$                     & $-0.4584$ & $-0.0223$ & eşec (monoton în $w$) \\
+    1 & \texttt{unique} în loc de Shannon        & $+0.0001$ & $-0.0062$ & niciun efect \\
+    \midrule
+    2 & Ferestre multiple $\{2,4,6\}$            & $-0.0014$ & $-0.0098$ & eşec \\
+    2 & \quad + normalizare per fereastră        & $-0.0041$ & $-0.0057$ & eşec \\
+    2 & \quad + înregistrare exactă (pad)        & $-0.0035$ & $-0.0148$ & eşec \\
+    \midrule
+    3 & Rényi $\alpha \in \{0.5,2,4\}$           & $\pm0.001$ & $+0.015$ (blur) & în limita zgomotului \\
+    3 & Tsallis $q \in \{0.5,2,4\}$              & $\pm0.001$ & $\pm0.010$ & în limita zgomotului \\
+    3 & Entropie de permutare$^{*}$              & $-0.1891$ & $+0.037$ & eşec \\
+    3 & Toate funcţionalele stivuite$^{*}$       & $-0.0124$ & $\pm0.010$ & eşec \\
+    \midrule
+    4 & Entropie comună de culoare (aditivă)     & $+0.0003$ & $-0.0020$ & în limita zgomotului \\
+    4 & Doar entropie comună de culoare          & $-0.0158$ & $+0.0180$ & eşec \\
+    4 & Entropie comună + augm. JPEG$^\dagger$   & $-0.0032$ & $+0.0144$ & în limita zgomotului \\
+    \midrule
+    5 & Separare texturi, concat$^\ddagger$      & $-0.0309$ & $-0.0277$ & eşec \\
+    5 & Separare texturi, diff$^\ddagger$        & $-0.0403$ & $-0.0090$ & eşec \\
+    5 & Separare texturi + augm. blur$^\dagger$  & $+0.0005$ & $-0.0061$ & în limita zgomotului \\
+    5 & Separare texturi + augm. JPEG$^\dagger$  & $-0.0010$ & $-0.0068$ & în limita zgomotului \\
+    \midrule
+    6 & Augmentare blur ($p=0.5$)                & $-0.0043$ & $\mathbf{+0.0056}$ & \textbf{succes, îngust} \\
+    6 & Augmentare JPEG ($p=0.5$)                & $-0.0113$ & $+0.0196$ & parţial, celulele tot $<0.5$ \\
+    6 & Augmentare JPEG ($p=1.0$)                & $-0.0640$ & $-0.0237$ & eşec \\
+    6 & Augmentare WebP ($p=1.0$)                & $-0.3548$ & $\mathbf{+0.0584}$ & compromis, nu o soluţie \\
+    \midrule
+    7 & Predicţie a degradării cu mai multe capete & $\approx 0$ & $\approx 0$ & doar sarcină auxiliară \\
+    \bottomrule
+  \end{tabular}
+  \\[2pt]
+  \raggedright\footnotesize
+  $^{*}$ ROC-AUC în loc de AP (etapa profundă a entropiei raportează ROC-AUC).
+\end{table}
+
+Pentru succesele înguste merită izolată celula specifică, nu media. Augmentarea
+cu blur mută scenariul \texttt{blur} de la $0.6817$ la $0.7229$ ($+0.0412$);
+augmentarea JPEG mută \texttt{jpeg} de la $0.4199$ la $0.4726$ ($+0.0527$);
+augmentarea WebP la $p=1.0$ mută \texttt{jpeg} de la $0.4199$ la $0.5950$
+($+0.1751$), singura valoare coruptă decisiv peste nivelul hazardului din studiu,
+cu preţul a $0.355$ AP pe date curate.
+
+\paragraph{Reproductibilitate.} \texttt{baseline\_2x2} a fost reantrenat de la
+zero în trei rulări independente, în zile diferite, şi a returnat un AP pe date
+curate de $0.9979$ în toate cele trei, cu un AP corupt mediu de $0.4869$,
+$0.4866$ şi $0.4868$. Aparatul de măsură este deci stabil la aproximativ
+$\pm0.0003$ pentru o sămânţă fixată, ceea ce justifică tratarea diferenţelor de
+sub $0.002$ de mai sus ca zgomot, nu ca efecte mici.
+
+\subsection{Ameninţări la adresa validităţii}
+
+Trei rezerve limitează forţa acestor rezultate negative.
+
+\begin{enumerate}
+  \item \textbf{Durata antrenării.} Baleiajele folosesc 3{,}000 de paşi ca
+    aproximare pentru antrenarea completă. O modificare care are nevoie de mai
+    mult timp pentru a da roade ar fi punctată aici ca eşec. Singura
+    configuraţie pe care am antrenat-o 200{,}000 de paşi
+    (Secţiunea~\ref{sec:exp-degradation}) s-a îmbunătăţit substanţial în termeni
+    absoluţi --- ROC-AUC pe date curate $0.875 \to 0.9999$ --- dar decalajul său
+    \emph{relativ} de robusteţe nu s-a închis, ceea ce constituie o dovadă slabă
+    că ordonarea este stabilă în raport cu durata antrenării.
+  \item \textbf{Seminţele.} Doar comparaţia entropiilor a fost rulată pe trei
+    seminţe. Diferenţele cu o singură sămânţă sub $\approx0.002$ AP pe date
+    curate nu sunt interpretabile şi ne-am abţinut de la a revendica vreuna.
+  \item \textbf{Domeniul grilei de augmentare.} Blurul este întotdeauna aplicat
+    înaintea JPEG, iar reîncodarea după redimensionare --- fluxul cel mai
+    frecvent în lumea reală --- nu este testată.
+\end{enumerate}
+
+\section{Concluzie şi tranziţie}
+\label{sec:conclusion}
+
+Am investigat unsprezece modificări distincte ale etajului de entropie al MLEP,
+acoperind geometria ferestrei (dimensiune, multiplicitate, normalizare,
+înregistrare), funcţionala de entropie (Rényi, Tsallis, permutare şi
+combinaţiile lor), structura canalelor (entropia comună de culoare între
+canale), descompunerea spaţială (separarea texturilor bogate/sărace) şi
+distribuţia de antrenare (augmentare cu blur, JPEG şi WebP la două
+probabilităţi). Nu am reuşit să găsim o modificare care să îmbunătăţească
+acurateţea de detecţie a MLEP pe imagini curate dincolo de zgomotul dintre
+seminţe şi nu am reuşit să găsim niciuna care să îi restabilească robusteţea la
+recompresie.
+
+Rezultatele converg către o singură explicaţie, ilustrată concret în
+Secţiunea~\ref{sec:worked-example}. Trăsătura MLEP este o numărare a duplicării
+locale de valori. Supraeşantionarea generativă creează o astfel de duplicare;
+la fel şi compresia cu pierderi. Cele două cauze nu sunt doar confundabile ---
+ele acţionează asupra trăsăturii în \emph{aceeaşi direcţie}, astfel încât o
+fotografie reală puternic comprimată prezintă aceeaşi semnătură de entropie
+scăzută ca o imagine generată. Acesta este motivul pentru care fiecare precizie
+medie în condiţie coruptă pe care am măsurat-o se află sub $0.5$: nu un detector
+slab, ci unul inversat. Şi este motivul pentru care fiecare intervenţie a eşuat
+în acelaşi mod. Schimbarea ferestrei schimbă scara spaţială la care se măsoară
+ambiguitatea; schimbarea funcţionalei reetichetează aceleaşi cinci partiţii;
+adăugarea hărţii comune de culoare adaugă o statistică pe care
+supraeşantionarea o corelează oricum cu marginalele. Niciuna dintre ele nu
+adaugă un canal în care ,,neted pentru că este generat'' şi ,,neted pentru că
+este comprimat'' să fie \emph{separabile}, deoarece această distincţie nu este
+deloc prezentă în duplicarea locală de valori. Experimentul 7 exprimă acest
+lucru cu precizie: acelaşi etaj de intrare identifică compresia JPEG cu un
+ROC-AUC de $1.0000$, dar nu poate folosi acea cunoaştere pentru a-şi proteja
+propria decizie AI-vs-real.
+
+Singura intervenţie care a mutat decisiv o celulă coruptă peste nivelul
+hazardului (augmentarea WebP la probabilitatea $1.0$, AP pe jpeg $0.5950$) a
+făcut-o sacrificând AP pe date curate de la $0.998$ la $0.643$. Acest compromis
+este cea mai clară dovadă că limitarea este de natură reprezentaţională, nu una
+de antrenare: în interiorul acestui spaţiu de trăsături, detecţia pe imagini
+curate şi detecţia robustă la compresie sunt obiective antagonice.
+
+Concluzionăm, prin urmare, că robusteţea MLEP nu poate fi reparată din interiorul
+propriului său etaj de intrare şi că informaţia lipsă trebuie să provină dintr-o
+reprezentare \emph{diferită} --- una ale cărei moduri de eşec nu sunt aliniate cu
+cele ale MLEP. Acest lucru motivează abordarea combinată investigată în restul
+lucrării, în care MLEP este împerecheat cu un al doilea detector construit pe
+principii diferite, astfel încât degradările care distrug dovezile unui model să
+le lase intacte pe ale celuilalt. Această combinaţie este dezvoltată în capitolul
+următor.
