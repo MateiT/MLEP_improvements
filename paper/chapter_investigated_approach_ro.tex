@@ -504,9 +504,20 @@ mare.
 \paragraph{Metoda.} Am antrenat câte o configuraţie pentru fiecare dimensiune de
 fereastră $w \in \{2,3,4,5,6,7,8\}$, menţinând fixe piramida cu trei scări,
 reţeaua de bază, numărul de paşi şi orice alt hiperparametru. Am testat
-suplimentar \texttt{unique}, care înlocuieşte entropia cu o simplă numărare a
-valorilor distincte din fereastră, adică cardinalul mulţimii de valori în locul
-unei funcţii ponderate a distribuţiei.
+suplimentar \texttt{unique}, o măsură deliberat mai săracă decât entropia:
+în loc să cântărească fiecare valoare după cât de des apare, ea numără pur şi
+simplu câte valori distincte există în fereastră. Pe o fereastră $2\times2$
+aceasta atribuie celor cinci cazuri din Tabelul~\ref{tab:2x2} valorile
+$1, 2, 2, 3, 4$.
+
+Acea repetiţie a lui $2$ nu este o scăpare, ci esenţa testului. Cazul ,,trei
+egale'' şi cazul ,,două perechi'' conţin amândouă exact două valori distincte,
+deci \texttt{unique} le \emph{contopeşte} într-o singură categorie, deşi
+entropia Shannon le separă ($0.8113$ faţă de $1.0$). Cu alte cuvinte,
+\texttt{unique} nu este o simplă reetichetare a celor cinci cazuri, ci o
+cuantizare pe \emph{patru} niveluri în loc de cinci: distruge efectiv informaţie
+pe care etajul de intrare o avea. Dacă distincţia dintre ,,trei egale'' şi
+,,două perechi'' contează, \texttt{unique} trebuie să fie măsurabil mai slabă.
 
 \begin{table}[t]
   \centering
@@ -547,12 +558,32 @@ statistică de mulţime, ea nu poate separa cele două contribuţii odată amest
 din reţeaua de supraeşantionare sau din iarbă. Cuantizarea grosieră pe cinci
 niveluri nu este o limitare care trebuie depăşită; este un filtru adaptat.
 
-De remarcat, de asemenea, că \texttt{unique} performează identic cu entropia
-Shannon ($0.9980$ faţă de $0.9979$). Întrucât \texttt{unique} elimină complet
-multiplicităţile şi păstrează doar numărul de valori distincte, aceasta este
-prima indicaţie că \emph{funcţionala precisă} nu poartă practic nicio informaţie
-dincolo de partiţia grosieră --- o constatare pe care
-Secţiunea~\ref{sec:exp-entropy} o confirmă mult mai temeinic.
+\paragraph{Rezultatul testului \texttt{unique}.} Nu contează. \texttt{unique}
+obţine $0.9980$ AP pe date curate faţă de $0.9979$ pentru Shannon --- o diferenţă
+de $0.0001$, cu un ordin de mărime sub abaterea standard între seminţe de
+$\pm0.002$ măsurată ulterior în Tabelul~\ref{tab:entropy-seeds}. Cele două sunt,
+practic, aceeaşi configuraţie. Ba mai mult, \texttt{unique} este şi cu
+$17$\,s mai rapidă, pentru că numărarea valorilor distincte este o operaţie mai
+ieftină decât evaluarea unei entropii.
+
+Acest rezultat este mai puternic decât pare la prima vedere. Nu am înlocuit
+entropia cu o măsură echivalentă, ci cu una \emph{strict mai săracă}, care
+contopeşte două dintre cele cinci cazuri --- şi nu s-a pierdut nimic. Prin
+urmare, distincţia dintre ,,trei pixeli egali'' şi ,,două perechi'' este
+irelevantă pentru sarcină: reţelei îi este suficient să ştie aproximativ câte
+valori diferite se află într-o fereastră, iar modul exact în care acestea sunt
+distribuite nu adaugă nimic.
+
+Aceasta este prima indicaţie că \emph{funcţionala precisă} nu poartă informaţie
+utilă dincolo de o partiţionare foarte grosieră a ferestrei --- şi ea prefigurează
+direct rezultatul nul din Secţiunea~\ref{sec:exp-entropy}, unde şase funcţionale
+suplimentare, alese tocmai pentru a repondera aceleaşi valori în moduri
+diferite, ajung la aceeaşi concluzie. Merită observat că \texttt{unique} este de
+fapt un membru al familiei Rényi testate acolo: la limita $\alpha \to 0$, entropia
+Rényi devine exact $\log_2$ din numărul de valori distincte, adică
+\texttt{unique} până la o transformare monotonă. Fără să fi intenţionat asta,
+Experimentul 1 testase deja un capăt al intervalului pe care Experimentul 3 avea
+să îl exploreze sistematic.
 
 \section{Experimentul 2: ferestre multiple, normalizare şi înregistrare}
 \label{sec:exp-multiwindow}
@@ -567,29 +598,61 @@ aceeaşi piramidă, obţinând $3 \times 3 \times 3 = 27$ canale de intrare.
 Am identificat în plus două defecte ale combinaţiei naive şi am testat câte o
 corecţie pentru fiecare, ca gemeni exacţi care schimbă un singur lucru.
 
-\begin{description}
-  \item[Nepotrivirea intervalului dinamic.] Entropia Shannon este mărginită de
-    $\log_2 w^2$: $2.0$ biţi pentru $2\times2$, dar $\approx5.17$ pentru
-    $6\times6$. Canalele cu ferestre late intră deci în \texttt{conv1} cu un
-    interval dinamic de $2.5\times$ mai mare decât cele înguste. \texttt{conv1}
-    are \texttt{bias=False}, iar \texttt{bn1} normalizează cele 64 de canale de
-    \emph{ieşire} \emph{după} ce convoluţia a însumat deja intrările, aşa că
-    nimic în aval nu anulează acest dezechilibru. \texttt{normalize\_entropy}
-    împarte fiecare hartă la propriul $\log_2 K$.
-  \item[Dezalinierea spaţială.] O hartă cu fereastră $w$ are lăţimea $H-w+1$,
-    deci cele trei hărţi diferă ca dimensiune, iar calea implicită le
-    reeşantionează biliniar pe grila $2\times2$. Acest lucru este de două ori
-    păgubitor: aliniază extremităţile exterioare ale hărţilor, nu pixelii pe care
-    îi descriu, ceea ce le \emph{întinde} în loc să le deplaseze (eroare măsurată
-    $\approx0$ în centrul imaginii, crescând la $\approx1.6$\,px pentru fereastra
-    $6\times6$ lângă margine), iar reeşantionarea estompează exact structura de
-    frecvenţă înaltă care constituie întregul semnal. O reţea convoluţională
-    poate absorbi o deplasare constantă în poziţiile filtrelor învăţate, dar nu
-    şi o deformare dependentă de poziţie, întrucât ponderile sunt partajate.
-    Varianta \texttt{pad} completează prin replicare cu $(w-w_{\min})/2$ în
-    schimb, ceea ce este exact, fără interpolare, şi s-a măsurat că a costat
-    $+1$\,MiB şi niciun timp suplimentar.
-\end{description}
+\paragraph{Primul defect: nepotrivirea intervalului dinamic.} Valoarea maximă pe
+care o poate lua entropia depinde de dimensiunea ferestrei. O fereastră
+$2\times2$ conţine patru pixeli, deci cel mult patru valori distincte şi cel
+mult $\log_2 4 = 2$ biţi, în timp ce o fereastră $6\times6$ conţine 36 de pixeli
+şi urcă până la $\log_2 36 \approx 5.17$ biţi. Harta produsă de fereastra lată
+are aşadar numere sistematic de circa $2.5$ ori mai mari --- nu pentru că ar fi
+găsit mai multe dovezi despre generator, ci pur şi simplu pentru că fereastra
+este mai mare. Când stivuim cele trei hărţi şi le dăm primei convoluţii, aceasta
+înmulţeşte fiecare canal cu o pondere şi adună rezultatele, aşa că, la
+iniţializare, canalul cu numere mari domină suma indiferent de cât de informativ
+este. Iar acest dezechilibru nu se corectează mai târziu: \texttt{conv1} nu are
+termen liber, iar \texttt{bn1} normalizează cele 64 de canale de \emph{ieşire},
+adică după ce adunarea a avut deja loc, deci nu mai poate separa contribuţiile
+individuale ale intrărilor. Corecţia este simplă: \texttt{normalize\_entropy}
+împarte fiecare hartă la propriul ei maxim teoretic $\log_2 K$, unde $K = w^2$.
+Toate hărţile ajung astfel în intervalul $[0,1]$ şi importanţa fiecăreia rămâne
+să fie decisă de ponderile învăţate, nu de un accident al dimensiunii ferestrei.
+
+\paragraph{Al doilea defect: dezalinierea spaţială.} O fereastră $w\times w$
+glisată cu pasul $1$ încape de $H-w+1$ ori pe o latură, deci ferestrele mai mari
+produc hărţi mai mici: la un decupaj de $224$ pixeli, fereastra $2\times2$ dă o
+hartă de $223\times223$, cea $4\times4$ una de $221\times221$, iar cea $6\times6$
+una de $219\times219$. Pentru a le putea stivui într-un singur tensor, ele
+trebuie aduse la aceeaşi dimensiune, iar varianta implicită le reeşantionează
+biliniar la dimensiunea celei mai mari. Problema este că reeşantionarea aliniază
+marginile hărţilor şi le \emph{întinde} conţinutul, în loc să îl deplaseze:
+valoarea de la poziţia $(i,j)$ descrie fereastra care \emph{începe} la $(i,j)$,
+adică una centrată la $(i + (w-1)/2)$, aşa că hărţi cu ferestre diferite descriu
+centre decalate între ele. Întinderea corectează acest decalaj în centrul
+imaginii, dar îl lasă tot mai mare spre margini (până la $\approx1.6$ pixeli
+pentru fereastra $6\times6$), iar interpolarea estompează în plus tocmai
+structura de frecvenţă înaltă care constituie întregul semnal. O reţea
+convoluţională poate absorbi o deplasare constantă în poziţiile filtrelor
+învăţate, dar nu şi o deformare dependentă de poziţie, întrucât ponderile sunt
+partajate.
+
+Corecţia este să nu întindem nimic, ci să completăm hărţile mici cu
+$d = (w-w_{\min})/2$ poziţii pe fiecare latură: harta $4\times4$ primeşte o
+poziţie de fiecare parte ($221 + 2 = 223$), iar cea $6\times6$ două
+($219 + 4 = 223$). Poziţia $(i,j)$ ajunge astfel să descrie exact acelaşi loc din
+imagine în toate cele trei hărţi, fără nicio interpolare şi fără nicio pierdere
+de detaliu. Valorile adăugate sunt copii ale marginii existente
+(\texttt{mode='replicate'}), nu zerouri: pe o hartă de entropie, zero este o
+valoare cu semnificaţie --- înseamnă ,,toţi pixelii ferestrei sunt identici'',
+adică semnătura perfectă a unei zone supraeşantionate --- aşa că o bordură de
+zerouri ar înconjura fiecare imagine cu un cadru artificial perfect plat, un
+artefact puternic şi constant pe care reţeaua l-ar exploata imediat. Varianta
+\texttt{pad} este exactă, fără interpolare, şi s-a măsurat că a costat
+$+1$\,MiB şi niciun timp suplimentar.
+
+Cele două corecţii sunt testate \emph{separat}: \texttt{multiwindow\_normalized}
+schimbă doar normalizarea (păstrând reeşantionarea), iar
+\texttt{multiwindow\_aligned} doar alinierea (păstrând scările neuniforme). Nicio
+configuraţie nu le combină, aşa că un eventual efect al aplicării lor simultane
+rămâne nemăsurat.
 
 \begin{table}[t]
   \centering
@@ -641,15 +704,94 @@ Concret, am testat:
   & q &\in \{0.5, 2, 4\} \label{eq:tsallis}
 \end{align}
 
-Ambele se reduc la Shannon când $\alpha, q \to 1$; $\alpha > 1$ accentuează
-valoarea dominantă, $\alpha < 1$ pe cele rare. Am testat de asemenea entropia de
-\emph{permutare} (tipare ordinale Bandt--Pompe), care este categoric diferită: ea
-elimină magnitudinile şi păstrează doar \emph{ordinea de rang} a pixelilor,
-fiind astfel invariantă la orice transformare monotonă a intensităţii. Întrucât o
-singură fereastră citită ca o secvenţă produce exact un tipar ordinal (şi deci
-entropie zero), definim populaţia de tipare din interiorul unei ferestre ca
-totalitatea subsecvenţelor de ordin 3 ale liniilor şi coloanelor sale; acest
-lucru necesită $w \geq 3$.
+\paragraph{Rényi: un buton care reglează cât contează valorile rare.} Entropia
+Shannon dă fiecărei valori ponderea $-p\log_2 p$. Rényi introduce un exponent
+reglabil $\alpha$ care mută atenţia măsurii: pentru $\alpha > 1$ domină valoarea
+cea mai frecventă, iar măsura devine practic ,,cât de concentrată este
+distribuţia''; pentru $\alpha < 1$ valorile rare capătă greutate, iar măsura se
+apropie de ,,câte feluri de valori există, indiferent cât de des apar''; la
+limita $\alpha \to 1$ se regăseşte exact Shannon. Un caz limită merită
+menţionat: la $\alpha \to 0$, Rényi devine $\log_2$ din numărul de valori
+distincte, adică exact măsura \texttt{unique} testată în
+Secţiunea~\ref{sec:exp-window}. Rényi este aşadar o familie continuă care
+conţine \texttt{unique} la un capăt şi Shannon la mijloc.
+
+Motivul pentru care aceasta era o ipoteză rezonabilă ţine de mecanismul fizic:
+zgomotul de senzor produce valori care apar o singură dată în fereastră, iar
+supraeşantionarea nu produce aşa ceva. Accentuând valorile rare, ar trebui
+amplificată tocmai diferenţa dintre real şi generat.
+
+\paragraph{Tsallis: aceeaşi idee, fără logaritm.} Tsallis are şi ea un exponent
+reglabil, $q$, şi porneşte de la aceeaşi sumă $\sum_g p_g^{q}$. Diferenţa este că
+nu îi aplică logaritmul, ci o rescalare liniară. Consecinţa teoretică este că
+Shannon şi Rényi sunt \emph{aditive} --- entropia a două sisteme independente
+este suma entropiilor lor --- în timp ce Tsallis nu este, fiind construită în
+fizica statistică exact pentru sisteme cu corelaţii pe distanţă lungă, unde
+aditivitatea nu se mai susţine. Cum pixelii unei imagini sunt puternic coreloaţi,
+alegerea părea potrivită. Consecinţa practică pe o fereastră de patru pixeli
+este însă alta: se schimbă scara (maximul este $0.75$ în loc de $2$ biţi), dar
+nu şi conţinutul informaţional.
+
+\paragraph{De ce niciuna dintre ele nu putea ajuta.} Argumentul devine evident
+numeric dacă evaluăm fiecare funcţională pe cele cinci cazuri posibile ale unei
+ferestre $2\times2$ (Tabelul~\ref{tab:2x2}):
+
+\begin{table}[h]
+  \centering
+  \caption{Valoarea atribuită de fiecare funcţională celor cinci configuraţii
+  posibile ale unei ferestre $2\times2$. Toate cresc în aceeaşi ordine: nicio
+  funcţională nu inversează vreo pereche şi niciuna nu separă cazuri pe care
+  celelalte le confundă. Excepţia este \texttt{unique}, care \emph{contopeşte}
+  cazurile $(3,1)$ şi $(2,2)$ --- şi care, cu toate acestea, obţine acelaşi scor
+  (Secţiunea~\ref{sec:exp-window}).}
+  \label{tab:functionals-2x2}
+  \begin{tabular}{lcccccc}
+    \toprule
+    Caz & Shannon & Rényi $0.5$ & Rényi $2$ & Rényi $4$ & Tsallis $2$ & \texttt{unique} \\
+    \midrule
+    toate patru egale   & 0.000 & 0.000 & 0.000 & 0.000 & 0.000 & 1 \\
+    trei egale $(3,1)$  & 0.811 & 0.900 & 0.678 & 0.548 & 0.375 & 2 \\
+    două perechi $(2,2)$& 1.000 & 1.000 & 1.000 & 1.000 & 0.500 & 2 \\
+    o pereche $(2,1,1)$ & 1.500 & 1.543 & 1.415 & 1.277 & 0.625 & 3 \\
+    toate diferite      & 2.000 & 2.000 & 2.000 & 2.000 & 0.750 & 4 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Toate coloanele cresc în aceeaşi ordine. Nicio funcţională nu inversează vreo
+pereche de cazuri, niciuna nu uneşte două cazuri care erau separate şi niciuna
+nu separă două cazuri care erau unite. Se schimbă doar \emph{spaţierea} celor
+cinci niveluri --- iar prima convoluţie, urmată de BatchNorm, poate reaşeza
+oricum acele cinci niveluri cum îi convine. Practic, reglăm din exterior un buton
+pe care reţeaua îl are deja şi îl poate roti singură în timpul antrenării.
+
+\paragraph{Permutare: singura cu adevărat diferită.} Entropia de permutare
+(tipare ordinale Bandt--Pompe) nu se uită deloc la valori, ci doar la
+\emph{ordinea} lor. Se iau trei pixeli consecutivi şi se reţine doar care este
+cel mai mic, care este la mijloc şi care este cel mai mare; există $3! = 6$
+tipare ordinale posibile. Se numără cât de des apare fiecare tipar şi se
+calculează entropia acestei distribuţii de şase simboluri. Avantajul teoretic
+este că măsura devine complet invariantă la orice transformare monotonă a
+intensităţii --- luminozitate, gamma, contrast --- deci imună la o întreagă clasă
+de manipulări fotometrice.
+
+Aceasta este singura funcţională care aduce informaţie genuin nouă, întrucât
+ordinea de rang nu este o funcţie a partiţiei de valori. Şi tot ea este cea care
+pierde cel mai mult, dintr-un motiv care se vede imediat: \textbf{egalitatea este
+invizibilă pentru o statistică de rang}. Dacă doi pixeli au exact aceeaşi
+valoare, nu există ,,care este mai mare'' şi departajarea devine arbitrară --- iar
+duplicarea valorilor \emph{este} întreaga amprentă exploatată de MLEP. Măsura
+aruncă exact singurul indiciu care conta.
+
+Întrucât o singură fereastră citită ca o secvenţă produce exact un tipar ordinal
+(şi deci entropie zero), definim populaţia de tipare din interiorul unei ferestre
+ca totalitatea subsecvenţelor de ordin 3 ale liniilor şi coloanelor sale; acest
+lucru necesită $w \geq 3$. De aici decurge o rezervă pe care o semnalăm explicit:
+entropia de permutare nu a putut fi niciodată evaluată la $w=2$, deci rezultatul
+ei este parţial confundat cu efectul de dimensiune a ferestrei stabilit în
+Secţiunea~\ref{sec:exp-window}, unde ferestrele mai mari pierdeau oricum.
+Căderea măsurată este considerabil mai mare decât ar explica singur acel efect,
+deci concluzia se menţine --- dar comparaţia nu este perfect controlată.
 
 \paragraph{Metoda.} Experimentul s-a desfăşurat în două etape, astfel încât un
 rezultat nul să nu poată fi pus pe seama optimizării modelului profund.
@@ -741,9 +883,9 @@ $0.502$--$0.532$, adică abia peste nivelul hazardului pentru fiecare
 funcţională.
 
 \paragraph{Interpretare.} Acesta este cel mai puternic rezultat nul din capitol
-şi decurge din Tabelul~\ref{tab:2x2}. La $w=2$ fereastra admite doar cinci
-partiţii posibile ale celor patru valori. \emph{Orice} funcţională de entropie
-este o funcţie doar de partiţie, deci fiecare funcţională din
+şi decurge din Tabelul~\ref{tab:functionals-2x2}. La $w=2$ fereastra admite doar
+cinci partiţii posibile ale celor patru valori. \emph{Orice} funcţională de
+entropie este o funcţie doar de partiţie, deci fiecare funcţională din
 Ecuaţiile~\ref{eq:renyi} şi \ref{eq:tsallis} este doar o reetichetare a
 aceloraşi cinci categorii prin cinci numere reale diferite --- şi încă o
 reetichetare strict monotonă. Prima convoluţie poate absorbi aproape complet o
@@ -753,6 +895,15 @@ oricum liberă să le respaţieze. Entropia de permutare este singura funcţiona
 cu adevărat diferită, întrucât ordinea de rang nu este o funcţie de partiţia
 valorilor --- şi este net \emph{mai slabă}, deoarece eliminarea magnitudinilor
 elimină indiciul de duplicare a valorilor, care constituie întreaga amprentă.
+
+Testul \texttt{unique} din Secţiunea~\ref{sec:exp-window} împinge concluzia cu
+un pas mai departe. Rényi şi Tsallis nu puteau adăuga informaţie, fiindcă sunt
+reetichetări monotone ale aceloraşi cinci cazuri; \texttt{unique}, în schimb,
+chiar \emph{elimină} informaţie, contopind cazurile $(3,1)$ şi $(2,2)$ într-o
+singură categorie --- şi nici asta nu a schimbat rezultatul. Aşadar, conţinutul
+util al ferestrei este chiar mai grosier decât cele cinci niveluri: reţelei îi
+este suficient să ştie aproximativ câte valori distincte există, iar modul în
+care acestea sunt distribuite nu contează în niciun sens măsurabil.
 
 (Acest argument al partiţiei produce şi un rezultat ingineresc util: o tabelă de
 căutare cu cinci intrări, indexată după numărul de perechi egale, calculează
@@ -1146,7 +1297,7 @@ aşa cum a fost proiectată, \texttt{unseen} măsoară doar capul AI.
     \midrule
     1 & Fereastră $3\times3$                     & $-0.0072$ & $-0.0030$ & eşec \\
     1 & Fereastră $8\times8$                     & $-0.4584$ & $-0.0223$ & eşec (monoton în $w$) \\
-    1 & \texttt{unique} în loc de Shannon        & $+0.0001$ & $-0.0062$ & niciun efect \\
+    1 & \texttt{unique} în loc de Shannon        & $+0.0001$ & $-0.0062$ & niciun efect (deşi pierde un nivel) \\
     \midrule
     2 & Ferestre multiple $\{2,4,6\}$            & $-0.0014$ & $-0.0098$ & eşec \\
     2 & \quad + normalizare per fereastră        & $-0.0041$ & $-0.0057$ & eşec \\

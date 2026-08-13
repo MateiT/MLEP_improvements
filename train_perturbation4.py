@@ -288,6 +288,21 @@ def parse_args():
                    help='0 = full epochs; >0 caps steps per epoch (smoke test)')
     p.add_argument('--init_from', default='',
                    help='warm-start checkpoint; fc1.* is re-initialised')
+    # --- resuming, so the lr schedule can be changed mid-run ---------------- #
+    # --init_from drops fc1 (it is for adapting a 1-output model to 4 outputs).
+    # --resume keeps every tensor, which is what continuing THIS run needs.
+    p.add_argument('--resume', default='',
+                   help='continue from a checkpoint, fc1 included (unlike '
+                        '--init_from). Loads optim_epoch_<n>.pth beside it if present.')
+    p.add_argument('--start_epoch', type=int, default=0,
+                   help='epoch index to resume at; drives the --delr_freq '
+                        'arithmetic and the checkpoint filenames')
+    p.add_argument('--best_ap', type=float, default=-1.0,
+                   help='best val ai AP so far, so a resumed run does not '
+                        'overwrite a better model_epoch_best.pth')
+    p.add_argument('--lr_gamma', type=float, default=0.9,
+                   help='lr multiplier at each decay (released MLEP: 0.9)')
+    p.add_argument('--lr_min', type=float, default=1e-6)
     p.add_argument('--no_amp', action='store_true')
     p.add_argument('--device', default='')
     p.add_argument('--audit', action='store_true',
@@ -345,13 +360,33 @@ def main():
 
     model = resnet50(pretrained=False, num_classes=4,
                      window_sizes=[2], scales=[1.0, 0.5, 0.25]).to(device)
-    init_note = warm_start(model, args.init_from) if args.init_from \
-        else "random init (ImageNet weights do not fit this architecture)"
+    if args.resume:
+        model.load_state_dict(torch.load(args.resume, map_location='cpu',
+                                         weights_only=True))
+        init_note = f"resumed from {args.resume} at epoch {args.start_epoch}"
+    elif args.init_from:
+        init_note = warm_start(model, args.init_from)
+    else:
+        init_note = "random init (ImageNet weights do not fit this architecture)"
     n_params = sum(p.numel() for p in model.parameters())
 
     criterion = nn.BCEWithLogitsLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr,
                                  betas=(args.beta1, 0.999))
+    # Adam's moment estimates are saved separately so model_epoch_*.pth stays a
+    # bare state_dict -- scripts/eval_trained_model.py and the MLEP_SPAI wrapper
+    # both load it directly, and wrapping it would break them.
+    if args.resume:
+        opt_path = os.path.join(os.path.dirname(args.resume),
+                                'optim_epoch_%d.pth' % args.start_epoch)
+        if os.path.exists(opt_path):
+            optimizer.load_state_dict(torch.load(opt_path, map_location=device,
+                                                 weights_only=False))
+            for pg in optimizer.param_groups:      # honour a new --lr
+                pg['lr'] = args.lr
+            init_note += f"; Adam state from {os.path.basename(opt_path)}"
+        else:
+            init_note += "; Adam state RESET (no optim_epoch_*.pth found)"
     scaler = torch.amp.GradScaler('cuda', enabled=use_amp)
 
     train_loader = make_loader(train_set, args, shuffle=True, drop_last=True)
@@ -388,13 +423,13 @@ def main():
         with open(out, 'w') as f:
             f.write("\n".join(header[:-1] + [f"STATUS: {status}", ""] + lines) + "\n")
 
-    best = dict(ap=-1.0, epoch=-1)
+    best = dict(ap=args.best_ap, epoch=args.start_epoch - 1)
     bad_epochs = 0
     lr_now = args.lr
     log = []
     t_start = time.time()
 
-    for epoch in range(args.niter):
+    for epoch in range(args.start_epoch, args.niter):
         model.train()
         t0, run_loss, nb = time.time(), 0.0, 0
         for i, (img, tgt) in enumerate(train_loader):
@@ -429,6 +464,8 @@ def main():
 
         torch.save(model.state_dict(),
                    os.path.join(save_dir, f'model_epoch_{epoch}.pth'))
+        torch.save(optimizer.state_dict(),
+                   os.path.join(save_dir, f'optim_epoch_{epoch}.pth'))
         if ap > best['ap']:
             best = dict(ap=ap, epoch=epoch, **{h: r[h] for h in HEADS})
             bad_epochs = 0
@@ -441,7 +478,7 @@ def main():
         # released recipe: decay at the END of every delr_freq-th epoch
         if epoch % args.delr_freq == 0 and epoch != 0:
             for pg in optimizer.param_groups:
-                pg['lr'] = max(pg['lr'] * 0.9, 1e-6)
+                pg['lr'] = max(pg['lr'] * args.lr_gamma, args.lr_min)
             lr_now = optimizer.param_groups[0]['lr']
             log.append(f"      -> lr decayed to {lr_now:.2e}")
 
