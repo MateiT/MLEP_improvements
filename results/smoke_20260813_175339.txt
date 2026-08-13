@@ -1,0 +1,87 @@
+MLEP window / robustness sweep
+date: 2026-08-13 17:57:15
+STATUS: complete -- 8/8 configs.
+device=cuda (NVIDIA GeForce RTX 4090)  arch=resnet18  amp=True  workers=8  steps=200  crop=224  batch=16  lr=0.0002  seed=100  classes=car  val_batches=20  bn_recal=50
+
+Per-model results
+------------------------------------------------------------
+[color_joint_2x2]  {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25], 'color_entropy': 'joint'}
+    in_channels=12  params=0.68M  steps=200  train_time=4s
+    test/clean       acc=0.9531  ap=0.9792  (n=320)  acc_best=0.9563  logit_mean=-0.44
+    test/blur        acc=0.6438  ap=0.6720  (n=320)  acc_best=0.6656  logit_mean=+1.93
+    test/jpeg        acc=0.5000  ap=0.5102  (n=320)  acc_best=0.5344  logit_mean=-7.33
+    test/webp        acc=0.5000  ap=0.5002  (n=320)  acc_best=0.5094  logit_mean=-8.56
+    test/blur+jpeg   acc=0.5000  ap=0.5045  (n=320)  acc_best=0.5281  logit_mean=-8.77
+
+[baseline_2x2]  {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]}
+    in_channels=9  params=0.68M  steps=200  train_time=15s
+    test/clean       acc=0.8938  ap=0.9792  (n=320)  acc_best=0.9500  logit_mean=-0.87
+    test/blur        acc=0.5750  ap=0.6554  (n=320)  acc_best=0.6219  logit_mean=+2.30
+    test/jpeg        acc=0.4938  ap=0.5183  (n=320)  acc_best=0.5563  logit_mean=-5.49
+    test/webp        acc=0.4969  ap=0.4908  (n=320)  acc_best=0.5125  logit_mean=-8.27
+    test/blur+jpeg   acc=0.4906  ap=0.5124  (n=320)  acc_best=0.5406  logit_mean=-7.86
+
+[texsplit_2x2]  {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25], 'texture_split': True, 'texture_patch_size': 16}
+    in_channels=18  params=0.68M  steps=200  train_time=6s
+    test/clean       acc=0.8938  ap=0.9712  (n=320)  acc_best=0.9156  logit_mean=-0.61
+    test/blur        acc=0.5719  ap=0.6394  (n=320)  acc_best=0.6000  logit_mean=+1.93
+    test/jpeg        acc=0.4906  ap=0.4910  (n=320)  acc_best=0.5437  logit_mean=-4.63
+    test/webp        acc=0.4969  ap=0.4800  (n=320)  acc_best=0.5094  logit_mean=-5.69
+    test/blur+jpeg   acc=0.4813  ap=0.4915  (n=320)  acc_best=0.5219  logit_mean=-4.14
+
+[baseline_train_blur]  {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25], 'train_aug': {'blur_prob': 0.5, 'blur_sig': [0.0, 3.0]}}
+    in_channels=9  params=0.68M  steps=200  train_time=4s
+    test/clean       acc=0.9031  ap=0.9695  (n=320)  acc_best=0.9156  logit_mean=-0.82
+    test/blur        acc=0.6250  ap=0.6448  (n=320)  acc_best=0.6500  logit_mean=+0.19
+    test/jpeg        acc=0.4813  ap=0.5042  (n=320)  acc_best=0.5375  logit_mean=-4.00
+    test/webp        acc=0.4906  ap=0.4824  (n=320)  acc_best=0.5094  logit_mean=-6.17
+    test/blur+jpeg   acc=0.4906  ap=0.5039  (n=320)  acc_best=0.5344  logit_mean=-5.90
+
+[texsplit_2x2_diff]  {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25], 'texture_split': True, 'texture_patch_size': 16, 'texture_split_mode': 'diff'}
+    in_channels=9  params=0.68M  steps=200  train_time=5s
+    test/clean       acc=0.9031  ap=0.9476  (n=320)  acc_best=0.9062  logit_mean=+0.01
+    test/blur        acc=0.6156  ap=0.6569  (n=320)  acc_best=0.6469  logit_mean=+1.79
+    test/jpeg        acc=0.4906  ap=0.5109  (n=320)  acc_best=0.5531  logit_mean=-4.50
+    test/webp        acc=0.4906  ap=0.4882  (n=320)  acc_best=0.5281  logit_mean=-7.27
+    test/blur+jpeg   acc=0.4938  ap=0.5122  (n=320)  acc_best=0.5281  logit_mean=-5.54
+
+[baseline_train_jpeg]  {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25], 'train_aug': {'jpg_prob': 0.5, 'jpg_qual': [30, 100], 'jpg_method': ['cv2', 'pil']}}
+    in_channels=9  params=0.68M  steps=200  train_time=5s
+    test/clean       acc=0.8656  ap=0.9452  (n=320)  acc_best=0.8781  logit_mean=+0.42
+    test/blur        acc=0.5875  ap=0.5960  (n=320)  acc_best=0.6250  logit_mean=+1.29
+    test/jpeg        acc=0.4688  ap=0.4980  (n=320)  acc_best=0.5625  logit_mean=-0.38
+    test/webp        acc=0.5094  ap=0.5269  (n=320)  acc_best=0.5750  logit_mean=-0.37
+    test/blur+jpeg   acc=0.4688  ap=0.4943  (n=320)  acc_best=0.5312  logit_mean=-0.78
+
+[multiwindow_multiscale_aligned]  {'window_sizes': [2, 4, 6], 'scales': [1.0, 0.5, 0.25], 'window_align': 'pad'}
+    in_channels=27  params=0.69M  steps=200  train_time=66s
+    test/clean       acc=0.8781  ap=0.9278  (n=320)  acc_best=0.8812  logit_mean=-0.57
+    test/blur        acc=0.5938  ap=0.5943  (n=320)  acc_best=0.6031  logit_mean=+1.67
+    test/jpeg        acc=0.4875  ap=0.5005  (n=320)  acc_best=0.5312  logit_mean=-4.23
+    test/webp        acc=0.4938  ap=0.4780  (n=320)  acc_best=0.5156  logit_mean=-6.40
+    test/blur+jpeg   acc=0.4844  ap=0.4834  (n=320)  acc_best=0.5156  logit_mean=-5.67
+
+[texsplit_2x2_train_jpeg]  {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25], 'texture_split': True, 'texture_patch_size': 16, 'train_aug': {'jpg_prob': 0.5, 'jpg_qual': [30, 100], 'jpg_method': ['cv2', 'pil']}}
+    in_channels=18  params=0.68M  steps=200  train_time=7s
+    test/clean       acc=0.8469  ap=0.9246  (n=320)  acc_best=0.8625  logit_mean=+0.46
+    test/blur        acc=0.5875  ap=0.6204  (n=320)  acc_best=0.6094  logit_mean=+1.70
+    test/jpeg        acc=0.4938  ap=0.5177  (n=320)  acc_best=0.5531  logit_mean=-0.29
+    test/webp        acc=0.4750  ap=0.4953  (n=320)  acc_best=0.5469  logit_mean=-0.58
+    test/blur+jpeg   acc=0.4938  ap=0.5105  (n=320)  acc_best=0.5250  logit_mean=-0.40
+
+Average Precision (AP) per test scenario  [higher = more robust]
+================================================================================================
+config                               clean       blur       jpeg       webp  blur+jpeg   time(s)
+------------------------------------------------------------------------------------------------
+color_joint_2x2                     0.9792     0.6720     0.5102     0.5002     0.5045         4
+baseline_2x2                        0.9792     0.6554     0.5183     0.4908     0.5124        15
+texsplit_2x2                        0.9712     0.6394     0.4910     0.4800     0.4915         6
+baseline_train_blur                 0.9695     0.6448     0.5042     0.4824     0.5039         4
+texsplit_2x2_diff                   0.9476     0.6569     0.5109     0.4882     0.5122         5
+baseline_train_jpeg                 0.9452     0.5960     0.4980     0.5269     0.4943         5
+multiwindow_multiscale_aligned      0.9278     0.5943     0.5005     0.4780     0.4834        66
+texsplit_2x2_train_jpeg             0.9246     0.6204     0.5177     0.4953     0.5105         7
+================================================================================================
+Cols: clean vs corrupted test sets. Compare a config's clean AP with its blur / jpeg / webp / blur+jpeg AP to read off robustness.
+acc is at the fixed 0.5 threshold; acc_best is the best any threshold could do. acc << acc_best means the scores separate the classes but the decision boundary is misplaced -- check bn_recal.
+Note: short training -> ranking is indicative. Re-run the top configs with more --max_train_steps to confirm.

@@ -3,11 +3,11 @@
 # main() live in mlep.experiments.windows; everything reusable lives here, so
 # consumers no longer need in-function imports to dodge a circular dependency.
 
+import os
 from types import SimpleNamespace
 
 import torch
 
-from mlep.data import get_dataset
 
 # --------------------------------------------------------------------------- #
 # Test-time corruption scenarios. Every trained model is evaluated on each of
