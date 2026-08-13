@@ -1,20 +1,39 @@
-# Datasets (large; downloaded separately)
-datasets/
+# Datasets: ~60 GB, rebuilt rather than stored. See README "Recovery".
+#   scripts/datasets/download_train_valset.sh   full val split
+#   scripts/fetch_half_dataset.py               the half train subset
+#   scripts/datasets/download_train_testset.sh  the test generators
+# ANCHORED with a leading slash on purpose: a bare "datasets/" matches ANY
+# directory of that name at any depth, which previously swallowed
+# scripts/datasets/ and silently kept verify_half_subset.py out of git.
+/datasets/
 
-# Python caches
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
+*.egg-info/
+build/
+dist/
 
-# macOS
+# IDE / OS
+.idea/
 .DS_Store
 
-# IDE
-.idea/
+# Regenerable experiment intermediates. Reports (.txt), metrics/robustness/
+# confusion CSVs and the training logs ARE tracked -- they are the record. These
+# are the bulky per-image and per-feature dumps, recreated by re-running the
+# experiment that produced them.
+results/*_features.csv
+results/*_predictions.csv
+results/**/*_predictions_*.csv
+results/*.pt
 
-# Experiment outputs
-experiment_results.txt
-test_results.txt
-res_*.txt
-results/
-logs/
+# Checkpoints: keep each lineage's best plus the decay run's two resume points
+# (13 = best, 14 = last, each with its Adam state). Intermediate epochs are
+# reproducible from those and the logs, and cost ~17 MB each.
+checkpoints/*/*
+!checkpoints/*/model_epoch_best.pth
+!checkpoints/pert4_decay/model_epoch_13.pth
+!checkpoints/pert4_decay/model_epoch_14.pth
+!checkpoints/pert4_decay/optim_epoch_13.pth
+!checkpoints/pert4_decay/optim_epoch_14.pth

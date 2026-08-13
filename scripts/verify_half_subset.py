@@ -1,8 +1,8 @@
 """Check that datasets/TrainDatasets matches the documented half-subset rule.
 
-    python scripts/datasets/verify_half_subset.py
+    python scripts/verify_half_subset.py
 
-The rule (see datasets/TrainDatasets/SUBSET.md): within each
+The rule (see docs/DATASET_SUBSET.md): within each
 <category>/<label>/, sort filenames ascending and keep the first n // 2, which
 lands on 00000.png .. 09946.png -- 9,001 files -- in all 40 groups.
 

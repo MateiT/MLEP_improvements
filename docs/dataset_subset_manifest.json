@@ -1,0 +1,245 @@
+{
+ "rule": "sorted(filenames)[:n//2] per <category>/<label>",
+ "groups": {
+  "airplane/0_real": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "airplane/1_fake": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "bicycle/0_real": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "bicycle/1_fake": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "bird/0_real": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "bird/1_fake": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "boat/0_real": {
+   "total": 18002,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "boat/1_fake": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "bottle/0_real": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "bottle/1_fake": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "bus/0_real": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "bus/1_fake": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "car/0_real": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "car/1_fake": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "cat/0_real": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "cat/1_fake": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "chair/0_real": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "chair/1_fake": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "cow/0_real": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "cow/1_fake": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "diningtable/0_real": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "diningtable/1_fake": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "dog/0_real": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "dog/1_fake": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "horse/0_real": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "horse/1_fake": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "motorbike/0_real": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "motorbike/1_fake": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "person/0_real": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "person/1_fake": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "pottedplant/0_real": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "pottedplant/1_fake": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "sheep/0_real": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "sheep/1_fake": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "sofa/0_real": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "sofa/1_fake": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "train/0_real": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "train/1_fake": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "tvmonitor/0_real": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  },
+  "tvmonitor/1_fake": {
+   "total": 18003,
+   "kept": 9001,
+   "first": "00000.png",
+   "last": "09946.png"
+  }
+ }
+}

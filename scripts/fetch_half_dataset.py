@@ -20,7 +20,7 @@ script fetches only the ~71 MB central directory, decides which entries to keep,
 and then streams only those. Nothing large ever touches the disk, and the
 download is roughly half of what a full extract would move.
 
-The subset rule (also in datasets/TrainDatasets/SUBSET.md)
+The subset rule (also in docs/DATASET_SUBSET.md)
 ----------------------------------------------------------
     Within each <category>/<label>/, sort filenames ascending and keep the
     first n // 2.
