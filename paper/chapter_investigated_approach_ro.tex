@@ -373,7 +373,7 @@ Imaginile sunt redimensionate la $256\times256$ şi decupate la $224\times224$ -
 \texttt{RandomCrop} pentru antrenare, \texttt{CenterCrop} pentru evaluare.
 
 \begin{quote}\small
-\textbf{Geometria de evaluare.} Fişierul \texttt{test.py} publicat setează
+\textbf{Geometria de evaluare.} Fişierul \texttt{test.py} publicat (aici \texttt{mlep/upstream/test.py}) setează
 \texttt{no\_crop=True}, alimentând cadre complete $256\times256$ la testare, deşi
 antrenarea a folosit decupaje de $224$. Noi decupăm central la evaluare, astfel
 încât statisticile BatchNorm reestimate pe decupaje de $224$

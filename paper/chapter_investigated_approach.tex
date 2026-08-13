@@ -353,7 +353,7 @@ Images are resized to $256\times256$ and cropped to $224\times224$ ---
 \texttt{RandomCrop} for training, \texttt{CenterCrop} for evaluation.
 
 \begin{quote}\small
-\textbf{Evaluation geometry.} The released \texttt{test.py} sets
+\textbf{Evaluation geometry.} The released \texttt{test.py} (here \texttt{mlep/upstream/test.py}) sets
 \texttt{no\_crop=True}, feeding full $256\times256$ frames at test time although
 training used $224$ crops. We centre-crop at evaluation instead, so that the
 BatchNorm statistics re-estimated on $224$ crops (Section~\ref{sec:setup-bn})
