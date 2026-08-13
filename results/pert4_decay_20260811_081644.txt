@@ -1,0 +1,34 @@
+MLEP 4-output perturbation retrain
+date: 2026-08-11 08:16:48
+device=cuda (NVIDIA GeForce RTX 4090)  arch=resnet50  amp=True  workers=5  batch=64  lr=1e-05  seed=100  crop=224  params=1.44M
+dataroot: datasets/TrainDatasets  (1440160 train / 32000 val samples)
+heads: ['ai', 'blur', 'jpeg', 'noise']   variants: ['clean', 'blur', 'jpeg', 'noise']
+levels: blur sigma [1.0, 3.0, 5.0], jpeg quality [90, 70, 50], noise sigma [1.0, 3.0, 5.0] (8-bit units)
+init: resumed from checkpoints/mlep_pert4/model_epoch_best.pth at epoch 10; Adam state RESET (no optim_epoch_*.pth found)
+recipe: released MLEP train.py -- Adam(lr 1e-4, 0.9/0.999), BCEWithLogits, batch 64, resize 256 -> RandomCrop 224 -> flip, lr*=0.9 every 1 epochs (floor 1e-6), early stop after 15 epochs without val improvement
+deviations: BN recalibrated before every validation/save; AMP + cuDNN autotune on; no ImageNet init (incompatible stem)
+
+TRAIN: 360040 sources x 4 variants = 1440160 samples
+  categories: 20  sources/category: [18002]
+  real sources: 180020   fake sources: 180020
+  per category/label, each of clean|blur|jpeg|noise gets exactly 9001 samples
+  severity levels (index 0/1/2) over all sources: 120040 / 120000 / 120000
+  max level imbalance within any category/label group: 1 sample(s)  [40 groups]
+VAL: 8000 sources x 4 variants = 32000 samples
+  categories: 20  sources/category: [400]
+  real sources: 4000   fake sources: 4000
+  per category/label, each of clean|blur|jpeg|noise gets exactly 200 samples
+  severity levels (index 0/1/2) over all sources: 2680 / 2680 / 2640
+  max level imbalance within any category/label group: 1 sample(s)  [40 groups]
+STATUS: IN PROGRESS -- epoch 12/20, best ai AP 0.8872 @ epoch 11
+
+[epoch 10] loss=0.1073 lr=1.00e-05 train=11374s
+      ai: acc=0.7789 ap=0.8849  blur: acc=0.9963 ap=0.9996  jpeg: acc=0.9996 ap=1.0000  noise: acc=0.9998 ap=1.0000
+      ai AP by variant:  clean=0.9998  blur=0.8764  jpeg=0.7158  noise=0.7374
+      -> new best ai AP 0.8849, saved model_epoch_best.pth
+      -> lr decayed to 9.00e-06
+[epoch 11] loss=0.1066 lr=9.00e-06 train=14387s
+      ai: acc=0.7810 ap=0.8872  blur: acc=0.9957 ap=0.9997  jpeg: acc=0.9994 ap=1.0000  noise: acc=0.9996 ap=1.0000
+      ai AP by variant:  clean=0.9998  blur=0.8815  jpeg=0.7192  noise=0.7411
+      -> new best ai AP 0.8872, saved model_epoch_best.pth
+      -> lr decayed to 8.10e-06

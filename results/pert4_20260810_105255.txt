@@ -1,0 +1,77 @@
+MLEP 4-output perturbation retrain
+date: 2026-08-10 10:52:58
+device=cuda (NVIDIA GeForce RTX 4090)  arch=resnet50  amp=True  workers=8  batch=64  lr=0.0001  seed=100  crop=224  params=1.44M
+dataroot: datasets/TrainDatasets  (1440160 train / 32000 val samples)
+heads: ['ai', 'blur', 'jpeg', 'noise']   variants: ['clean', 'blur', 'jpeg', 'noise']
+levels: blur sigma [1.0, 3.0, 5.0], jpeg quality [90, 70, 50], noise sigma [1.0, 3.0, 5.0] (8-bit units)
+init: random init (ImageNet weights do not fit this architecture)
+recipe: released MLEP train.py -- Adam(lr 1e-4, 0.9/0.999), BCEWithLogits, batch 64, resize 256 -> RandomCrop 224 -> flip, lr*=0.9 every 20 epochs (floor 1e-6), early stop after 15 epochs without val improvement
+deviations: BN recalibrated before every validation/save; AMP + cuDNN autotune on; no ImageNet init (incompatible stem)
+
+TRAIN: 360040 sources x 4 variants = 1440160 samples
+  categories: 20  sources/category: [18002]
+  real sources: 180020   fake sources: 180020
+  per category/label, each of clean|blur|jpeg|noise gets exactly 9001 samples
+  severity levels (index 0/1/2) over all sources: 120040 / 120000 / 120000
+  max level imbalance within any category/label group: 1 sample(s)  [40 groups]
+VAL: 8000 sources x 4 variants = 32000 samples
+  categories: 20  sources/category: [400]
+  real sources: 4000   fake sources: 4000
+  per category/label, each of clean|blur|jpeg|noise gets exactly 200 samples
+  severity levels (index 0/1/2) over all sources: 2680 / 2680 / 2640
+  max level imbalance within any category/label group: 1 sample(s)  [40 groups]
+STATUS: IN PROGRESS -- epoch 14/50, best ai AP 0.8831 @ epoch 13
+
+[epoch 0] loss=0.1628 lr=1.00e-04 train=5182s
+      ai: acc=0.7186 ap=0.8247  blur: acc=0.9835 ap=0.9951  jpeg: acc=0.9968 ap=0.9994  noise: acc=0.9982 ap=1.0000
+      ai AP by variant:  clean=0.9984  blur=0.7681  jpeg=0.6217  noise=0.6414
+      -> new best ai AP 0.8247, saved model_epoch_best.pth
+[epoch 1] loss=0.1359 lr=1.00e-04 train=6980s
+      ai: acc=0.7270 ap=0.8375  blur: acc=0.9883 ap=0.9972  jpeg: acc=0.9985 ap=0.9996  noise: acc=0.9989 ap=1.0000
+      ai AP by variant:  clean=0.9979  blur=0.7877  jpeg=0.6598  noise=0.6432
+      -> new best ai AP 0.8375, saved model_epoch_best.pth
+[epoch 2] loss=0.1281 lr=1.00e-04 train=6635s
+      ai: acc=0.7426 ap=0.8510  blur: acc=0.9907 ap=0.9982  jpeg: acc=0.9988 ap=0.9998  noise: acc=0.9991 ap=1.0000
+      ai AP by variant:  clean=0.9990  blur=0.8170  jpeg=0.6717  noise=0.6517
+      -> new best ai AP 0.8510, saved model_epoch_best.pth
+[epoch 3] loss=0.1236 lr=1.00e-04 train=6616s
+      ai: acc=0.7522 ap=0.8622  blur: acc=0.9914 ap=0.9985  jpeg: acc=0.9988 ap=0.9999  noise: acc=0.9995 ap=1.0000
+      ai AP by variant:  clean=0.9994  blur=0.8337  jpeg=0.6891  noise=0.6885
+      -> new best ai AP 0.8622, saved model_epoch_best.pth
+[epoch 4] loss=0.1205 lr=1.00e-04 train=6563s
+      ai: acc=0.7558 ap=0.8650  blur: acc=0.9918 ap=0.9989  jpeg: acc=0.9988 ap=0.9998  noise: acc=0.9992 ap=1.0000
+      ai AP by variant:  clean=0.9996  blur=0.8422  jpeg=0.6846  noise=0.6966
+      -> new best ai AP 0.8650, saved model_epoch_best.pth
+[epoch 5] loss=0.1181 lr=1.00e-04 train=6805s
+      ai: acc=0.7595 ap=0.8676  blur: acc=0.9926 ap=0.9991  jpeg: acc=0.9975 ap=0.9999  noise: acc=0.9996 ap=1.0000
+      ai AP by variant:  clean=0.9995  blur=0.8411  jpeg=0.6939  noise=0.7011
+      -> new best ai AP 0.8676, saved model_epoch_best.pth
+[epoch 6] loss=0.1165 lr=1.00e-04 train=6544s
+      ai: acc=0.7654 ap=0.8715  blur: acc=0.9933 ap=0.9991  jpeg: acc=0.9990 ap=1.0000  noise: acc=0.9997 ap=1.0000
+      ai AP by variant:  clean=0.9998  blur=0.8470  jpeg=0.7038  noise=0.7122
+      -> new best ai AP 0.8715, saved model_epoch_best.pth
+[epoch 7] loss=0.1150 lr=1.00e-04 train=6623s
+      ai: acc=0.7640 ap=0.8731  blur: acc=0.9923 ap=0.9992  jpeg: acc=0.9993 ap=0.9999  noise: acc=0.9996 ap=1.0000
+      ai AP by variant:  clean=0.9998  blur=0.8679  jpeg=0.6995  noise=0.7075
+      -> new best ai AP 0.8731, saved model_epoch_best.pth
+[epoch 8] loss=0.1138 lr=1.00e-04 train=6702s
+      ai: acc=0.7633 ap=0.8718  blur: acc=0.9939 ap=0.9992  jpeg: acc=0.9993 ap=1.0000  noise: acc=0.9997 ap=1.0000
+      ai AP by variant:  clean=0.9997  blur=0.8572  jpeg=0.6920  noise=0.7093
+[epoch 9] loss=0.1127 lr=1.00e-04 train=6526s
+      ai: acc=0.7667 ap=0.8785  blur: acc=0.9945 ap=0.9994  jpeg: acc=0.9993 ap=1.0000  noise: acc=0.9998 ap=1.0000
+      ai AP by variant:  clean=0.9998  blur=0.8649  jpeg=0.7111  noise=0.7265
+      -> new best ai AP 0.8785, saved model_epoch_best.pth
+[epoch 10] loss=0.1118 lr=1.00e-04 train=6600s
+      ai: acc=0.7712 ap=0.8782  blur: acc=0.9952 ap=0.9995  jpeg: acc=0.9993 ap=0.9999  noise: acc=0.9993 ap=1.0000
+      ai AP by variant:  clean=0.9998  blur=0.8691  jpeg=0.7141  noise=0.7157
+[epoch 11] loss=0.1111 lr=1.00e-04 train=6980s
+      ai: acc=0.7700 ap=0.8767  blur: acc=0.9925 ap=0.9993  jpeg: acc=0.9993 ap=0.9999  noise: acc=0.9997 ap=1.0000
+      ai AP by variant:  clean=0.9997  blur=0.8718  jpeg=0.7059  noise=0.7174
+[epoch 12] loss=0.1105 lr=1.00e-04 train=7233s
+      ai: acc=0.7791 ap=0.8826  blur: acc=0.9946 ap=0.9995  jpeg: acc=0.9990 ap=1.0000  noise: acc=0.9995 ap=1.0000
+      ai AP by variant:  clean=0.9998  blur=0.8785  jpeg=0.7057  noise=0.7340
+      -> new best ai AP 0.8826, saved model_epoch_best.pth
+[epoch 13] loss=0.1096 lr=1.00e-04 train=9882s
+      ai: acc=0.7753 ap=0.8831  blur: acc=0.9946 ap=0.9995  jpeg: acc=0.9994 ap=1.0000  noise: acc=0.9996 ap=1.0000
+      ai AP by variant:  clean=0.9998  blur=0.8767  jpeg=0.7084  noise=0.7267
+      -> new best ai AP 0.8831, saved model_epoch_best.pth

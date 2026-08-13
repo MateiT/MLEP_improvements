@@ -1,0 +1,157 @@
+  400/24798 sources  39 src/s  ETA 10 min
+  800/24798 sources  48 src/s  ETA 8 min
+  1200/24798 sources  53 src/s  ETA 7 min
+  1600/24798 sources  56 src/s  ETA 7 min
+  2000/24798 sources  58 src/s  ETA 7 min
+  2400/24798 sources  59 src/s  ETA 6 min
+  2800/24798 sources  60 src/s  ETA 6 min
+  3200/24798 sources  61 src/s  ETA 6 min
+  3600/24798 sources  62 src/s  ETA 6 min
+  4000/24798 sources  62 src/s  ETA 6 min
+  4400/24798 sources  63 src/s  ETA 5 min
+  4800/24798 sources  64 src/s  ETA 5 min
+  5200/24798 sources  64 src/s  ETA 5 min
+  5600/24798 sources  65 src/s  ETA 5 min
+  6000/24798 sources  65 src/s  ETA 5 min
+  6400/24798 sources  65 src/s  ETA 5 min
+  6800/24798 sources  65 src/s  ETA 5 min
+  7200/24798 sources  65 src/s  ETA 4 min
+  7600/24798 sources  66 src/s  ETA 4 min
+  8000/24798 sources  65 src/s  ETA 4 min
+  8400/24798 sources  65 src/s  ETA 4 min
+  8800/24798 sources  66 src/s  ETA 4 min
+  9200/24798 sources  66 src/s  ETA 4 min
+  9600/24798 sources  66 src/s  ETA 4 min
+  10000/24798 sources  65 src/s  ETA 4 min
+  10400/24798 sources  66 src/s  ETA 4 min
+  10800/24798 sources  66 src/s  ETA 4 min
+  11200/24798 sources  66 src/s  ETA 3 min
+  11600/24798 sources  66 src/s  ETA 3 min
+  12000/24798 sources  66 src/s  ETA 3 min
+  12400/24798 sources  66 src/s  ETA 3 min
+  12800/24798 sources  66 src/s  ETA 3 min
+  13200/24798 sources  66 src/s  ETA 3 min
+  13600/24798 sources  66 src/s  ETA 3 min
+  14000/24798 sources  66 src/s  ETA 3 min
+  14400/24798 sources  66 src/s  ETA 3 min
+  14800/24798 sources  66 src/s  ETA 3 min
+  15200/24798 sources  66 src/s  ETA 2 min
+  15600/24798 sources  67 src/s  ETA 2 min
+  16000/24798 sources  67 src/s  ETA 2 min
+  16400/24798 sources  67 src/s  ETA 2 min
+  16800/24798 sources  67 src/s  ETA 2 min
+  17200/24798 sources  67 src/s  ETA 2 min
+  17600/24798 sources  67 src/s  ETA 2 min
+  18000/24798 sources  67 src/s  ETA 2 min
+  18400/24798 sources  67 src/s  ETA 2 min
+  18800/24798 sources  67 src/s  ETA 1 min
+  19200/24798 sources  67 src/s  ETA 1 min
+  19600/24798 sources  67 src/s  ETA 1 min
+  20000/24798 sources  67 src/s  ETA 1 min
+  20400/24798 sources  67 src/s  ETA 1 min
+  20800/24798 sources  42 src/s  ETA 2 min
+  21200/24798 sources  42 src/s  ETA 1 min
+  21600/24798 sources  42 src/s  ETA 1 min
+  22000/24798 sources  43 src/s  ETA 1 min
+  22400/24798 sources  43 src/s  ETA 1 min
+  22800/24798 sources  43 src/s  ETA 1 min
+  23200/24798 sources  44 src/s  ETA 1 min
+  23600/24798 sources  44 src/s  ETA 0 min
+  24000/24798 sources  44 src/s  ETA 0 min
+  24400/24798 sources  44 src/s  ETA 0 min
+scored 24798 sources x 10 conditions in 9.4 min
+MLEP 4-output model -- blur / jpeg / noise head test on TestDatasets
+date: 2026-08-12 10:19:39
+checkpoint: checkpoints/pert4_decay/model_epoch_best.pth
+device=cuda (NVIDIA GeForce RTX 4090)  amp=True  seed=100
+sampling: 500 images per generator per label -> 24798 sources x 10 conditions = 247980 forward passes
+generators: 26 (each weighted 1/26, regardless of image count)
+geometry: resize 256 -> degrade -> center crop 224 (as in training)
+levels: blur sigma 1/3/5, jpeg quality 90/70/50, noise sigma 1/3/5
+
+detection rate = fraction of degraded images whose own head gives p > 0.5
+roc_auc        = that head, degraded vs the SAME images clean (paired)
+
+==============================================================
+HEADLINE -- macro-average over all 26 generators
+==============================================================
+level         detection rate     roc_auc
+--------------------------------------------------------------
+blur_s1                93.05      0.9740
+blur_s3                98.77      0.9829
+blur_s5                98.90      0.9810
+jpeg_q90               99.71      0.9369
+jpeg_q70               99.77      0.9277
+jpeg_q50               99.75      0.9218
+noise_s1               99.69      0.9893
+noise_s3              100.00      0.9941
+noise_s5              100.00      0.9908
+==============================================================
+
+clean false-positive rate (companion to the above -- a head stuck at 'yes' would score 100% on every level)
+    blur   FPR on clean images:  10.10%
+    jpeg   FPR on clean images:  18.36%
+    noise  FPR on clean images:  11.39%
+
+--------------------------------------------------------------
+JPEG rows recomputed over clean-source generators only
+  excluded (9): Diffusion-set/dalle, Diffusion-set/glide_100_10, Diffusion-set/glide_100_27, Diffusion-set/glide_50_27, Diffusion-set/guided, Diffusion-set/ldm_100, Diffusion-set/ldm_200, Diffusion-set/ldm_200_cfg, GAN-set-1/whichfaceisreal
+--------------------------------------------------------------
+level         detection rate     roc_auc
+jpeg_q90               99.85      0.9787
+jpeg_q70               99.87      0.9747
+jpeg_q50               99.88      0.9711
+    jpeg FPR on clean images:   7.93%
+
+======================================================================================================================
+PER GENERATOR -- detection rate (%), and the two short generators
+======================================================================================================================
+generator                              n   blurs1   blurs3   blurs5  jpegq90  jpegq70  jpegq50  noises1  noises3  noises5   fprB   fprJ   fprN
+----------------------------------------------------------------------------------------------------------------------
+Diffusion-set/DALLE                 1000     86.6     98.5     98.9     99.6     99.5     99.6    100.0    100.0    100.0    1.3    7.1   22.5
+Diffusion-set/dalle                 1000     81.3     97.3     97.9     99.5     99.4     99.3     93.8    100.0    100.0    0.5   50.4    7.0 JPEGsrc
+Diffusion-set/ddpm                  1000     96.6     99.7     99.7     99.6     99.8     99.8    100.0    100.0    100.0   29.4   20.6    0.0
+Diffusion-set/glide_100_10          1000     92.9     97.6     97.7     99.4     99.5     99.4     99.9    100.0    100.0   11.1   47.7    6.0 JPEGsrc
+Diffusion-set/glide_100_27          1000     91.6     96.6     97.0     99.1     99.7     99.6    100.0    100.0    100.0   11.5   48.0    5.1 JPEGsrc
+Diffusion-set/glide_50_27           1000     92.7     96.6     96.6     99.7     99.3     99.0    100.0    100.0    100.0    9.5   48.6    4.8 JPEGsrc
+Diffusion-set/guided                1000     89.9     98.8     98.8     99.7     99.9     99.9     99.9    100.0    100.0    4.1    3.1   32.7 JPEGsrc
+Diffusion-set/guided-diffusion      1000     90.3     98.6     98.7     99.7     99.8     99.6    100.0    100.0    100.0    3.9    5.9   25.2
+Diffusion-set/improved-diffusion    1000     94.6     98.7     98.9    100.0     99.9    100.0    100.0    100.0    100.0   24.1    5.9    7.7
+Diffusion-set/ldm_100               1000     91.7     98.0     98.2     99.7     99.6     99.6     99.8    100.0    100.0    0.5   48.4   13.4 JPEGsrc
+Diffusion-set/ldm_200               1000     91.7     98.2     98.5     99.0     99.6     99.4    100.0    100.0    100.0    0.7   48.2   12.5 JPEGsrc
+Diffusion-set/ldm_200_cfg           1000     89.5     97.0     97.8     98.9     99.3     99.2     99.9    100.0    100.0    0.5   48.1    7.4 JPEGsrc
+Diffusion-set/midjourney            1000     89.9     99.2     99.2    100.0     99.7     99.7     99.9    100.0    100.0    2.7    5.7    8.6
+GAN-set-1/biggan                    1000     90.8     98.4     98.7     99.9    100.0     99.9     99.9     99.9    100.0    4.0    5.5   19.0
+GAN-set-1/crn                       1000     99.1     99.9    100.0    100.0    100.0    100.0    100.0    100.0    100.0   36.6    0.0    0.0
+GAN-set-1/cyclegan                  1000     91.0     99.8     99.9     99.0     99.1     99.4     99.5    100.0    100.0    1.4   45.6   36.6
+GAN-set-1/deepfake                  1000     99.9    100.0    100.0    100.0    100.0    100.0    100.0    100.0    100.0   81.1    0.2    0.0
+GAN-set-1/gaugan                    1000     87.0     98.1     98.2     99.9    100.0    100.0     99.9    100.0    100.0    0.5    2.7   34.6
+GAN-set-1/imle                      1000     97.3     99.8     99.8    100.0    100.0    100.0    100.0    100.0    100.0    7.1    0.0    0.0
+GAN-set-1/progan                    1000     98.4    100.0    100.0    100.0    100.0    100.0    100.0    100.0    100.0    0.5    0.0    0.1
+GAN-set-1/san                        438     87.7     97.3     97.0     99.8    100.0    100.0     99.5    100.0    100.0   21.0    3.0    2.1 SHORT
+GAN-set-1/seeingdark                 360     95.0    100.0    100.0    100.0    100.0    100.0    100.0    100.0    100.0    1.4    0.0   13.3 SHORT
+GAN-set-1/stargan                   1000     99.5     99.9     99.9    100.0    100.0    100.0    100.0    100.0    100.0    5.9    3.7   29.8
+GAN-set-1/stylegan                  1000     97.6    100.0    100.0    100.0    100.0    100.0    100.0    100.0    100.0    0.2   17.0    0.4
+GAN-set-1/stylegan2                 1000     98.3    100.0    100.0    100.0    100.0    100.0    100.0    100.0    100.0    0.4   11.9    0.0
+GAN-set-1/whichfaceisreal           1000     98.5    100.0    100.0    100.0    100.0    100.0    100.0    100.0    100.0    2.8    0.1    7.4 JPEGsrc
+======================================================================================================================
+
+SECONDARY -- ai head AP per condition (macro-average), for reference
+--------------------------------------------------------------
+    clean        ai AP = 0.8256  (26 generators)
+    blur_s1      ai AP = 0.7562  (26 generators)
+    blur_s3      ai AP = 0.7132  (26 generators)
+    blur_s5      ai AP = 0.6708  (26 generators)
+    jpeg_q90     ai AP = 0.6135  (26 generators)
+    jpeg_q70     ai AP = 0.6042  (26 generators)
+    jpeg_q50     ai AP = 0.6050  (26 generators)
+    noise_s1     ai AP = 0.7006  (26 generators)
+    noise_s3     ai AP = 0.6146  (26 generators)
+    noise_s5     ai AP = 0.6109  (26 generators)
+
+Notes
+- Every generator counts 1/26. Below the 500/label target, hence noisier: GAN-set-1/san (219/label); GAN-set-1/seeingdark (180/label).
+- Nested generators (ddpm, progan, stylegan, stylegan2, cyclegan) pool their category subdirectories and count as one generator.
+- Degradation is applied AFTER the resize to 256, so a level means the same thing on a 1024px source as on a 256px one.
+
+report -> results/pert4_headtest_full.txt
