@@ -16,7 +16,7 @@ dependencies:
   - pip
   # --- PyTorch stack (CUDA 11.8 build has sm_89 kernels for the 4090) ---
   # >=2.4, not >=2.1: torch.amp.GradScaler('cuda', ...) -- the non-deprecated
-  # spelling used in experiment_windows.py -- only exists from 2.4 on. The old
+  # spelling used in mlep/harness/evaluate.py -- only exists from 2.4 on. The old
   # torch.cuda.amp.* spelling warns in 2.4 and is slated for removal.
   - pytorch>=2.4
   - torchvision>=0.19
@@ -27,3 +27,7 @@ dependencies:
   - scikit-learn>=1.2
   - pillow>=9.4          # bundles libwebp -> webp corruption test works
   - opencv>=4.6          # cv2 (JPEG corruption via cv2.imencode)
+  # --- test runner ---
+  # Optional: the tests also run as plain scripts (./run.sh test), which needs
+  # nothing extra. pytest is here so `pytest tests/` works too.
+  - pytest>=7.0

@@ -7,7 +7,7 @@ from random import random, choice
 from io import BytesIO
 from PIL import Image
 from PIL import ImageFile
-from scipy.ndimage.filters import gaussian_filter
+from scipy.ndimage import gaussian_filter
 from torchvision.transforms import InterpolationMode
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True

@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mlep-improvements"
+version = "0.1.0"
+description = "Research fork of MLEP (Multi-granularity Local Entropy Patterns) for AI-generated image detection"
+requires-python = ">=3.10"
+# Runtime deps are pinned in environment.yaml, which is the supported install
+# path (pytorch + pytorch-cuda come from conda, not PyPI). Listing them here too
+# would let `pip install -e .` silently pull a CPU-only torch over the conda one.
+dependencies = []
+
+[project.optional-dependencies]
+test = ["pytest>=7.0"]
+
+[project.scripts]
+mlep-sweep       = "mlep.experiments.windows:main"
+mlep-pert4-train = "mlep.experiments.perturbation4:main"
+mlep-pert4-eval  = "mlep.evaluation.pert4_heads:main"
+mlep-eval-model  = "mlep.evaluation.trained_model:main"
+mlep-eval-perturb = "mlep.evaluation.perturbations:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# tests/conftest.py puts src/ on sys.path, so `pytest tests/` works in a bare
+# checkout with no `pip install -e .` first.
+addopts = "-q"

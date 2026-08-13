@@ -83,6 +83,10 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
+# Make the package importable without requiring `pip install -e .`.
+# An editable install also works and takes precedence.
+export PYTHONPATH="$PWD/src${PYTHONPATH:+:$PYTHONPATH}"
+
 # --------------------------------------------------------------------------- #
 # conda plumbing
 # --------------------------------------------------------------------------- #
@@ -207,7 +211,7 @@ launch () {   # launch <label> <classes> <steps> <val_batches> <seed> <configs> 
   # Empty for every existing mode, so their command lines are unchanged.
   args+=(${EXTRA_ARGS[@]+"${EXTRA_ARGS[@]}"})
   echo "==> $label  (seed=$seed batch=$BATCH steps=$steps classes=${classes:-ALL})"
-  "${PY[@]}" experiment_windows.py "${args[@]}" 2>&1 | tee "logs/${label}.log"
+  "${PY[@]}" -m mlep.experiments.windows "${args[@]}" 2>&1 | tee "logs/${label}.log"
 }
 
 MODE="${1:-smoke}"
@@ -217,7 +221,7 @@ list)
   # ./run.sh list                 the window sweep's configs (unchanged)
   # ./run.sh list entropy         the entropy group's configs
   # ./run.sh list mlep_degradation
-  "${PY[@]}" experiment_windows.py --list_configs ${2:+--experiment "$2"}
+  "${PY[@]}" -m mlep.experiments.windows --list_configs ${2:+--experiment "$2"}
   ;;
 
 # Model-level regression tests. Synthetic inputs only, so these run anywhere and
@@ -345,8 +349,46 @@ degradation)
   done
   ;;
 
+# --------------------------------------------------------------------------- #
+# Full 4-output retrain: every source image contributes clean / blurred /
+# JPEG-compressed / noisy variants, and the network gets four logits
+# (ai, blur, jpeg, noise). Follows the released MLEP recipe -- Adam 1e-4,
+# batch 64, lr*=0.9 every DELR epochs -- rather than the sweep's fixed-step one,
+# so this is hours per epoch, not minutes. RESUME=<ckpt> START=<n> continues a
+# run (see docs: optim_epoch_<n>.pth beside it makes the resume exact).
+# --------------------------------------------------------------------------- #
+pert4)
+  args=(--dataroot "$DATAROOT" --name "${NAME:-mlep_pert4}"
+        --batch_size "${BATCH:-64}" --lr "${LR4:-1e-4}"
+        --niter "${EPOCHS:-50}" --delr_freq "${DELR:-20}"
+        --num_threads "$WORKERS"
+        --out "results/pert4_${STAMP}.txt")
+  [ -n "${CLASSES4:-}" ] && args+=(--classes "$CLASSES4")
+  [ -n "${RESUME:-}" ]   && args+=(--resume "$RESUME" --start_epoch "${START:-0}")
+  [ -n "${BEST_AP:-}" ]  && args+=(--best_ap "$BEST_AP")
+  mkdir -p logs
+  "${PY[@]}" -m mlep.experiments.perturbation4 "${args[@]}" \
+    2>&1 | tee "logs/pert4_${STAMP}.log"
+  ;;
+
+# --------------------------------------------------------------------------- #
+# Score a 4-output checkpoint's blur / jpeg / noise heads on TestDatasets.
+# Each sampled image is rendered at all ten conditions (clean + the nine
+# training levels), so the comparison is paired, and the 26 generators are
+# averaged unweighted. PER_LABEL=8 is the quick plumbing check.
+# --------------------------------------------------------------------------- #
+headtest)
+  mkdir -p logs
+  "${PY[@]}" -m mlep.evaluation.pert4_heads \
+    --ckpt "${CKPT:-checkpoints/pert4_decay/model_epoch_best.pth}" \
+    --per_label "${PER_LABEL:-500}" \
+    --num_threads "$WORKERS" \
+    --out "results/pert4_headtest_${STAMP}.txt" \
+    2>&1 | tee "logs/pert4_headtest_${STAMP}.log"
+  ;;
+
 *)
-  echo "usage: ./run.sh {list|test|stage|smoke|sweep|confirm <configs>|entropy|degradation}" >&2
+  echo "usage: ./run.sh {list|test|stage|smoke|sweep|confirm <configs>|entropy|degradation|pert4|headtest}" >&2
   exit 1
   ;;
 esac
