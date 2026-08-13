@@ -27,9 +27,11 @@ from collections import Counter
 
 import torch
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from networks.resnet import resnet18                        # noqa: E402
-from experiment_windows import CONFIGS, build_model         # noqa: E402
+sys.path.insert(0, os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'src'))
+from mlep.networks.resnet import resnet18                        # noqa: E402
+from mlep.experiments.windows import CONFIGS
+from mlep.harness.model import build_model
 
 
 def build(color_entropy=False, window_sizes=(2,), scales=(1.0, 0.5, 0.25), **kw):

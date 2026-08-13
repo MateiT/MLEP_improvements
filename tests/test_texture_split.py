@@ -24,8 +24,9 @@ import sys
 import torch
 import torch.nn.functional as F
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from networks.resnet import resnet18   # noqa: E402
+sys.path.insert(0, os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'src'))
+from mlep.networks.resnet import resnet18   # noqa: E402
 
 
 def build(split=True, p=16, mode='concat', rearrange=False,
@@ -333,7 +334,7 @@ def test_every_image_in_the_batch_is_split_independently():
     flag with no per-sample gate, so every image is split -- there is no label in
     scope to condition on. What that argument still needs is that a canvas depends
     on ITS OWN image and nothing else. The harness feeds shuffled MIXED-class
-    batches (experiment_windows.py builds both loaders with shuffle=True), so a
+    batches (mlep.harness.data builds both loaders with shuffle=True), so a
     canvas that varied with batch composition would let one class bleed into
     another's features. Bit-identity between each image split alone and its row of
     the batch split rules that out."""
@@ -370,7 +371,7 @@ def test_corrupted_input_is_still_split():
     point of the experiment, since the corrupted columns are what it is trying to
     improve.
 
-    Drives the REAL corruption path (data.datasets.data_augment, the same callable
+    Drives the REAL corruption path (mlep.data.datasets.data_augment, the same callable
     the dataloader wraps in its Compose) with the harness's own EVAL_SCENARIOS
     dicts, rather than a stand-in blur. Corruption happens in the worker before
     ToTensor, so the tensor reaching the model is already corrupted; this asserts
@@ -381,8 +382,8 @@ def test_corrupted_input_is_still_split():
     from PIL import Image                                     # noqa: PLC0415
     from types import SimpleNamespace                          # noqa: PLC0415
 
-    from data.datasets import data_augment                     # noqa: PLC0415
-    from experiment_windows import EVAL_SCENARIOS              # noqa: PLC0415
+    from mlep.data.datasets import data_augment                     # noqa: PLC0415
+    from mlep.harness.data import EVAL_SCENARIOS
 
     def to_tensor(pil):
         t = torch.from_numpy(np.array(pil)).float().permute(2, 0, 1)[None] / 255.
@@ -422,10 +423,11 @@ def test_corrupted_input_is_still_split():
 
 
 def test_config_kwargs_reach_the_model():
-    """build_model in experiment_windows.py is a fixed whitelist: a CONFIGS key
+    """build_model in mlep/experiments/windows.py is a fixed whitelist: a CONFIGS key
     with no line there is dropped SILENTLY, so the config would train as a clone
     of baseline_2x2 and report a null effect that is really a plumbing bug."""
-    from experiment_windows import CONFIGS, build_model     # noqa: E402
+    from mlep.experiments.windows import CONFIGS
+    from mlep.harness.model import build_model
 
     cpu = torch.device('cpu')
     names = [n for n in CONFIGS if n.startswith('texsplit')]

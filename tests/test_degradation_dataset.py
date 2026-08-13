@@ -31,8 +31,9 @@ import numpy as np
 import torch
 from PIL import Image
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from experiments.degradation import (BLUR_LEVELS, CLEAN_CELL,         # noqa: E402
+sys.path.insert(0, os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'src'))
+from mlep.experiments.degradation import (BLUR_LEVELS, CLEAN_CELL,         # noqa: E402
                                      CONDITIONS,
                                      DEFAULT_DEGRADATION_CONFIGS,
                                      DEGRADATION_CONFIGS, HELDOUT_CELLS,
@@ -223,7 +224,8 @@ def test_the_front_end_is_mleps_own_2x2_pyramid():
     windows over the 3-scale pyramid, i.e. the same 9 input channels the stock
     detector uses. Only the head count -- and, for the opt-in renyi config, the
     entropy functional -- may differ."""
-    from experiment_windows import CONFIGS, build_model
+    from mlep.experiments.windows import CONFIGS
+    from mlep.harness.model import build_model
     base = CONFIGS['baseline_2x2']
     for name, cfg in DEGRADATION_CONFIGS.items():
         assert cfg['window_sizes'] == [2], f"{name}: {cfg['window_sizes']}"
@@ -240,7 +242,7 @@ def test_the_default_run_is_the_stock_shannon_front_end_only():
 
 
 def test_the_model_emits_three_logits_by_default_and_fourteen_with_severity():
-    from experiment_windows import build_model
+    from mlep.harness.model import build_model
     x = torch.rand(2, 3, 64, 64)
     for name, cfg in DEGRADATION_CONFIGS.items():
         for w, want in ((0.0, N_BIN), (0.5, N_OUT_SEV)):
@@ -392,7 +394,7 @@ def _tiny_model_args(out):
 
 
 def test_checkpoint_round_trips_and_refuses_to_overwrite():
-    from experiment_windows import build_model
+    from mlep.harness.model import build_model
     d = tempfile.mkdtemp(prefix='mlep_ckpt_')
     try:
         dev = torch.device('cpu')
@@ -429,7 +431,7 @@ def test_checkpoint_round_trips_and_refuses_to_overwrite():
 def test_warm_start_loads_the_body_and_reinitialises_the_head():
     """pretrained/model_epoch_best.pth is this network with a 1-output fc1, so a
     warm start has to keep every other tensor and rebuild only the head."""
-    from experiment_windows import build_model
+    from mlep.harness.model import build_model
     d = tempfile.mkdtemp(prefix='mlep_warm_')
     try:
         dev = torch.device('cpu')
@@ -473,7 +475,7 @@ def test_the_released_mlep_checkpoint_is_warm_startable():
     src = os.path.join(root, 'pretrained', 'model_epoch_best.pth')
     if not os.path.exists(src):
         return
-    from experiment_windows import build_model
+    from mlep.harness.model import build_model
     cfg = dict(DEGRADATION_CONFIGS['deg_baseline_2x2'], num_classes=N_BIN)
     model = build_model('resnet50', cfg, torch.device('cpu'))
     warm_start(model, src, 'deg_baseline_2x2')

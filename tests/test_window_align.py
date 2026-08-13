@@ -24,8 +24,9 @@ import sys
 
 import torch
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from networks.resnet import resnet18   # noqa: E402
+sys.path.insert(0, os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'src'))
+from mlep.networks.resnet import resnet18   # noqa: E402
 
 
 def build(align, window_sizes=(2, 4, 6), scales=(1.0,)):

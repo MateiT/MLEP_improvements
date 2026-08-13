@@ -1,7 +1,7 @@
 """Test the blur / jpeg / noise heads of a 4-output MLEP model on TestDatasets.
 
-    python scripts/eval_pert4_heads.py                       # 500/generator/label
-    python scripts/eval_pert4_heads.py --per_label 100       # quick pass
+    python python -m mlep.evaluation.pert4_heads                       # 500/generator/label
+    python python -m mlep.evaluation.pert4_heads --per_label 100       # quick pass
 
 TestDatasets carries no degradation labels, so we make them: every sampled image
 is rendered at ten conditions -- clean plus the nine training levels -- and the
@@ -46,11 +46,11 @@ import torchvision.transforms as transforms
 from PIL import Image
 from sklearn.metrics import roc_auc_score, average_precision_score
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from data.datasets import gaussian_blur, pil_jpg                    # noqa: E402
-from experiment_windows import amp_autocast, get_device, setup_cuda_perf  # noqa: E402
-from networks.resnet import resnet50                                # noqa: E402
+from mlep.data.datasets import gaussian_blur, pil_jpg
+from mlep.evaluation.common import LABELS, discover_generators
+from mlep.harness.device import amp_autocast, get_device, setup_cuda_perf
+from mlep.networks.resnet import resnet50
 
 IMG_EXT = ('.png', '.jpg', '.jpeg', '.bmp', '.webp', '.tif', '.tiff')
 JPEG_EXT = ('.jpg', '.jpeg')
@@ -72,30 +72,6 @@ NC = len(CONDITIONS)
 HEADS = ('ai', 'blur', 'jpeg', 'noise')
 
 
-def find_generators(root):
-    """(set, generator) -> {label: [paths]}. Handles both the flat layout and the
-    nested one (progan/stylegan/stylegan2/cyclegan/ddpm keep per-category
-    subdirectories); nested generators are pooled so each counts as ONE unit."""
-    gens = {}
-    for s in sorted(os.listdir(root)):
-        sd = os.path.join(root, s)
-        if not os.path.isdir(sd):
-            continue
-        for g in sorted(os.listdir(sd)):
-            gd = os.path.join(sd, g)
-            if not os.path.isdir(gd):
-                continue
-            per = {'0_real': [], '1_fake': []}
-            for dp, _, fn in os.walk(gd):
-                lab = ('0_real' if os.sep + '0_real' in dp + os.sep else
-                       '1_fake' if os.sep + '1_fake' in dp + os.sep else None)
-                if lab is None:
-                    continue
-                per[lab] += [os.path.join(dp, f) for f in fn
-                             if f.lower().endswith(IMG_EXT)]
-            if per['0_real'] or per['1_fake']:
-                gens[f"{s}/{g}"] = per
-    return gens
 
 
 class TenWayDataset(torch.utils.data.Dataset):
@@ -155,26 +131,28 @@ def main():
     random.seed(a.seed); np.random.seed(a.seed); torch.manual_seed(a.seed)
     dev = get_device(''); gpu = setup_cuda_perf(dev); use_amp = dev.type == 'cuda'
 
-    gens = find_generators(a.dataroot)
-    names = sorted(gens)
+    gens = sorted(discover_generators(a.dataroot), key=lambda g: g.key)
     samples, meta = [], []
-    for gi, g in enumerate(names):
+    for gi, gen in enumerate(gens):
         rnd = random.Random(a.seed + gi)
-        n_r = n_f = 0
-        jpeg_src = 0
-        for lab, ai in (('0_real', 0), ('1_fake', 1)):
-            files = sorted(gens[g][lab])
-            take = files if len(files) <= a.per_label \
-                else rnd.sample(files, a.per_label)
+        counts, jpeg_src = {}, 0
+        for lab, ai in zip(LABELS, (0, 1)):
+            # Pool the leaves: a nested generator (progan/car/..., ddpm/...) is
+            # ONE unit, so its categories are sampled from together.
+            files = sorted(os.path.join(leaf, lab, f)
+                           for leaf in gen.leaves
+                           if os.path.isdir(os.path.join(leaf, lab))
+                           for f in os.listdir(os.path.join(leaf, lab))
+                           if f.lower().endswith(IMG_EXT))
+            take = files if len(files) <= a.per_label else rnd.sample(files, a.per_label)
             for p in take:
                 samples.append((p, gi, ai))
                 jpeg_src += p.lower().endswith(JPEG_EXT)
-            if ai == 0:
-                n_r = len(take)
-            else:
-                n_f = len(take)
-        meta.append(dict(name=g, n_real=n_r, n_fake=n_f, jpeg_src=jpeg_src,
-                         short=(n_r < a.per_label or n_f < a.per_label)))
+            counts[lab] = len(take)
+        meta.append(dict(name=gen.key, n_real=counts[LABELS[0]],
+                         n_fake=counts[LABELS[1]], jpeg_src=jpeg_src,
+                         short=(min(counts.values()) < a.per_label)))
+    names = [m['name'] for m in meta]
 
     ds = TenWayDataset(samples, seed=a.seed)
     dl = torch.utils.data.DataLoader(ds, batch_size=a.batch_sources, shuffle=False,

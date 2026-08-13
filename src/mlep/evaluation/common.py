@@ -9,13 +9,13 @@ network. results/degradation_*_deg_baseline_2x2.pt carries
     heads       ['ai', 'blur', 'jpeg']      num_classes 3      in_channels 9
     cfg         {'window_sizes': [2], 'scales': [1.0, 0.5, 0.25]}
 
-so it emits three probabilities per image (experiments/degradation.py's SL_BIN:
+so it emits three probabilities per image (mlep/experiments/degradation.py's SL_BIN:
 logit 0 = AI-generated, 1 = blurred, 2 = JPEG-compressed) and has to be rebuilt
 from its own cfg. Pointing test.py at one of these fails on a shape mismatch in
 conv1 and fc1, which is what this module exists to get right in one place.
 
 Everything else is reused rather than reimplemented:
-  data.datasets.binary_dataset   the exact resize -> degrade -> crop -> flip ->
+  mlep.data.datasets.binary_dataset   the exact resize -> degrade -> crop -> flip ->
                                  ToTensor -> Normalize chain used everywhere else,
                                  so the images scored here are the kind the model
                                  was trained on
@@ -31,16 +31,21 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader, Subset
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if ROOT not in sys.path:
-    sys.path.insert(0, ROOT)
+# This file used to live in scripts/, one level below the repo root; under
+# src/mlep/evaluation/ it is three. MLEP_DATASETS_ROOT overrides the (60 GB)
+# dataset location for anyone keeping it on another volume.
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.dirname(os.path.abspath(__file__)))))
 
-from data.datasets import binary_dataset            # noqa: E402
-from networks.resnet import resnet50                # noqa: E402
+from mlep.data.datasets import binary_dataset            # noqa: E402
+from mlep.networks.resnet import resnet50                # noqa: E402
 
 LABELS = ('0_real', '1_fake')
-DEFAULT_DATAROOT = os.path.join(ROOT, 'datasets', 'TestDatasets')
-RESULTS_DIR = os.path.join(ROOT, 'TrainedModelResults')
+DEFAULT_DATAROOT = os.environ.get(
+    'MLEP_DATASETS_ROOT', os.path.join(ROOT, 'datasets', 'TestDatasets'))
+# Was TrainedModelResults/ at the repo root; folded into results/ so there is one
+# place for reports rather than two.
+RESULTS_DIR = os.path.join(ROOT, 'results', 'trained_model')
 
 # Which sets count as GAN vs diffusion for the best/worst split. Keyed on the set
 # directory name so adding GAN-set-2 later needs no code change.
@@ -52,8 +57,8 @@ DIFFUSION_SETS = ('Diffusion-set',)
 # perturbation ladder
 # --------------------------------------------------------------------------- #
 # prob=1.0 everywhere so each condition is deterministic (ALWAYS applied), the
-# convention test.py's CORRUPTIONS and experiment_windows.EVAL_SCENARIOS use. With
-# single-element blur_sig / jpg_qual / webp_qual lists, data.datasets'
+# convention test.py's CORRUPTIONS and mlep.harness.data.EVAL_SCENARIOS use. With
+# single-element blur_sig / jpg_qual / webp_qual lists, mlep.data.datasets'
 # sample_continuous / sample_discrete return that element outright, so there is no
 # RNG in the corruption at all.
 #
@@ -62,7 +67,7 @@ DIFFUSION_SETS = ('Diffusion-set',)
 # outputs interpretable against what the model was taught.
 #
 # WebP is Google's format and is the "google compression" arm. Note it was NOT in
-# the degradation training grid -- experiments/degradation.py degrades on blur x
+# the degradation training grid -- mlep/experiments/degradation.py degrades on blur x
 # jpeg only -- so these rows are an out-of-distribution probe, and how the *jpeg*
 # head answers them is the interesting part.
 PERTURBATIONS = {
@@ -135,7 +140,7 @@ class Generator:
     actually hold 0_real/1_fake.
 
     Two layouts occur and both are already normal for this project (see
-    data/__init__.py's get_dataset): flat -- biggan/{0_real,1_fake} -- and one
+    mlep/data/__init__.py's get_dataset): flat -- biggan/{0_real,1_fake} -- and one
     category level -- progan/car/{0_real,1_fake}, ddpm/google-ddpm-cat-256/... .
     Scoring each leaf and pooling the predictions gives exactly the generator-level
     acc/AP that concatenating them would, and yields per-category rows for free.
@@ -233,7 +238,7 @@ def discover_generators(dataroot, only_sets=None, only_generators=None, warn=pri
 # data
 # --------------------------------------------------------------------------- #
 class EvalOpt:
-    """The attribute bag data.datasets.binary_dataset reads.
+    """The attribute bag mlep.data.datasets.binary_dataset reads.
 
     isTrain=False fixes the chain to resize -> data_augment -> crop -> ToTensor ->
     Normalize with no flip, which is what DegradationDataset mirrors for its own
@@ -295,7 +300,7 @@ def predict(model, loader, device, use_amp=False):
     --deg_sev_weight>0 also carries 11 severity logits after them, which are not
     scored here.
     """
-    from experiment_windows import amp_autocast
+    from mlep.harness.device import amp_autocast
     n_heads = model.fc1.out_features if hasattr(model, 'fc1') else 1
     ys, ps = [], []
     for img, label in loader:
@@ -339,7 +344,7 @@ def score_generator(model, gen, opt, device, args, use_amp=False):
 def ai_metrics(y, p, ai_index):
     """acc + AP for the AI-vs-real head, via experiments.common.binary_metrics
     (whose pr_auc IS average_precision_score, the same AP test.py reports)."""
-    from experiments import common as C
+    from mlep.experiments import common as C
     m = C.binary_metrics(y, p[:, ai_index])
     return dict(n=m['n'], acc=m['acc'], ap=m['pr_auc'], roc_auc=m['roc_auc'],
                 real_acc=float((p[y == 0, ai_index] <= 0.5).mean()) if (y == 0).any() else float('nan'),

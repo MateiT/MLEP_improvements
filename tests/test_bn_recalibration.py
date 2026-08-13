@@ -25,9 +25,11 @@ import sys
 import torch
 import torch.nn as nn
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from experiment_windows import recalibrate_bn, best_threshold_acc   # noqa: E402
-from networks.resnet import resnet18                                # noqa: E402
+sys.path.insert(0, os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'src'))
+from mlep.harness.evaluate import best_threshold_acc
+from mlep.harness.model import recalibrate_bn
+from mlep.networks.resnet import resnet18                                # noqa: E402
 
 import numpy as np                                                  # noqa: E402
 

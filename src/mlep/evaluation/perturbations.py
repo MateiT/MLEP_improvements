@@ -1,9 +1,9 @@
 """Stress the four most interesting generators with increasing blur / JPEG / WebP.
 
-    python scripts/eval_perturbations.py                     # picks from the newest clean run
-    python scripts/eval_perturbations.py --clean_csv <path>   # or an explicit one
+    python python -m mlep.evaluation.perturbations                     # picks from the newest clean run
+    python python -m mlep.evaluation.perturbations --clean_csv <path>   # or an explicit one
 
-Reads the clean run's per-image predictions (scripts/eval_trained_model.py),
+Reads the clean run's per-image predictions (python -m mlep.evaluation.trained_model),
 ranks generators by AP, and takes the best AND worst GAN plus the best AND worst
 diffusion generator -- four in total. Those four are then re-scored under every
 condition in trained_eval_common.PERTURBATIONS:
@@ -15,7 +15,7 @@ condition in trained_eval_common.PERTURBATIONS:
 plus a clean row recomputed under the SAME image cap, so every delta is
 apples-to-apples rather than being read against the full-corpus clean number.
 
-Writes TrainedModelResults/perturbation_sweep_<stamp>.txt and _metrics.csv.
+Writes results/trained_model/perturbation_sweep_<stamp>.txt and _metrics.csv.
 """
 import argparse
 import csv
@@ -26,12 +26,11 @@ import time
 
 import numpy as np
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from experiments import common as C                             # noqa: E402
-from experiment_windows import get_device, setup_cuda_perf      # noqa: E402
-import scripts.trained_eval_common as T                         # noqa: E402
-from scripts.eval_trained_model import write_text, header       # noqa: E402
+from mlep.experiments import common as C                             # noqa: E402
+from mlep.harness.device import get_device, setup_cuda_perf
+from mlep.evaluation import common as T                         # noqa: E402
+from mlep.evaluation.trained_model import header, write_text
 
 
 def parse_args():
@@ -41,7 +40,7 @@ def parse_args():
     # pass's -- override with 0 to use every image.
     T.add_common_args(ap, default_max_per_label=500)
     ap.add_argument('--clean_csv', default='',
-                    help='clean predictions CSV; default = newest in TrainedModelResults')
+                    help='clean predictions CSV; default = newest in results/trained_model')
     ap.add_argument('--select_by', default='ap', choices=['ap', 'acc'],
                     help='metric used to rank best/worst (default ap)')
     ap.add_argument('--tag', default='perturbation')
@@ -52,8 +51,8 @@ def newest_clean_csv():
     hits = sorted(glob.glob(os.path.join(T.RESULTS_DIR, '*_predictions_*.csv')),
                   key=os.path.getmtime, reverse=True)
     if not hits:
-        raise SystemExit("No *_predictions_*.csv in TrainedModelResults -- run "
-                         "scripts/eval_trained_model.py first, or pass --clean_csv.")
+        raise SystemExit("No *_predictions_*.csv in results/trained_model -- run "
+                         "python -m mlep.evaluation.trained_model first, or pass --clean_csv.")
     return hits[0]
 
 

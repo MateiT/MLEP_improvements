@@ -23,10 +23,11 @@ from collections import Counter
 
 import torch
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from networks.resnet import (entropy_max, parse_entropy_mode,        # noqa: E402
+sys.path.insert(0, os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'src'))
+from mlep.networks.resnet import (entropy_max, parse_entropy_mode,        # noqa: E402
                              resnet18)
-from experiments.entropy import ENTROPY_CONFIGS                      # noqa: E402
+from mlep.experiments.entropy import ENTROPY_CONFIGS                      # noqa: E402
 
 
 def build(mode='shannon', window_sizes=(2,), scales=(1.0,), **kw):
@@ -229,7 +230,7 @@ def test_perm_requires_a_window_of_at_least_three():
 
 
 def test_every_entropy_config_builds_and_runs():
-    from experiment_windows import build_model
+    from mlep.harness.model import build_model
     from types import SimpleNamespace                          # noqa: F401
     x = quantised_image(batch=2, size=64)
     for name, cfg in ENTROPY_CONFIGS.items():

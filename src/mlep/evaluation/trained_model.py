@@ -1,15 +1,15 @@
 """Score a trained MLEP checkpoint on every test-set generator, on CLEAN images.
 
-    python scripts/eval_trained_model.py                      # all generators, all images
-    python scripts/eval_trained_model.py --max_per_label 50    # plumbing smoke test
+    python python -m mlep.evaluation.trained_model                      # all generators, all images
+    python python -m mlep.evaluation.trained_model --max_per_label 50    # plumbing smoke test
 
-Clean means blur_prob = jpg_prob = webp_prob = 0, so data.datasets.data_augment
+Clean means blur_prob = jpg_prob = webp_prob = 0, so mlep.data.datasets.data_augment
 short-circuits and returns the PIL image untouched. Nothing is blurred or
 recompressed by us on this pass -- which is the point: the checkpoint has 'blur'
 and 'jpeg' heads alongside 'ai', and on undegraded input those two should stay
 quiet. The second report below is what turns that expectation into numbers.
 
-Writes into TrainedModelResults/:
+Writes into results/trained_model/:
     clean_acc_ap_<stamp>.txt             acc + AP per generator (the headline)
     clean_acc_ap_<stamp>_metrics.csv     same, plus per-category rows
     clean_head_activation_<stamp>.txt    blur / jpeg head response on clean input
@@ -27,11 +27,10 @@ import time
 import numpy as np
 import torch
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from experiments import common as C                 # noqa: E402
-from experiment_windows import get_device, setup_cuda_perf   # noqa: E402
-import scripts.trained_eval_common as T            # noqa: E402
+from mlep.experiments import common as C                 # noqa: E402
+from mlep.harness.device import get_device, setup_cuda_perf
+from mlep.evaluation import common as T            # noqa: E402
 
 
 def parse_args():
