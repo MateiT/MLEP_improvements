@@ -149,6 +149,14 @@ def test_fixes_a_displaced_decision_boundary():
     """End-to-end: give the model BN stats that displace every logit to one side,
     then check recalibration brings them back. This is the observed failure in
     miniature -- perfect ranking, chance accuracy."""
+    # Seed HERE rather than relying on the caller. The __main__ block below seeds
+    # once and runs the tests in a fixed order, so this test used to inherit the
+    # RNG state left by the three before it; under pytest, which does not, the
+    # untrained model came out with a small enough weight scale that the
+    # displacement below no longer cleared the logit spread and the setup
+    # assertion failed. Seeding per test makes both runners agree and removes the
+    # order dependency (verified: the assertion holds for seeds 0/1/2/3/100).
+    torch.manual_seed(0)
     model = build()
     data = batches(8)
     cpu = torch.device('cpu')
